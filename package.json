@@ -1,0 +1,46 @@
+{
+  "name": "subtitler",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "res:build": "rescript",
+    "res:clean": "rescript clean",
+    "dev": "concurrently -r 'rescript -w'  'vite'",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.0.4",
+    "@heroicons/react": "^2.1.4",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@rescript/core": "1.4.0",
+    "@rescript/react": "^0.12.1",
+    "@types/react": "^18.3.3",
+    "@xenova/transformers": "^2.17.2",
+    "babel-plugin-react-compiler": "^0.0.0-experimental-938cd9a-20240601",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "concurrently": "^8.2.2",
+    "file-saver": "^2.0.5",
+    "mp4-muxer": "^4.2.0",
+    "mp4box": "^0.5.2",
+    "react": "^19.0.0-rc-fb9a90fa48-20240614",
+    "react-dom": "^19.0.0-rc-fb9a90fa48-20240614",
+    "react-dropzone": "^14.2.3",
+    "rescript": "11.1.1",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.28",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.0.6"
+  },
+  "resolutions": {
+    "wrap-ansi": "7.0.0",
+    "string-width": "4.1.0"
+  }
+}
