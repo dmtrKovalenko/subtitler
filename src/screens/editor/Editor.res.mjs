@@ -11,6 +11,7 @@ import * as Belt_Option from "rescript/lib/es6/belt_Option.js";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
 import * as StyleEditor from "./StyleEditor/StyleEditor.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
+import * as EditorCanvas from "./EditorCanvas.res.mjs";
 import * as EditorContext from "./EditorContext.res.mjs";
 import * as UseEditorLayout from "../../hooks/useEditorLayout.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
@@ -59,19 +60,32 @@ function Editor(props) {
                                                 style: UseEditorLayout.sizeToStyle(size)
                                               });
                                   })), null),
-                        JsxRuntime.jsx("div", {
-                              children: JsxRuntime.jsx("canvas", {
-                                    ref: Caml_option.some(ctx.canvasRef),
-                                    className: "bg-black origin-top-left",
-                                    id: "editor-preview",
-                                    style: {
-                                      height: ctx.videoMeta.height.toString() + "px",
-                                      width: ctx.videoMeta.width.toString() + "px",
-                                      transform: "scale(" + layout.preview.scale.toString() + ")"
-                                    },
-                                    height: ctx.videoMeta.height.toString(),
-                                    width: ctx.videoMeta.width.toString()
-                                  }),
+                        JsxRuntime.jsxs("div", {
+                              children: [
+                                JsxRuntime.jsx("canvas", {
+                                      ref: Caml_option.some(ctx.canvasRef),
+                                      className: "bg-black origin-top-left absolute left-0 top-0",
+                                      id: "editor-preview",
+                                      style: {
+                                        height: ctx.videoMeta.height.toString() + "px",
+                                        width: ctx.videoMeta.width.toString() + "px",
+                                        transform: "scale(" + layout.preview.scale.toString() + ")"
+                                      },
+                                      height: ctx.videoMeta.height.toString(),
+                                      width: ctx.videoMeta.width.toString()
+                                    }),
+                                JsxRuntime.jsx(EditorCanvas.make, {
+                                      width: ctx.videoMeta.width,
+                                      height: ctx.videoMeta.height,
+                                      style: {
+                                        height: ctx.videoMeta.height.toString() + "px",
+                                        width: ctx.videoMeta.width.toString() + "px",
+                                        transform: "scale(" + layout.preview.scale.toString() + ")"
+                                      },
+                                      className: "bg-transparent origin-top-left absolute left-0 top-0",
+                                      subtitles: subtitles
+                                    })
+                              ],
                               className: "relative",
                               style: UseEditorLayout.sizeToStyle(layout.preview)
                             })

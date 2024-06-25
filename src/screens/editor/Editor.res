@@ -59,7 +59,19 @@ let make = (~subtitles) => {
             ~transform=`scale(${layout.preview.scale->Js.Float.toString})`,
             (),
           )}
-          className="bg-black origin-top-left"
+          className="bg-black origin-top-left absolute left-0 top-0"
+        />
+        <EditorCanvas
+          subtitles
+          width=ctx.videoMeta.width
+          height=ctx.videoMeta.height
+          style={ReactDOMStyle.make(
+            ~width=`${ctx.videoMeta.width->Int.toString}px`,
+            ~height=`${ctx.videoMeta.height->Int.toString}px`,
+            ~transform=`scale(${layout.preview.scale->Js.Float.toString})`,
+            (),
+          )}
+          className="bg-transparent origin-top-left absolute left-0 top-0"
         />
       </div>
     </div>

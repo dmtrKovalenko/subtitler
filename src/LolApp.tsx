@@ -92,7 +92,20 @@ export default function App() {
     return "Processing Audio";
   }, [transcriber.isModelLoading, transcriber.isBusy]);
 
-  const outputRef = React.useRef<TranscriberData["chunks"]>([]);
+  const outputRef = React.useRef<TranscriberData["chunks"]>([
+    {
+      text: "Hello, world!",
+      timestamp: [0, 1],
+    },
+    {
+      text: "This is a test subtitle",
+      timestamp: [2, 4],
+    },
+    {
+      text: "This is a test subtitle",
+      timestamp: [4, null],
+    },
+  ]);
   if (transcriber.output?.chunks) {
     outputRef.current = transcriber.output.chunks;
   }
@@ -142,22 +155,7 @@ export default function App() {
       {EditorContext && (
         <EditorContext.make>
           {/**<Editor subtitles={transcriber.output?.chunks} />*/}
-          <Editor
-            subtitles={[
-              {
-                text: "Hello, world!",
-                timestamp: [0, 1000],
-              },
-              {
-                text: "This is a test subtitle",
-                timestamp: [1000, 2000],
-              },
-              {
-                text: "This is a test subtitle",
-                timestamp: [2000, null],
-              },
-            ]}
-          />
+          <Editor subtitles={outputRef.current} />
         </EditorContext.make>
       )}
     </>

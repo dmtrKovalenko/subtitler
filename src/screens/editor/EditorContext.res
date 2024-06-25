@@ -14,6 +14,7 @@ type editorContext = {
 let editorContext = React.createContext(None)
 let providerElement = React.Context.provider(editorContext)
 
+@genType
 let useEditorContext = () => {
   let context = React.useContext(editorContext)
 
@@ -72,7 +73,7 @@ module type ReactComponent = {
 let makeEditorContextComponent = (
   ~videoMeta: Types.videoMeta,
   ~videoElement: React.ref<Webapi.Dom.Element.t>,
-  ~subtitlesRef: array<Types.subtitleCue>,
+  ~subtitlesRef: array<Subtitles.subtitleCue>,
   ~canvasRef: React.ref<Js.nullable<Webapi.Dom.Element.t>>,
 ): module(ReactComponent) => {
   module Ctx: Types.Ctx = {

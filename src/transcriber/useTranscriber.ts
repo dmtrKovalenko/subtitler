@@ -127,9 +127,8 @@ export function useTranscriber(): Transcriber {
         );
         break;
 
-      default:
-        // initiate/download/done
-        break;
+        // initate/dwnload/done the
+        deault: break;
     }
   });
 

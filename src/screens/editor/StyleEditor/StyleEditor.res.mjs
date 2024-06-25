@@ -57,47 +57,50 @@ function $$parseInt(value) {
 }
 
 function StyleEditor(props) {
-  var style = Renderer.useObservable();
+  var style = Renderer.useStyle();
   return JsxRuntime.jsxs("div", {
               children: [
                 JsxRuntime.jsxs("div", {
                       children: [
                         JsxRuntime.jsx(Input.make, {
+                              label: "Y coordinate",
                               value: String(style.x),
                               className: "w-full",
                               labelHidden: true,
                               adornment: "X",
-                              label: "Y coordinate",
                               onChange: (function (value) {
                                   Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                               return {
-                                                      TAG: "SetX",
-                                                      _0: val
+                                                      TAG: "SetPosition",
+                                                      _0: val,
+                                                      _1: style.y
                                                     };
                                             })), Renderer.dispatch);
-                                })
+                                }),
+                              min: "0"
                             }),
                         JsxRuntime.jsx(Input.make, {
+                              label: "X coordinate",
                               value: String(style.y),
                               className: "w-full",
                               labelHidden: true,
                               adornment: "Y",
-                              label: "X coordinate",
                               onChange: (function (value) {
                                   Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                               return {
-                                                      TAG: "SetY",
-                                                      _0: val
+                                                      TAG: "SetPosition",
+                                                      _0: style.x,
+                                                      _1: val
                                                     };
                                             })), Renderer.dispatch);
                                 })
                             }),
                         JsxRuntime.jsx(Input.make, {
-                              value: String(style.blockWidth),
+                              label: "Width",
+                              value: String(style.blockSize.width),
                               className: "w-full",
                               labelHidden: true,
                               adornment: "W",
-                              label: "Width",
                               onChange: (function (value) {
                                   Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                               return {
@@ -108,11 +111,11 @@ function StyleEditor(props) {
                                 })
                             }),
                         JsxRuntime.jsx(Input.make, {
-                              value: String(style.blockHeight),
+                              label: "Height",
+                              value: String(style.blockSize.height),
                               className: "w-full",
                               labelHidden: true,
                               adornment: "H",
-                              label: "Height",
                               onChange: (function (value) {
                                   Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                               return {
@@ -123,12 +126,12 @@ function StyleEditor(props) {
                                 })
                             })
                       ],
-                      className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-4 bg-white/5 p-3 w-full"
+                      className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full"
                     }),
                 JsxRuntime.jsxs("div", {
                       children: [
                         JsxRuntime.jsxs(React.Field, {
-                              className: "col-span-4",
+                              className: "col-span-3",
                               children: [
                                 JsxRuntime.jsx(Input.Label.make, {
                                       children: "Font",
@@ -140,26 +143,50 @@ function StyleEditor(props) {
                                       loading: Caml_option.some(JsxRuntime.jsx("div", {
                                                 children: "Inter",
                                                 className: "py-0.5 pl-3 font-light text-white text-base"
-                                              }))
+                                              })),
+                                      value: (function (val) {
+                                          Renderer.dispatch({
+                                                TAG: "SetFontFamily",
+                                                _0: val
+                                              });
+                                        })
                                     })
                               ]
                             }),
-                        JsxRuntime.jsx(Input.make, {
-                              type_: "color",
-                              className: "w-full col-span-1",
-                              label: "Fill",
-                              onChange: (function (value) {
-                                  Renderer.dispatch({
-                                        TAG: "SetColor",
-                                        _0: value
-                                      });
-                                })
+                        JsxRuntime.jsxs("div", {
+                              children: [
+                                JsxRuntime.jsx(Input.make, {
+                                      label: "Fill",
+                                      value: style.color,
+                                      type_: "color",
+                                      className: "w-full col-span-1 flex-1",
+                                      onChange: (function (value) {
+                                          Renderer.dispatch({
+                                                TAG: "SetColor",
+                                                _0: value
+                                              });
+                                        })
+                                    }),
+                                JsxRuntime.jsx(Input.make, {
+                                      label: "Stroke",
+                                      value: Core__Option.getOr(style.strokeColor, style.color),
+                                      type_: "color",
+                                      className: "w-full col-span-1 flex-1",
+                                      onChange: (function (value) {
+                                          Renderer.dispatch({
+                                                TAG: "SetStrokeColor",
+                                                _0: value
+                                              });
+                                        })
+                                    })
+                              ],
+                              className: "flex gap-2 col-span-3"
                             }),
                         JsxRuntime.jsxs(React.Field, {
                               className: "col-span-3",
                               children: [
                                 JsxRuntime.jsx(Input.Label.make, {
-                                      children: "Text Align",
+                                      children: "Font weight",
                                       className: "whitespace-nowrap"
                                     }),
                                 JsxRuntime.jsx(Combobox.make, {
@@ -183,8 +210,10 @@ function StyleEditor(props) {
                               ]
                             }),
                         JsxRuntime.jsx(Input.make, {
-                              value: String(style.fontSizePx),
                               label: "Size",
+                              value: String(style.fontSizePx),
+                              type_: "number",
+                              className: "min-w-[4ch]",
                               onChange: (function (value) {
                                   Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                               return {
@@ -192,13 +221,15 @@ function StyleEditor(props) {
                                                       _0: val
                                                     };
                                             })), Renderer.dispatch);
-                                })
+                                }),
+                              min: "0",
+                              max: "999"
                             }),
                         JsxRuntime.jsxs(React.Field, {
                               className: "col-span-2",
                               children: [
                                 JsxRuntime.jsx(Input.Label.make, {
-                                      children: "Text Align",
+                                      children: "Text align",
                                       className: "whitespace-nowrap"
                                     }),
                                 JsxRuntime.jsxs(ToggleButton.Group.make, {
@@ -210,11 +241,15 @@ function StyleEditor(props) {
                                               value: "Left"
                                             }),
                                         JsxRuntime.jsx(ToggleButton.Button.make, {
-                                              children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3Icon, {})),
+                                              children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3Icon, {
+                                                        className: "size-4"
+                                                      })),
                                               value: "Center"
                                             }),
                                         JsxRuntime.jsx(ToggleButton.Button.make, {
-                                              children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomRightIcon, {})),
+                                              children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomRightIcon, {
+                                                        className: "size-4"
+                                                      })),
                                               value: "Right"
                                             })
                                       ],
@@ -229,7 +264,7 @@ function StyleEditor(props) {
                               ]
                             })
                       ],
-                      className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-4 bg-white/5 p-3 w-full"
+                      className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full"
                     })
               ],
               className: "flex flex-col gap-6"

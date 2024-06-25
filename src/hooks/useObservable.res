@@ -53,6 +53,7 @@ module Pubsub = (Init: PubsubInit) => {
     }
   }
 
+  @genType
   let useObservable = () => {
     let (_, forceUpdate) = React.useReducer((x, _) => x + 1, 0)
 

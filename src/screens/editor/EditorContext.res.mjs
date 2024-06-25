@@ -76,6 +76,7 @@ function makeEditorContextComponent(videoMeta, videoElement, subtitlesRef, canva
     videoElement: videoElement$1,
     videoMeta: videoMeta,
     canvasRef: canvasRef,
+    subtitlesRef: subtitlesRef,
     renderVideoFrame: renderVideoFrame
   };
   var PlayerObserver = Player.MakePlayer(Ctx);

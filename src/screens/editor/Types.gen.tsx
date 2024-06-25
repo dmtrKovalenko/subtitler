@@ -8,5 +8,3 @@ export type videoMeta = {
   readonly height: number; 
   readonly duration: number
 };
-
-export type subtitleCue = { readonly text: string; readonly timestamp: [number, (null | undefined | number)] };

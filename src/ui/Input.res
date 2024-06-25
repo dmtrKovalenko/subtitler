@@ -20,13 +20,15 @@ module Label = {
 
 @react.component
 let make = (
-  ~value: string=?,
-  ~type_: string=?,
+  ~label,
+  ~value: option<string>=?,
+  ~type_: option<string>=?,
   ~className=?,
   ~labelHidden=?,
   ~adornment=?,
-  ~label,
   ~onChange=?,
+  ~min=?,
+  ~max=?,
 ) => {
   <Field className={className->Option.getOr("")}>
     <Label className={Cx.cx([labelHidden->Option.getOr(false) ? "sr-only" : ""])}>
@@ -42,6 +44,8 @@ let make = (
       })
       ->Option.getOr(React.null)}
       <input
+        min={min->Option.getOr("")}
+        max={max->Option.getOr("")}
         type_={type_->Option.getOr("text")}
         value={value->Option.getOr(%raw("undefined"))}
         onChange={(e: JsxEvent.Form.t) => {

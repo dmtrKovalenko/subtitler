@@ -44,7 +44,7 @@ function useEditorLayout(isFullScreen) {
                           mediaControls: undefined
                         };
                 } else {
-                  var previewSize = calculatePreviewSize(viewportSize, videoMeta, 370, 450);
+                  var previewSize = calculatePreviewSize(viewportSize, videoMeta, 400, 450);
                   return {
                           preview: previewSize,
                           timeLine: {
@@ -68,7 +68,7 @@ function useEditorLayout(isFullScreen) {
 
 var min_timeline_height = 450;
 
-var min_media_controls_width = 370;
+var min_media_controls_width = 400;
 
 var emptySize = {
   height: 0.0,

@@ -1,3 +1,5 @@
+open Subtitles
+
 type playState = Playing | Paused | WaitingForAction | CantPlay
 
 /// This state should only contain a state that changes that affect the animation runtime or will likely change 60 t/s
@@ -6,6 +8,7 @@ type state = {
   frame: float,
   startPlayingFrame: float,
   playState: playState,
+  currentPlayingCue: option<currentPlayingCue>,
   volume: option<int>,
 }
 
@@ -40,6 +43,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
       frame: 0.,
       startPlayingFrame: 0.,
       playState: Paused,
+      currentPlayingCue: lookupCurrentCue(~timestamp=0., ~subtitles=Ctx.subtitlesRef),
       volume,
     }
   }
@@ -64,13 +68,20 @@ module MakePlayer = (Ctx: Types.Ctx) => {
         playState: Paused,
         startPlayingFrame: frame,
       }
-    | Seek(frame) | NewFrame(frame) => {
+    | Seek(frame) => {
         ...state,
         frame,
-        startPlayingFrame: switch action {
-        | Seek(frame) => frame
-        | _ => state.startPlayingFrame
-        },
+        startPlayingFrame: frame,
+        currentPlayingCue: lookupCurrentCue(~timestamp=frame, ~subtitles=Ctx.subtitlesRef),
+      }
+    | NewFrame(frame) => {
+        ...state,
+        frame,
+        currentPlayingCue: resolveCurrentSubtitle(
+          ~timestamp=frame,
+          ~subtitles=Ctx.subtitlesRef,
+          ~prevCue=state.currentPlayingCue,
+        ),
       }
     | AllowPlay => {...state, playState: WaitingForAction}
     | Play if state.frame <= 0. || state.frame >= Ctx.videoMeta.duration => {

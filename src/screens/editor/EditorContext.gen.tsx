@@ -13,7 +13,7 @@ import type {renderVideoFrame as Types_renderVideoFrame} from './Types.gen';
 
 import type {state as Player_state} from '../../../src/Player.gen';
 
-import type {subtitleCue as Types_subtitleCue} from './Types.gen';
+import type {subtitleCue as Subtitles_subtitleCue} from './Subtitles.gen';
 
 import type {videoMeta as Types_videoMeta} from './Types.gen';
 
@@ -30,4 +30,6 @@ export type editorContext = {
 
 export type ReactComponent_props<children> = { readonly children: children };
 
-export const makeEditorContextComponent: (videoMeta:Types_videoMeta, videoElement:{ current: (null | Webapi_Dom_Element_t) }, subtitlesRef:Types_subtitleCue[], canvasRef:{ current: (null | (null | undefined | Webapi_Dom_Element_t)) }) => { readonly make: (_1:ReactComponent_props<JSX.Element>) => JSX.Element } = EditorContextJS.makeEditorContextComponent as any;
+export const useEditorContext: () => editorContext = EditorContextJS.useEditorContext as any;
+
+export const makeEditorContextComponent: (videoMeta:Types_videoMeta, videoElement:{ current: (null | Webapi_Dom_Element_t) }, subtitlesRef:Subtitles_subtitleCue[], canvasRef:{ current: (null | (null | undefined | Webapi_Dom_Element_t)) }) => { readonly make: (_1:ReactComponent_props<JSX.Element>) => JSX.Element } = EditorContextJS.makeEditorContextComponent as any;

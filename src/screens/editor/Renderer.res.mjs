@@ -5,33 +5,17 @@ import * as UseObservable from "../../hooks/useObservable.res.mjs";
 
 function reducer(state, action) {
   switch (action.TAG) {
-    case "SetX" :
+    case "SetPosition" :
         return {
                 x: action._0,
-                y: state.y,
+                y: action._1,
                 fontFamily: state.fontFamily,
                 fontWeight: state.fontWeight,
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
-              };
-    case "SetY" :
-        return {
-                x: state.x,
-                y: action._0,
-                fontFamily: state.fontFamily,
-                fontWeight: state.fontWeight,
-                fontSizePx: state.fontSizePx,
-                color: state.color,
-                strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetFontFamily" :
         return {
@@ -42,10 +26,8 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetFontWeight" :
         return {
@@ -56,10 +38,8 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetFontSizePx" :
         return {
@@ -70,10 +50,8 @@ function reducer(state, action) {
                 fontSizePx: action._0,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetColor" :
         return {
@@ -84,10 +62,8 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: action._0,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetStrokeColor" :
         return {
@@ -98,24 +74,8 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: action._0,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
-              };
-    case "SetStrokeWidth" :
-        return {
-                x: state.x,
-                y: state.y,
-                fontFamily: state.fontFamily,
-                fontWeight: state.fontWeight,
-                fontSizePx: state.fontSizePx,
-                color: state.color,
-                strokeColor: state.strokeColor,
-                strokeWidth: action._0,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: state.blockSize
               };
     case "SetBlockWidth" :
         return {
@@ -126,10 +86,11 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: action._0,
-                blockHeight: state.blockHeight,
-                align: state.align
+                align: state.align,
+                blockSize: {
+                  width: action._0,
+                  height: state.blockSize.height
+                }
               };
     case "SetBlockHeight" :
         return {
@@ -140,10 +101,11 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: action._0,
-                align: state.align
+                align: state.align,
+                blockSize: {
+                  width: state.blockSize.width,
+                  height: action._0
+                }
               };
     case "SetAlign" :
         return {
@@ -154,35 +116,46 @@ function reducer(state, action) {
                 fontSizePx: state.fontSizePx,
                 color: state.color,
                 strokeColor: state.strokeColor,
-                strokeWidth: state.strokeWidth,
-                blockWidth: state.blockWidth,
-                blockHeight: state.blockHeight,
-                align: action._0
+                align: action._0,
+                blockSize: state.blockSize
+              };
+    case "Resize" :
+        return {
+                x: state.x,
+                y: state.y,
+                fontFamily: state.fontFamily,
+                fontWeight: state.fontWeight,
+                fontSizePx: state.fontSizePx,
+                color: state.color,
+                strokeColor: state.strokeColor,
+                align: state.align,
+                blockSize: action._0
               };
     
   }
 }
 
-var Observer_initial = {
+var RendererObservable_initial = {
   x: 0,
   y: 0,
-  fontFamily: "Arial",
+  fontFamily: "Inter",
   fontWeight: 400,
-  fontSizePx: 16,
-  color: "#fff",
-  strokeColor: "black",
-  strokeWidth: 0,
-  blockWidth: 0,
-  blockHeight: 0,
-  align: "Center"
+  fontSizePx: 44,
+  color: "#ffffff",
+  strokeColor: undefined,
+  align: "Center",
+  blockSize: {
+    width: 200,
+    height: 44
+  }
 };
 
-var Observer = {
-  initial: Observer_initial,
+var RendererObservable = {
+  initial: RendererObservable_initial,
   reducer: reducer
 };
 
-var include = UseObservable.MakeObserver(Observer);
+var Observer = UseObservable.MakeObserver(RendererObservable);
 
 function renderVideoFrame(videoMeta, videoElement) {
   return function (ctx, dx, dy, dirtyWidth, dirtyHeight) {
@@ -190,20 +163,15 @@ function renderVideoFrame(videoMeta, videoElement) {
   };
 }
 
-var dispatch = include.dispatch;
+var useStyle = Observer.useObservable;
 
-var get = include.get;
-
-var subscribe = include.subscribe;
-
-var useObservable = include.useObservable;
+var dispatch = Observer.dispatch;
 
 export {
+  RendererObservable ,
   Observer ,
+  useStyle ,
   dispatch ,
-  get ,
-  subscribe ,
-  useObservable ,
   renderVideoFrame ,
 }
-/* include Not a pure module */
+/* Observer Not a pure module */

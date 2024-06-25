@@ -30,7 +30,9 @@ export default function Tabs({ tabs, defaultIndex, className }: TabsProps) {
       </TabList>
       <TabPanels className="mt-3 w-full">
         {tabs.map(({ content, id }) => (
-          <TabPanel key={id}>{content}</TabPanel>
+          <TabPanel as={React.Fragment} key={id}>
+            {content}
+          </TabPanel>
         ))}
       </TabPanels>
     </TabGroup>

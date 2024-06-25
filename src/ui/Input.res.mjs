@@ -47,6 +47,8 @@ function Input(props) {
                                     "block w-full rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",
                                     Core__Option.isSome(adornment) ? "pl-12" : ""
                                   ]),
+                              max: Core__Option.getOr(props.max, ""),
+                              min: Core__Option.getOr(props.min, ""),
                               type: Core__Option.getOr(props.type_, "text"),
                               value: Core__Option.getOr(props.value, undefined),
                               onChange: (function (e) {

@@ -13,6 +13,11 @@ type fontWeight =
   | @as(800) ExtraBold
   | @as(900) Black
 
+type size = {
+  width: int,
+  height: int,
+}
+
 type rendererState = {
   x: int,
   y: int,
@@ -20,27 +25,24 @@ type rendererState = {
   fontWeight: fontWeight,
   fontSizePx: int,
   color: string,
-  strokeColor: string,
-  strokeWidth: int,
-  blockWidth: int,
-  blockHeight: int,
+  strokeColor: option<string>,
   align: align,
+  blockSize: size,
 }
 
 type rendererAction =
-  | SetX(int)
-  | SetY(int)
+  | SetPosition(int, int)
   | SetFontFamily(string)
   | SetFontWeight(fontWeight)
   | SetFontSizePx(int)
   | SetColor(string)
   | SetStrokeColor(string)
-  | SetStrokeWidth(int)
   | SetBlockWidth(int)
   | SetBlockHeight(int)
   | SetAlign(align)
+  | Resize(size)
 
-module Observer: UseObservable.Observable
+module RendererObservable: UseObservable.Observable
   with type t = rendererState
   and type action = rendererAction = {
   type t = rendererState
@@ -49,34 +51,42 @@ module Observer: UseObservable.Observable
   let initial = {
     x: 0,
     y: 0,
-    fontFamily: "Arial",
+    fontFamily: "Inter",
     fontWeight: Regular,
-    fontSizePx: 16,
-    color: "#fff",
-    strokeColor: "black",
-    strokeWidth: 0,
-    blockWidth: 0,
-    blockHeight: 0,
+    fontSizePx: 44,
+    color: "#ffffff",
+    strokeColor: None,
+    blockSize: {width: 200, height: 44},
     align: Center,
   }
 
   let reducer = (state, action) =>
     switch action {
-    | SetX(x) => {...state, x}
-    | SetY(y) => {...state, y}
+    | SetPosition(x, y) => {...state, x, y}
     | SetFontFamily(fontFamily) => {...state, fontFamily}
     | SetFontWeight(fontWeight) => {...state, fontWeight}
     | SetFontSizePx(fontSizePx) => {...state, fontSizePx}
     | SetColor(color) => {...state, color}
-    | SetStrokeColor(strokeColor) => {...state, strokeColor}
-    | SetStrokeWidth(strokeWidth) => {...state, strokeWidth}
-    | SetBlockWidth(blockWidth) => {...state, blockWidth}
-    | SetBlockHeight(blockHeight) => {...state, blockHeight}
+    | SetStrokeColor(strokeColor) => {...state, strokeColor: Some(strokeColor)}
+    | SetBlockWidth(blockWidth) => {
+        ...state,
+        blockSize: {width: blockWidth, height: state.blockSize.height},
+      }
+    | SetBlockHeight(blockHeight) => {
+        ...state,
+        blockSize: {width: state.blockSize.width, height: blockHeight},
+      }
     | SetAlign(align) => {...state, align}
+    | Resize(size) => {...state, blockSize: size}
     }
 }
 
-include UseObservable.MakeObserver(Observer)
+module Observer = UseObservable.MakeObserver(RendererObservable)
+
+@genType
+let useStyle = Observer.useObservable
+@genType
+let dispatch = Observer.dispatch
 
 @send
 external drawVideoImage: (
@@ -88,7 +98,7 @@ external drawVideoImage: (
   ~dirtyHeight: int=?,
 ) => unit = "drawImage"
 
-let renderVideoFrame = (videoMeta, videoElement) => (
+let renderVideoFrame = (videoMeta: Types.videoMeta, videoElement) => (
   ctx,
   ~dx=?,
   ~dy=?,

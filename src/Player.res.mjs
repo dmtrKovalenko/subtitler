@@ -2,6 +2,7 @@
 
 import * as Utils from "./Utils.res.mjs";
 import * as Belt_Int from "rescript/lib/es6/belt_Int.js";
+import * as Subtitles from "./screens/editor/Subtitles.res.mjs";
 import * as Dom_storage from "rescript/lib/es6/dom_storage.js";
 import * as UseObservable from "./hooks/useObservable.res.mjs";
 
@@ -14,10 +15,12 @@ var validateVolume = Utils.$$Math.minMax(0, 100);
 function MakePlayer(Ctx) {
   var savedValue = Dom_storage.getItem("subtitles_volume", localStorage);
   var volume = savedValue !== undefined ? Belt_Int.fromString(savedValue) : 60;
+  var initial_currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef, 0);
   var initial = {
     frame: 0,
     startPlayingFrame: 0,
     playState: "Paused",
+    currentPlayingCue: initial_currentPlayingCue,
     volume: volume
   };
   var PlayerState = {
@@ -46,6 +49,7 @@ function MakePlayer(Ctx) {
                     frame: state.frame,
                     startPlayingFrame: state.startPlayingFrame,
                     playState: "WaitingForAction",
+                    currentPlayingCue: state.currentPlayingCue,
                     volume: state.volume
                   };
         case "Play" :
@@ -54,6 +58,7 @@ function MakePlayer(Ctx) {
                       frame: 0,
                       startPlayingFrame: state.startPlayingFrame,
                       playState: "Playing",
+                      currentPlayingCue: state.currentPlayingCue,
                       volume: state.volume
                     };
             } else {
@@ -61,6 +66,7 @@ function MakePlayer(Ctx) {
                       frame: state.frame,
                       startPlayingFrame: state.frame,
                       playState: "Playing",
+                      currentPlayingCue: state.currentPlayingCue,
                       volume: state.volume
                     };
             }
@@ -69,6 +75,7 @@ function MakePlayer(Ctx) {
                     frame: state.frame,
                     startPlayingFrame: state.startPlayingFrame,
                     playState: "Paused",
+                    currentPlayingCue: state.currentPlayingCue,
                     volume: state.volume
                   };
         
@@ -83,6 +90,7 @@ function MakePlayer(Ctx) {
                     frame: state.frame,
                     startPlayingFrame: state.startPlayingFrame,
                     playState: state.playState,
+                    currentPlayingCue: state.currentPlayingCue,
                     volume: action._0
                   };
         
@@ -94,17 +102,31 @@ function MakePlayer(Ctx) {
               frame: 0,
               startPlayingFrame: frame,
               playState: "Paused",
+              currentPlayingCue: state.currentPlayingCue,
               volume: state.volume
             };
     }
-    var tmp;
-    tmp = typeof action !== "object" || action.TAG !== "Seek" ? state.startPlayingFrame : action._0;
-    return {
-            frame: action._0,
-            startPlayingFrame: tmp,
-            playState: state.playState,
-            volume: state.volume
-          };
+    if (typeof action === "object") {
+      if (action.TAG === "Seek") {
+        var frame$1 = action._0;
+        return {
+                frame: frame$1,
+                startPlayingFrame: frame$1,
+                playState: state.playState,
+                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef, frame$1),
+                volume: state.volume
+              };
+      }
+      var frame$2 = action._0;
+      return {
+              frame: frame$2,
+              startPlayingFrame: state.startPlayingFrame,
+              playState: state.playState,
+              currentPlayingCue: Subtitles.resolveCurrentSubtitle(frame$2, Ctx.subtitlesRef, state.currentPlayingCue),
+              volume: state.volume
+            };
+    }
+    
   };
   var onFrame = function (dispatch) {
     renderFrame();

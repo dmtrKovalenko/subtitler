@@ -25,7 +25,7 @@ module TimestampEditor = {
 }
 
 @react.component
-let make = (~chunk: Types.subtitleCue) => {
+let make = (~chunk: Subtitles.subtitleCue) => {
   let (start, end) = chunk.timestamp
   <div
     className="gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900">

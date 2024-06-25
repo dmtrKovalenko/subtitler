@@ -32,21 +32,22 @@ let parseInt = value =>
 
 @react.component
 let make = () => {
-  let style = Renderer.useObservable()
+  let style = Renderer.useStyle()
 
   <div className="flex flex-col gap-6">
     <div
-      className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-4 bg-white/5 p-3 w-full">
+      className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full">
       <Input
         labelHidden=true
         label="Y coordinate"
         className="w-full"
+        min="0"
         adornment={"X"->React.string}
         value={style.x->Belt.Int.toString}
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetX(val))
+          ->Option.map(val => Renderer.SetPosition(val, style.y))
           ->Option.forEach(Renderer.dispatch)}
       />
       <Input
@@ -58,7 +59,7 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetY(val))
+          ->Option.map(val => Renderer.SetPosition(style.x, val))
           ->Option.forEach(Renderer.dispatch)}
       />
       <Input
@@ -66,7 +67,7 @@ let make = () => {
         label="Width"
         className="w-full"
         adornment={"W"->React.string}
-        value={style.blockWidth->Belt.Int.toString}
+        value={style.blockSize.width->Belt.Int.toString}
         onChange={value =>
           value
           ->parseInt
@@ -78,7 +79,7 @@ let make = () => {
         label="Height"
         className="w-full"
         adornment={"H"->React.string}
-        value={style.blockHeight->Belt.Int.toString}
+        value={style.blockSize.height->Belt.Int.toString}
         onChange={value =>
           value
           ->parseInt
@@ -87,8 +88,8 @@ let make = () => {
       />
     </div>
     <div
-      className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-4 bg-white/5 p-3 w-full">
-      <Input.Field className="col-span-4">
+      className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full">
+      <Input.Field className="col-span-3">
         <Input.Label className="whitespace-nowrap"> {React.string("Font")} </Input.Label>
         <ReactFontPicker
           autoLoad=true
@@ -96,16 +97,27 @@ let make = () => {
             {React.string("Inter")}
           </div>}
           defaultValue="Inter"
+          value={val => Renderer.dispatch(Renderer.SetFontFamily(val))}
         />
       </Input.Field>
-      <Input
-        type_="color"
-        label="Fill"
-        className="w-full col-span-1"
-        onChange={value => Renderer.dispatch(Renderer.SetColor(value))}
-      />
+      <div className="flex gap-2 col-span-3">
+        <Input
+          type_="color"
+          label="Fill"
+          className="w-full col-span-1 flex-1"
+          value={style.color}
+          onChange={value => Renderer.dispatch(Renderer.SetColor(value))}
+        />
+        <Input
+          type_="color"
+          label="Stroke"
+          className="w-full col-span-1 flex-1"
+          value={style.strokeColor->Option.getOr(style.color)}
+          onChange={value => Renderer.dispatch(Renderer.SetStrokeColor(value))}
+        />
+      </div>
       <Input.Field className="col-span-3">
-        <Input.Label className="whitespace-nowrap"> {React.string("Text Align")} </Input.Label>
+        <Input.Label className="whitespace-nowrap"> {React.string("Font weight")} </Input.Label>
         <Combobox
           selected={style.fontWeight}
           setSelected={value =>
@@ -121,7 +133,11 @@ let make = () => {
       </Input.Field>
       <Input
         label="Size"
+        type_="number"
+        min="0"
+        max="999"
         value={style.fontSizePx->Belt.Int.toString}
+        className="min-w-[4ch]"
         onChange={value =>
           value
           ->parseInt
@@ -129,17 +145,17 @@ let make = () => {
           ->Option.forEach(Renderer.dispatch)}
       />
       <Input.Field className="col-span-2">
-        <Input.Label className="whitespace-nowrap"> {React.string("Text Align")} </Input.Label>
+        <Input.Label className="whitespace-nowrap"> {React.string("Text align")} </Input.Label>
         <ToggleButton.Group
           value={style.align} onChange={value => Renderer.dispatch(Renderer.SetAlign(value))}>
           <ToggleButton.Button value={Renderer.Left}>
             <Icons.BarsCenterLeftIcon className="size-4" />
           </ToggleButton.Button>
           <ToggleButton.Button value={Renderer.Center}>
-            <Icons.BarsIcon />
+            <Icons.BarsIcon className="size-4" />
           </ToggleButton.Button>
           <ToggleButton.Button value={Renderer.Right}>
-            <Icons.BarsCenterRightIcon />
+            <Icons.BarsCenterRightIcon className="size-4" />
           </ToggleButton.Button>
         </ToggleButton.Group>
       </Input.Field>
