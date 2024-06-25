@@ -4,11 +4,7 @@ import * as ComboboxTsx from "./Combobox.tsx";
 
 var make = ComboboxTsx.Combobox;
 
-var Combobox = {
-  make: make
-};
-
 export {
-  Combobox ,
+  make ,
 }
 /* make Not a pure module */

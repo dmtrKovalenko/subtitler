@@ -1,0 +1,27 @@
+[files]
+extend-exclude = [
+  "*.svg",
+  "*.json",
+  "*.map",
+  "*.lock",
+  "*.csv",
+  "/node_modules/",
+]
+ignore-dot = true
+ignore-vcs = true
+
+[default.extend-identifiers]
+
+[default.extend-words]
+fo = "fo"
+datas = "datas"
+bund = "bund"
+# seems to be a typo in the external data
+vist = "vist"
+# this is a very common typo that is used in a lot of public api identifiers
+recepient = "recepient"
+fullfilled = "fullfilled"
+shure = "shure"
+yoy = "yoy"
+seeked = "sought"
+

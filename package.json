@@ -8,12 +8,15 @@
     "res:clean": "rescript clean",
     "dev": "concurrently -r 'rescript -w'  'vite'",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@headlessui/react": "^2.0.4",
     "@heroicons/react": "^2.1.4",
     "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-slider": "^1.1.2",
+    "@react-input/mask": "^1.2.5",
     "@rescript/core": "1.4.0",
     "@rescript/react": "^0.12.1",
     "@types/react": "^18.3.3",
@@ -25,10 +28,15 @@
     "file-saver": "^2.0.5",
     "mp4-muxer": "^4.2.0",
     "mp4box": "^0.5.2",
+    "patch-package": "^8.0.0",
+    "postcss-nesting": "^12.1.5",
     "react": "^19.0.0-rc-fb9a90fa48-20240614",
     "react-dom": "^19.0.0-rc-fb9a90fa48-20240614",
     "react-dropzone": "^14.2.3",
+    "react-fontpicker-ts-lite": "^1.0.0",
     "rescript": "11.1.1",
+    "rescript-classnames": "^7.0.1",
+    "rescript-webapi": "^0.9.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.4.5"
   },

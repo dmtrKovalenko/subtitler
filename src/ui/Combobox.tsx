@@ -10,17 +10,17 @@ import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { useState } from "react";
 
-type ComboboxProps<TValue> = {
+type ComboboxProps<TValue extends string | number> = {
   options: TValue[];
   selected: TValue | null;
   formatValue: (value: TValue) => string;
   setSelected: (value: TValue | null) => void;
   filter: (query: string) => (option: TValue) => boolean;
-  getId: (value: TValue) => string;
+  getId?: (value: TValue) => string;
   className?: string;
 };
 
-export function Combobox<TValue>({
+export function Combobox<TValue extends string | number>({
   selected,
   setSelected,
   formatValue,
@@ -42,7 +42,7 @@ export function Combobox<TValue>({
       >
         <ComboboxInput
           className={clsx(
-            "w-full capitalize rounded-lg border-none bg-white/5 py-1.5 pr-8 pl-3 text-sm/6 text-white",
+            "w-full capitalize rounded-lg border-none bg-white/10 py-1.5 pr-8 pl-3 text-sm/6 text-white",
             "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-white/25",
           )}
           displayValue={formatValue}
@@ -68,7 +68,7 @@ export function Combobox<TValue>({
         >
           {filteredOptions.map((value) => (
             <ComboboxOption
-              key={getId(value)}
+              key={getId?.(value) ?? value.toString()}
               value={value}
               className="group flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none data-[focus]:bg-white/10"
             >

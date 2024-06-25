@@ -1,17 +1,35 @@
 import * as React from "react";
 import DecodeWorker from "./codecs/Decode?worker";
-import { useTranscriber } from "./transcriber/useTranscriber";
+import {
+  Transcriber,
+  TranscriberData,
+  useTranscriber,
+} from "./transcriber/useTranscriber";
 import Constants from "./transcriber/Constants";
 import { Spinner } from "./ui/Spinner.gen";
 import { LandingDropzone } from "./screens/LandingDropzone";
 import { Progress } from "./ui/Progress";
+import { Editor } from "./screens/editor/Editor.gen";
+import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
 
 const worker = new DecodeWorker();
+
+type VideoFile = {
+  name: string;
+  file: File;
+  objectURL: string;
+  audioBuffer: AudioBuffer;
+};
 
 export default function App() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const transcriber = useTranscriber();
-  const [file, setFile] = React.useState<File | null>(null);
+  const [file, setFile] = React.useState<VideoFile | null>(null);
+
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [EditorContext, setEditorContext] = React.useState<React.FC<{
+    children: React.ReactNode;
+  }> | null>(null);
 
   const onFile = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -19,13 +37,18 @@ export default function App() {
       return;
     }
 
-    setFile(file);
-
     const audioCtx = new AudioContext({
       sampleRate: Constants.SAMPLING_RATE,
     });
     const arrayBuffer = await file.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    setFile({
+      name: file.name,
+      file,
+      objectURL: URL.createObjectURL(file),
+      audioBuffer,
+    });
 
     transcriber.start(audioBuffer);
   };
@@ -69,17 +92,76 @@ export default function App() {
     return "Processing Audio";
   }, [transcriber.isModelLoading, transcriber.isBusy]);
 
-  if (!file) {
-    return (
-      <LandingDropzone
-        onDrop={onFile}
-        language={transcriber.language ?? "en"}
-        setLanguage={transcriber.setLanguage}
-        model={transcriber.model}
-        setModel={transcriber.setModel}
-      />
-    );
+  const outputRef = React.useRef<TranscriberData["chunks"]>([]);
+  if (transcriber.output?.chunks) {
+    outputRef.current = transcriber.output.chunks;
   }
+
+  const handleMetadataLoad = React.useCallback(
+    (e: React.FormEvent<HTMLVideoElement>) => {
+      if (!EditorContext) {
+        const component = makeEditorContextComponent(
+          {
+            duration: e.currentTarget.duration,
+            width: e.currentTarget.videoWidth,
+            height: e.currentTarget.videoHeight,
+          },
+          videoRef,
+          outputRef.current,
+          canvasRef,
+        );
+
+        setEditorContext(component);
+      }
+    },
+    [],
+  );
+
+  //if (!file) {
+  //  return (
+  //    <LandingDropzone
+  //      onDrop={onFile}
+  //      language={transcriber.language ?? "en"}
+  //      setLanguage={transcriber.setLanguage}
+  //      model={transcriber.model}
+  //      setModel={transcriber.setModel}
+  //    />
+  //  );
+  //}
+
+  return (
+    <>
+      <video
+        ref={videoRef}
+        className="hidden"
+        //src={file.objectURL}
+        src="https://cdn.pixabay.com/video/2024/05/31/214592_large.mp4"
+        onLoadedMetadata={handleMetadataLoad}
+      />
+
+      {EditorContext && (
+        <EditorContext.make>
+          {/**<Editor subtitles={transcriber.output?.chunks} />*/}
+          <Editor
+            subtitles={[
+              {
+                text: "Hello, world!",
+                timestamp: [0, 1000],
+              },
+              {
+                text: "This is a test subtitle",
+                timestamp: [1000, 2000],
+              },
+              {
+                text: "This is a test subtitle",
+                timestamp: [2000, null],
+              },
+            ]}
+          />
+        </EditorContext.make>
+      )}
+    </>
+  );
 
   if (file && !transcriber.output) {
     return (

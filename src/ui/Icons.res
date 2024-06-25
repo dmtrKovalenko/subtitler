@@ -1,0 +1,130 @@
+// Updating module paths to use Heroicons outline style from "@heroicons/react/24/outline"
+module MusicalNotesIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "MusicalNoteIcon"
+}
+
+module FontIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "FontAdjustmentsIcon"
+}
+
+module CaptionsIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ChatAlt2Icon"
+}
+
+module PlayIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PlayIcon"
+}
+
+module PlayBackIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~text: string,
+    ~backward: bool=?,
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PlayPauseIcon"
+}
+
+module VolumeIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~high: bool=?,
+    ~mute: bool=?,
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "SpeakerWaveIcon"
+}
+
+module VolumeLowIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "SpeakerXMarkIcon"
+}
+
+module FullScreenIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowsPointingOutIcon"
+}
+
+module CollapseIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ChevronDoubleDownIcon"
+}
+
+module PauseIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PauseIcon"
+}
+
+module ArrowRightIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowRightIcon"
+}
+
+module BarsCenterLeftIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "Bars3BottomLeftIcon"
+}
+
+module BarsIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "Bars3Icon"
+}
+
+module BarsCenterRightIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "Bars3BottomRightIcon"
+}

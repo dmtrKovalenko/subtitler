@@ -173,7 +173,7 @@ export function useTranscriber(): Transcriber {
           model,
           multilingual,
           quantized,
-          subtask: "transcribe",
+          subtask: null,
           language: "en",
         });
       }

@@ -1,12 +1,47 @@
+@import url("react-fontpicker-ts-lite/dist/index.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  input[type="color"] {
+    @apply p-0 block h-9 w-full rounded-lg border-none bg-white/10 overflow-hidden text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  input[type="color"]::-webkit-color-swatch {
+    border: none;
+  }
+}
+
 @font-face {
   font-family: "Virgil";
   src:
-    url("/font/Virgil.woff") format("woff"),
-    url("/font/Virgil.ttf") format("truetype");
+    url("/fonts/Virgil.woff") format("woff"),
+    url("/fonts/Virgil.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+}
+
+.fontpicker {
+  @apply block w-full py-1 rounded-lg bg-white/10 text-sm/6 border-none text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400;
+
+  .fontpicker__preview {
+    filter: none;
+    @apply ml-1 text-white text-sm;
+  }
+
+  .fontpicker__search {
+    @apply rounded-lg outline-none;
+  }
+
+  .fontpicker__popout {
+    @apply rounded-xl border border-white/5 bg-white/5 mt-1 p-1 empty:hidden backdrop-blur-xl;
+
+    .fontpicker__option {
+      @apply bg-transparent text-white text-sm/6 bg-blend-difference p-1 rounded-lg;
+    }
+  }
 }

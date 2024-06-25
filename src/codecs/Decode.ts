@@ -132,6 +132,8 @@ class EncoderMuxer {
 }
 
 export async function start({ dataUri, canvas, fileHandle, _cues }) {
+  let metadata: Metadata | null = null;
+
   const cues: TranscriberData["chunks"] = _cues;
   const ctx = canvas.getContext("2d");
   const chunks: EncodedVideoChunk[] = [];
@@ -190,7 +192,7 @@ export async function start({ dataUri, canvas, fileHandle, _cues }) {
   let decodingStarted = false;
   // Fetch and demux the media data.
   new MP4Demuxer(dataUri, {
-    onMetadata() {},
+    onMetadata(_metadata) {},
     onConfig(videoConfig: VideoDecoderConfig, audioConfig: AudioDecoderConfig) {
       decoder.configure(videoConfig);
       encoderMuxer.configure(videoConfig, audioConfig);
