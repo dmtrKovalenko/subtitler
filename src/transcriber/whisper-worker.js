@@ -69,7 +69,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
   if (p.model !== modelName || p.quantized !== quantized) {
     // Invalidate model if different
     p.model = modelName;
-    p.quantized = quantized;
+    p.quantized = false;
 
     if (p.instance !== null) {
       (await p.getInstance()).dispose();
@@ -142,7 +142,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
     do_sample: false,
 
     // Sliding window
-    chunk_length_s: 20,
+    chunk_length_s: 30,
     stride_length_s: 5,
 
     // Language and task
@@ -150,7 +150,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
     task: subtask,
 
     // Return timestamps
-    return_timestamps: true,
+    return_timestamps: "word",
     force_full_sequences: false,
 
     // Callback functions

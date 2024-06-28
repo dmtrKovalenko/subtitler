@@ -1,8 +1,4 @@
-%%raw(`import "./Spinner.css";`)
+@module("./Spinner.tsx")
+@react.component
+external make: (~size: option<int>=?) => React.element = "Spinner"
 
-@react.component @genType.as("Spinner")
-let make = (~children=?) => {
-  <span className="loader inline-flex items-center justify-center">
-    {children->Option.getOr(React.null)}
-  </span>
-}

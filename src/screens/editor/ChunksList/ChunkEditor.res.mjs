@@ -11,13 +11,13 @@ import * as Outline from "@heroicons/react/24/outline";
 
 function ChunkEditor$TimestampEditor(props) {
   var inputRef = Mask.useMask({
-        mask: "__:__",
+        mask: "__:__,___",
         replacement: Js_dict.fromArray([[
                 "_",
                 new RegExp("\\d")
               ]])
       });
-  var duration = Utils.Duration.formatSeconds(Core__Option.getWithDefault(props.ts, 0.0));
+  var duration = Utils.Duration.formatMiilis(Core__Option.getOr(props.ts, 0.0));
   return JsxRuntime.jsx("input", {
               ref: Caml_option.some(inputRef),
               defaultValue: duration,
@@ -49,12 +49,12 @@ function ChunkEditor(props) {
                       className: "flex items-center gap-1"
                     }),
                 JsxRuntime.jsx("textarea", {
+                      defaultValue: chunk.text,
                       className: Cx.cx([
                             "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                             "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
                           ]),
-                      rows: 3,
-                      value: chunk.text
+                      rows: 3
                     })
               ],
               className: "gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900"

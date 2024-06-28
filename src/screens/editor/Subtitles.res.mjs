@@ -28,7 +28,7 @@ function lookupCurrentCue(subtitles, timestamp) {
               }));
 }
 
-function resolveCurrentSubtitle(timestamp, subtitles, prevCue) {
+function getOrLookupCurrentCue(timestamp, subtitles, prevCue) {
   if (prevCue !== undefined) {
     if (compareTsToRange(prevCue.currentCue.timestamp, timestamp)) {
       return prevCue;
@@ -52,6 +52,6 @@ function resolveCurrentSubtitle(timestamp, subtitles, prevCue) {
 export {
   compareTsToRange ,
   lookupCurrentCue ,
-  resolveCurrentSubtitle ,
+  getOrLookupCurrentCue ,
 }
 /* No side effect */

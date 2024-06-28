@@ -33,7 +33,8 @@ let lookupCurrentCue = (~subtitles, ~timestamp) => {
   })
 }
 
-let resolveCurrentSubtitle = (~timestamp, ~subtitles, ~prevCue) => {
+// tries to match current or next cue based on the previous one or lookup from the start
+let getOrLookupCurrentCue = (~timestamp, ~subtitles, ~prevCue) => {
   switch prevCue {
   | None => lookupCurrentCue(~subtitles, ~timestamp)
   | Some(ctx) if compareTsToRange(ctx.currentCue.timestamp, timestamp) => Some(ctx)

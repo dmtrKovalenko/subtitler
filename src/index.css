@@ -55,3 +55,15 @@
     }
   }
 }
+
+@media (min-width: 2540px) {
+  html {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 3240px) {
+  html {
+    font-size: 1.5rem;
+  }
+}

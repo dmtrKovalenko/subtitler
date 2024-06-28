@@ -27,7 +27,7 @@ module CaptionsIcon = {
 }
 
 module PlayIcon = {
-  @react.component @module("@heroicons/react/24/outline")
+  @react.component @module("@heroicons/react/24/solid")
   external make: (
     ~color: string=?,
     ~className: string=?,
@@ -35,15 +35,20 @@ module PlayIcon = {
   ) => React.element = "PlayIcon"
 }
 
-module PlayBackIcon = {
+module ForwardIcon = {
   @react.component @module("@heroicons/react/24/outline")
   external make: (
-    ~text: string,
-    ~backward: bool=?,
-    ~color: string=?,
+    ~color: option<string>=?,
     ~className: string=?,
-    ~style: ReactDOM.Style.t=?,
-  ) => React.element = "PlayPauseIcon"
+    ~style: option<ReactDOM.Style.t>=?,
+  ) => React.element = "ForwardIcon"
+}
+
+module BackwardIcon = {
+  @react.component
+  let make = (~color: string=?, ~className: string=?, ~style: ReactDOM.Style.t=?) => {
+    <ForwardIcon color style className={Cx.cx([className->Option.getOr(""), "rotate-180"])} />
+  }
 }
 
 module VolumeIcon = {
@@ -81,11 +86,11 @@ module CollapseIcon = {
     ~color: string=?,
     ~className: string=?,
     ~style: ReactDOM.Style.t=?,
-  ) => React.element = "ChevronDoubleDownIcon"
+  ) => React.element = "ArrowDownTrayIcon"
 }
 
 module PauseIcon = {
-  @react.component @module("@heroicons/react/24/outline")
+  @react.component @module("@heroicons/react/24/solid")
   external make: (
     ~color: string=?,
     ~className: string=?,

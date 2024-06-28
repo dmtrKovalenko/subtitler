@@ -1,4 +1,3 @@
-open Belt
 open CanvasSize
 
 @react.component
@@ -28,7 +27,6 @@ let make = (~sectionSize: UseEditorLayout.sectionSize) => {
     | CantPlay => React.null
     | _ => <SceneMapCanvas size />
     }}
-    <ControlsCanvas size />
     <SeekBarCanvas size />
   </div>
 }

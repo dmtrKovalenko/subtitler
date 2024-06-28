@@ -51,7 +51,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   }
 
   const currentSubtitle = player.currentPlayingCue
-    ? subtitles[player.currentPlayingCue.currentIndex].text
+    ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
     : "";
 
   return (
@@ -60,6 +60,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         <Text
           ref={textRef}
           draggable
+          fillAfterStrokeEnabled
           fontStyle={subtitleStyle.fontWeight.toString()}
           text={currentSubtitle}
           x={subtitleStyle.x}

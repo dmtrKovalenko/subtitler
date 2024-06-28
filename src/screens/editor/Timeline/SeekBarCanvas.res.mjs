@@ -12,7 +12,7 @@ import * as EditorContext from "../EditorContext.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 
 function renderSeekBar(ctx, size, playState) {
-  var x = CanvasSize.frameToX(playState.frame, size);
+  var x = CanvasSize.tsToFrame(playState.frame, size);
   ctx.beginPath();
   ctx.moveTo(x, 0);
   ctx.lineTo(x, size.height);

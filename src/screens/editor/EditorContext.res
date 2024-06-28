@@ -3,12 +3,11 @@ module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
 @genType
 type editorContext = {
+  ctx: module(Types.Ctx),
   videoMeta: Types.videoMeta,
-  canvasRef: React.ref<Js.nullable<Webapi.Dom.Element.t>>,
+  dom: Types.dom,
   getImmediatePlayerState: unit => Player.state,
   usePlayer: unit => (Player.state, Player.action => unit),
-  seekUnsafe: (~ts: float, unit => unit) => unit,
-  renderFrame: Types.renderVideoFrame,
 }
 
 let editorContext = React.createContext(None)
@@ -33,34 +32,18 @@ module MakeEditorContext = (Ctx: Types.Ctx) => {
       (PlayerObserver.useObservable(), PlayerObserver.dispatch)
     }
 
-    React.useEffect0(() => {
-      Ctx.canvasRef.current
-      ->Js.Nullable.toOption
-      ->Option.map(el => el->Webapi.Canvas.CanvasElement.getContext2d)
-      ->Option.forEach(ctx => Ctx.renderVideoFrame(ctx))
-
-      None
-    })
-
     let ctx = {
-      usePlayer,
+      ctx: module(Ctx),
+      dom: Ctx.dom,
       videoMeta: Ctx.videoMeta,
-      canvasRef: Ctx.canvasRef,
+      usePlayer,
       getImmediatePlayerState: PlayerObserver.get,
-      seekUnsafe: (~ts, cb) => {
-        Ctx.videoElement->Web.Video.setCurrentTime(ts)
-        Ctx.videoElement->Web.Video.onSeeked(cb)
-      },
-      renderFrame: Ctx.renderVideoFrame,
     }
 
-    React.createElement(
-      providerElement,
-      {
-        value: Some(ctx),
-        children,
-      },
-    )
+    providerElement->React.createElement({
+      value: Some(ctx),
+      children,
+    })
   }
 }
 
@@ -73,15 +56,20 @@ module type ReactComponent = {
 let makeEditorContextComponent = (
   ~videoMeta: Types.videoMeta,
   ~videoElement: React.ref<Webapi.Dom.Element.t>,
-  ~subtitlesRef: array<Subtitles.subtitleCue>,
+  ~timelineVideoElement: React.ref<Webapi.Dom.Element.t>,
+  ~subtitlesRef: React.ref<array<Subtitles.subtitleCue>>,
   ~canvasRef: React.ref<Js.nullable<Webapi.Dom.Element.t>>,
+  ~audioBuffer: WebAudio.AudioBuffer.t,
 ): module(ReactComponent) => {
   module Ctx: Types.Ctx = {
-    let videoElement = videoElement.current
+    let dom: Types.dom = {
+      videoElement: videoElement.current,
+      timelineVideoElement: timelineVideoElement.current,
+      canvasRef,
+    }
     let videoMeta = videoMeta
-    let canvasRef = canvasRef
     let subtitlesRef = subtitlesRef
-    let renderVideoFrame = Renderer.renderVideoFrame(videoMeta, videoElement)
+    let audioBuffer = audioBuffer
   }
 
   module Context = MakeEditorContext(Ctx)

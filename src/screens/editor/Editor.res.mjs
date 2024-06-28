@@ -5,6 +5,7 @@ import * as Tabs from "../../ui/Tabs.res.mjs";
 import * as Hooks from "../../hooks/Hooks.res.mjs";
 import * as Utils from "../../Utils.res.mjs";
 import * as React from "react";
+import * as Spinner from "../../ui/Spinner.res.mjs";
 import * as Timeline from "./Timeline/Timeline.res.mjs";
 import * as ChunksList from "./ChunksList/ChunksList.res.mjs";
 import * as Belt_Option from "rescript/lib/es6/belt_Option.js";
@@ -26,44 +27,83 @@ function Editor(props) {
   var ctx = EditorContext.useEditorContext();
   var layout = Hooks.useEditorLayout(match[0]);
   React.useEffect((function () {
-          Belt_Option.forEach(Caml_option.nullable_to_opt(ctx.canvasRef.current), (function (param) {
+          Belt_Option.forEach(Caml_option.nullable_to_opt(ctx.dom.canvasRef.current), (function (param) {
                   console.log("Happy video hacking! Your preview will be rendered at", param);
                 }));
         }), []);
+  var subtitlesTitle = props.transcriptionInProgress ? JsxRuntime.jsxs("div", {
+          children: [
+            JsxRuntime.jsx(Spinner.make, {}),
+            JsxRuntime.jsx("span", {
+                  children: "Subtitles"
+                })
+          ],
+          className: "gap-2 inline-flex items-center"
+        }) : "Subtitles";
+  var styleTitle = "Style";
   return JsxRuntime.jsxs("div", {
               children: [
                 JsxRuntime.jsxs("div", {
                       children: [
                         Core__Option.getOr(Belt_Option.map(layout.mediaControls, (function (size) {
-                                    return JsxRuntime.jsx("div", {
-                                                children: JsxRuntime.jsx("div", {
-                                                      children: JsxRuntime.jsx(Tabs.make, {
-                                                            tabs: [
-                                                              {
-                                                                id: "subtitles",
-                                                                name: "Subtitles",
-                                                                content: JsxRuntime.jsx(ChunksList.make, {
-                                                                      subtitles: subtitles
-                                                                    })
-                                                              },
-                                                              {
-                                                                id: "style",
-                                                                name: "Style",
-                                                                content: JsxRuntime.jsx(StyleEditor.make, {})
-                                                              }
-                                                            ],
-                                                            defaultIndex: 1
-                                                          }),
-                                                      className: "flex items-center flex-col mb-6 pt-1 gap-2"
-                                                    }),
-                                                className: "col-span-2 h-full overflow-auto flex flex-col p-4 border-r border-zinc-800",
+                                    return JsxRuntime.jsxs("div", {
+                                                children: [
+                                                  JsxRuntime.jsx("div", {
+                                                        children: JsxRuntime.jsx(Tabs.make, {
+                                                              tabs: [
+                                                                {
+                                                                  id: "subtitles",
+                                                                  name: subtitlesTitle,
+                                                                  content: JsxRuntime.jsx(ChunksList.make, {
+                                                                        subtitles: subtitles
+                                                                      })
+                                                                },
+                                                                {
+                                                                  id: "style",
+                                                                  name: styleTitle,
+                                                                  content: JsxRuntime.jsx(StyleEditor.make, {})
+                                                                }
+                                                              ],
+                                                              defaultIndex: 1
+                                                            }),
+                                                        className: "@2xl:hidden flex items-center flex-col mb-6 pt-1 gap-2"
+                                                      }),
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("div", {
+                                                                children: [
+                                                                  JsxRuntime.jsx("h2", {
+                                                                        children: subtitlesTitle,
+                                                                        className: "mx-auto text-xl"
+                                                                      }),
+                                                                  JsxRuntime.jsx(ChunksList.make, {
+                                                                        subtitles: subtitles
+                                                                      })
+                                                                ],
+                                                                className: "pr-6 flex-1 flex flex-col justify-center gap-y-4"
+                                                              }),
+                                                          JsxRuntime.jsxs("div", {
+                                                                children: [
+                                                                  JsxRuntime.jsx("h2", {
+                                                                        children: styleTitle,
+                                                                        className: "mx-auto text-xl"
+                                                                      }),
+                                                                  JsxRuntime.jsx(StyleEditor.make, {})
+                                                                ],
+                                                                className: "pl-6 flex-1 flex flex-col gap-y-4"
+                                                              })
+                                                        ],
+                                                        className: "hidden @2xl:flex divide-x divide-zinc-700"
+                                                      })
+                                                ],
+                                                className: "@container col-span-2 h-full overflow-auto flex flex-col p-4 border-r border-zinc-800",
                                                 style: UseEditorLayout.sizeToStyle(size)
                                               });
                                   })), null),
                         JsxRuntime.jsxs("div", {
                               children: [
                                 JsxRuntime.jsx("canvas", {
-                                      ref: Caml_option.some(ctx.canvasRef),
+                                      ref: Caml_option.some(ctx.dom.canvasRef),
                                       className: "bg-black origin-top-left absolute left-0 top-0",
                                       id: "editor-preview",
                                       style: {

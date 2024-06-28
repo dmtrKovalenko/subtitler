@@ -31,8 +31,18 @@ module Video = {
   @get external currentTime: t => float = "currentTime"
   @get external paused: t => bool = "paused"
   @set external setCurrentTime: (t, float) => unit = "currentTime"
-  @send external setVolume: (t, float) => unit = "volume"
+  @set external setVolume: (t, float) => unit = "volume"
   @send external setPlaybackRate: (t, float) => unit = "playbackRate"
+
+  @send
+  external drawOnCanvas: (
+    Webapi.Canvas.Canvas2d.t,
+    t,
+    ~dx: int=?,
+    ~dy: int=?,
+    ~dirtyWidth: int=?,
+    ~dirtyHeight: int=?,
+  ) => unit = "drawImage"
 
   let onSeeked = (video, cb) => {
     video

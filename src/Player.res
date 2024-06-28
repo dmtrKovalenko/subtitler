@@ -43,16 +43,23 @@ module MakePlayer = (Ctx: Types.Ctx) => {
       frame: 0.,
       startPlayingFrame: 0.,
       playState: Paused,
-      currentPlayingCue: lookupCurrentCue(~timestamp=0., ~subtitles=Ctx.subtitlesRef),
+      currentPlayingCue: lookupCurrentCue(~timestamp=0., ~subtitles=Ctx.subtitlesRef.current),
       volume,
     }
   }
 
   let renderFrame = () => {
-    switch Ctx.canvasRef.current->Js.Nullable.toOption {
+    switch Ctx.dom.canvasRef.current->Js.Nullable.toOption {
     | Some(el) => {
         let ctx = Webapi.Canvas.CanvasElement.getContext2d(el)
-        Ctx.renderVideoFrame(ctx)
+        Web.Video.drawOnCanvas(
+          ctx,
+          Ctx.dom.videoElement,
+          ~dx=0,
+          ~dy=0,
+          ~dirtyWidth=Ctx.videoMeta.width,
+          ~dirtyHeight=Ctx.videoMeta.height,
+        )
       }
     | None => ()
     }
@@ -72,14 +79,14 @@ module MakePlayer = (Ctx: Types.Ctx) => {
         ...state,
         frame,
         startPlayingFrame: frame,
-        currentPlayingCue: lookupCurrentCue(~timestamp=frame, ~subtitles=Ctx.subtitlesRef),
+        currentPlayingCue: lookupCurrentCue(~timestamp=frame, ~subtitles=Ctx.subtitlesRef.current),
       }
     | NewFrame(frame) => {
         ...state,
         frame,
-        currentPlayingCue: resolveCurrentSubtitle(
+        currentPlayingCue: getOrLookupCurrentCue(
           ~timestamp=frame,
-          ~subtitles=Ctx.subtitlesRef,
+          ~subtitles=Ctx.subtitlesRef.current,
           ~prevCue=state.currentPlayingCue,
         ),
       }
@@ -100,21 +107,21 @@ module MakePlayer = (Ctx: Types.Ctx) => {
 
   let rec onFrame = dispatch => {
     renderFrame()
-    let seconds = Web.Video.currentTime(Ctx.videoElement)
+    let seconds = Web.Video.currentTime(Ctx.dom.videoElement)
 
     if get().playState === Playing {
       dispatch(NewFrame(seconds))
     }
 
-    if !Web.Video.paused(Ctx.videoElement) {
+    if !Web.Video.paused(Ctx.dom.videoElement) {
       Webapi.requestAnimationFrame(_ => onFrame(dispatch))
     }
   }
 
   let sideEffect = (action, dispatch) => {
     let startPlaying = (currentTs: float) => {
-      Ctx.videoElement->Web.Video.play
-      Ctx.videoElement->Web.Video.setCurrentTime(currentTs)
+      Ctx.dom.videoElement->Web.Video.play
+      Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)
 
       Webapi.requestAnimationFrame(_ => onFrame(dispatch))
       ()
@@ -124,14 +131,12 @@ module MakePlayer = (Ctx: Types.Ctx) => {
     | Play if get().playState !== Playing => startPlaying(get().frame)
     | Seek(newFrame) => startPlaying(newFrame)
     | NewFrame(currentTs) if get().playState !== Playing => {
-        Ctx.videoElement->Web.Video.setCurrentTime(currentTs)
+        Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)
         renderFrame()
       }
-    | Pause => Web.Video.pause(Ctx.videoElement)
+    | Pause => Web.Video.pause(Ctx.dom.videoElement)
     | SetVolume(volume) => {
-        // AnimationRuntime.AudioRuntime.setVolume(volume)
-        Js.log("set volume")
-
+        Ctx.dom.videoElement->Web.Video.setVolume(volume->Float.fromInt /. 100.)
         Dom.Storage.setItem(volume_key, volume->Js.Int.toString, Dom.Storage.localStorage)
       }
     | _ => ()

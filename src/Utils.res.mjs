@@ -109,12 +109,17 @@ var $$Option = {
   zip: zip
 };
 
+function logU(a) {
+  console.log(a);
+}
+
 function andReturn(a) {
   console.log(a);
   return a;
 }
 
 var Log = {
+  logU: logU,
   andReturn: andReturn
 };
 
@@ -163,6 +168,13 @@ function formatSeconds(seconds) {
   }
 }
 
+function formatMiilis(timestamp) {
+  var match = divideWithReminder(timestamp, 60);
+  var seconds = match[1];
+  var millis = (timestamp - Math.floor(seconds)) * 1000;
+  return match[0].toString().padStart(2, "0") + ":" + seconds.toFixed(0).padStart(2, "0") + "," + millis.toFixed(0).padStart(3, "0");
+}
+
 function formatFrame(frame, fps) {
   return formatSeconds(frame / fps);
 }
@@ -170,6 +182,7 @@ function formatFrame(frame, fps) {
 var Duration = {
   leftPad: leftPad,
   formatSeconds: formatSeconds,
+  formatMiilis: formatMiilis,
   formatFrame: formatFrame
 };
 

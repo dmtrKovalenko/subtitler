@@ -34,7 +34,7 @@ module DockButton = {
           DockSpace.baseClass,
           "group hover:scale-110",
           highlight
-            ? "bg-gradient-to-tr from-orange-400/80 to-pink-400/80 hover:from-orange-300/80 hover:to-pink-300/80"
+            ? "bg-gradient-to-tr from-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80"
             : "bg-slate-700 hover:bg-slate-500",
         ])}>
         <span className="sr-only"> {React.string(label)} </span>
@@ -179,24 +179,24 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
     </DockSpace>
     <DockDivider />
     <DockButton onClick=handleSeekLeft label="Play forward 5 seconds">
-      <PlayBackIcon text={5->Js.Int.toString} backward=true className="h-6 w-6" />
+      <BackwardIcon className="size-6" />
     </DockButton>
     <DockButton onClick=handlePlayOrPause highlight=true label="Play">
       {switch player.playState {
       | CantPlay => <Spinner />
-      | Playing => <PauseIcon className="h-6 w-6" />
+      | Playing => <PauseIcon className="size-6" />
       | Paused
       | WaitingForAction =>
-        <PlayIcon className="h-6 w-6" />
+        <PlayIcon className="size-6" />
       }}
     </DockButton>
     <DockButton onClick=handleSeekRight label="Play back 5 seconds">
-      <PlayBackIcon text={5->Js.Int.toString} className="h-6 w-6" />
+      <ForwardIcon className="size-6" />
     </DockButton>
     <DockSpace>
       {switch player.volume {
-      | Some(volume) => <VolumeIcon high={volume > 50} mute={volume === 0} className="h-6 w-6" />
-      | _ => <VolumeIcon mute=true className="h-6 w-6 text-gray-500" />
+      | Some(volume) if volume > 0 => <VolumeIcon className="size-6" />
+      | _ => <VolumeLowIcon className="size-6 text-gray-400" />
       }}
       <Slider
         disabled={player.volume->Option.isNone}
@@ -209,11 +209,11 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
     </DockSpace>
     <DockDivider />
     <DockButton onClick=fullScreenToggler.toggle label="Turn on/off full-screen mode">
-      <FullScreenIcon className="h-6 w-6" />
+      <FullScreenIcon className="size-6" />
     </DockButton>
     <DockButton onClick=toggleDock label="Show/Hide dock controls">
       <CollapseIcon
-        className={Cx.cx(["h-6 w-6 transition-transform", isCollapsed ? "rotate-180" : ""])}
+        className={Cx.cx(["size-6 transition-transform", isCollapsed ? "rotate-180" : ""])}
       />
     </DockButton>
   </div>

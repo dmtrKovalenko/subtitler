@@ -15,7 +15,7 @@ var validateVolume = Utils.$$Math.minMax(0, 100);
 function MakePlayer(Ctx) {
   var savedValue = Dom_storage.getItem("subtitles_volume", localStorage);
   var volume = savedValue !== undefined ? Belt_Int.fromString(savedValue) : 60;
-  var initial_currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef, 0);
+  var initial_currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, 0);
   var initial = {
     frame: 0,
     startPlayingFrame: 0,
@@ -28,12 +28,12 @@ function MakePlayer(Ctx) {
     initial: initial
   };
   var renderFrame = function () {
-    var el = Ctx.canvasRef.current;
+    var el = Ctx.dom.canvasRef.current;
     if (el == null) {
       return ;
     }
     var ctx = el.getContext("2d");
-    Ctx.renderVideoFrame(ctx, undefined, undefined, undefined, undefined);
+    ctx.drawImage(Ctx.dom.videoElement, 0, 0, Ctx.videoMeta.width, Ctx.videoMeta.height);
   };
   var include = UseObservable.Pubsub({
         initial: initial
@@ -113,7 +113,7 @@ function MakePlayer(Ctx) {
                 frame: frame$1,
                 startPlayingFrame: frame$1,
                 playState: state.playState,
-                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef, frame$1),
+                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, frame$1),
                 volume: state.volume
               };
       }
@@ -122,7 +122,7 @@ function MakePlayer(Ctx) {
               frame: frame$2,
               startPlayingFrame: state.startPlayingFrame,
               playState: state.playState,
-              currentPlayingCue: Subtitles.resolveCurrentSubtitle(frame$2, Ctx.subtitlesRef, state.currentPlayingCue),
+              currentPlayingCue: Subtitles.getOrLookupCurrentCue(frame$2, Ctx.subtitlesRef.current, state.currentPlayingCue),
               volume: state.volume
             };
     }
@@ -130,14 +130,14 @@ function MakePlayer(Ctx) {
   };
   var onFrame = function (dispatch) {
     renderFrame();
-    var seconds = Ctx.videoElement.currentTime;
+    var seconds = Ctx.dom.videoElement.currentTime;
     if (get().playState === "Playing") {
       dispatch({
             TAG: "NewFrame",
             _0: seconds
           });
     }
-    if (!Ctx.videoElement.paused) {
+    if (!Ctx.dom.videoElement.paused) {
       requestAnimationFrame(function (param) {
             onFrame(dispatch);
           });
@@ -147,8 +147,8 @@ function MakePlayer(Ctx) {
   };
   var sideEffect = function (action, dispatch) {
     var startPlaying = function (currentTs) {
-      Ctx.videoElement.play();
-      Ctx.videoElement.currentTime = currentTs;
+      Ctx.dom.videoElement.play();
+      Ctx.dom.videoElement.currentTime = currentTs;
       requestAnimationFrame(function (param) {
             onFrame(dispatch);
           });
@@ -164,7 +164,7 @@ function MakePlayer(Ctx) {
               return ;
             }
         case "Pause" :
-            Ctx.videoElement.pause();
+            Ctx.dom.videoElement.pause();
             return ;
         
       }
@@ -174,14 +174,15 @@ function MakePlayer(Ctx) {
             return startPlaying(action._0);
         case "NewFrame" :
             if (get().playState !== "Playing") {
-              Ctx.videoElement.currentTime = action._0;
+              Ctx.dom.videoElement.currentTime = action._0;
               return renderFrame();
             } else {
               return ;
             }
         case "SetVolume" :
-            console.log("set volume");
-            return Dom_storage.setItem("subtitles_volume", action._0.toString(), localStorage);
+            var volume = action._0;
+            Ctx.dom.videoElement.volume = volume / 100;
+            return Dom_storage.setItem("subtitles_volume", volume.toString(), localStorage);
         
       }
     }

@@ -50,7 +50,7 @@ let make = (~onValueChange, ~disabled, ~value, ~min, ~max, ~step) => {
       <RadixSlider.Range className="absolute bg-gray-100 rounded-full h-full" />
     </RadixSlider.Track>
     <RadixSlider.Thumb
-      className="block cursor-grab w-[13px] h-[13px] bg-white transition-transform shadow-xl rounded-full focus:bg-gradient-to-tr from-orange-400 to-orange-600"
+      className="block cursor-grab w-[13px] h-[13px] bg-white transition-transform shadow-xl rounded-full focus:ring-2 ring-offset-1 ring-purple-400 focus:bg-gradient-to-tr from-orange-400 to-orange-600"
     />
   </RadixSlider.Root>
 }

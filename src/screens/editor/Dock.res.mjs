@@ -3,6 +3,7 @@
 import * as Cx from "rescript-classnames/src/Cx.res.mjs";
 import * as Web from "../../bindings/Web.res.mjs";
 import * as Hooks from "../../hooks/Hooks.res.mjs";
+import * as Icons from "../../ui/Icons.res.mjs";
 import * as Utils from "../../Utils.res.mjs";
 import * as React from "react";
 import * as Player from "../../Player.res.mjs";
@@ -13,6 +14,7 @@ import * as EditorContext from "./EditorContext.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 import * as Webapi__Dom__Window from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__Window.res.mjs";
 import * as Webapi__Dom__EventTarget from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__EventTarget.res.mjs";
+import * as Solid from "@heroicons/react/24/solid";
 import * as Outline from "@heroicons/react/24/outline";
 
 var DocumentEvent = Webapi__Dom__EventTarget.Impl({});
@@ -66,7 +68,7 @@ var make$2 = React.memo(function (props) {
                   className: Cx.cx([
                         baseClass,
                         "group hover:scale-110",
-                        highlight ? "bg-gradient-to-tr from-orange-400/80 to-pink-400/80 hover:from-orange-300/80 hover:to-pink-300/80" : "bg-slate-700 hover:bg-slate-500"
+                        highlight ? "bg-gradient-to-tr from-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80" : "bg-slate-700 hover:bg-slate-500"
                       ]),
                   onClick: (function (param) {
                       onClick();
@@ -227,14 +229,14 @@ function Dock(props) {
   var tmp;
   switch (match$2) {
     case "Playing" :
-        tmp = JsxRuntime.jsx(Outline.PauseIcon, {
-              className: "h-6 w-6"
+        tmp = JsxRuntime.jsx(Solid.PauseIcon, {
+              className: "size-6"
             });
         break;
     case "Paused" :
     case "WaitingForAction" :
-        tmp = JsxRuntime.jsx(Outline.PlayIcon, {
-              className: "h-6 w-6"
+        tmp = JsxRuntime.jsx(Solid.PlayIcon, {
+              className: "size-6"
             });
         break;
     case "CantPlay" :
@@ -262,10 +264,8 @@ function Dock(props) {
                     }),
                 JsxRuntime.jsx(make, {}),
                 JsxRuntime.jsx(make$2, {
-                      children: JsxRuntime.jsx(Outline.PlayPauseIcon, {
-                            text: (5).toString(),
-                            backward: true,
-                            className: "h-6 w-6"
+                      children: JsxRuntime.jsx(Icons.BackwardIcon.make, {
+                            className: "size-6"
                           }),
                       label: "Play forward 5 seconds",
                       onClick: handleSeekLeft
@@ -277,22 +277,18 @@ function Dock(props) {
                       highlight: true
                     }),
                 JsxRuntime.jsx(make$2, {
-                      children: JsxRuntime.jsx(Outline.PlayPauseIcon, {
-                            text: (5).toString(),
-                            className: "h-6 w-6"
+                      children: JsxRuntime.jsx(Outline.ForwardIcon, {
+                            className: "size-6"
                           }),
                       label: "Play back 5 seconds",
                       onClick: handleSeekRight
                     }),
                 JsxRuntime.jsxs(make$1, {
                       children: [
-                        volume !== undefined ? JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
-                                high: volume > 50,
-                                mute: volume === 0,
-                                className: "h-6 w-6"
-                              }) : JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
-                                mute: true,
-                                className: "h-6 w-6 text-gray-500"
+                        volume !== undefined && volume > 0 ? JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
+                                className: "size-6"
+                              }) : JsxRuntime.jsx(Outline.SpeakerXMarkIcon, {
+                                className: "size-6 text-gray-400"
                               }),
                         JsxRuntime.jsx(Slider.make, {
                               onValueChange: handleSetVolume,
@@ -307,15 +303,15 @@ function Dock(props) {
                 JsxRuntime.jsx(make, {}),
                 JsxRuntime.jsx(make$2, {
                       children: JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
-                            className: "h-6 w-6"
+                            className: "size-6"
                           }),
                       label: "Turn on/off full-screen mode",
                       onClick: fullScreenToggler.toggle
                     }),
                 JsxRuntime.jsx(make$2, {
-                      children: JsxRuntime.jsx(Outline.ChevronDoubleDownIcon, {
+                      children: JsxRuntime.jsx(Outline.ArrowDownTrayIcon, {
                             className: Cx.cx([
-                                  "h-6 w-6 transition-transform",
+                                  "size-6 transition-transform",
                                   isCollapsed ? "rotate-180" : ""
                                 ])
                           }),

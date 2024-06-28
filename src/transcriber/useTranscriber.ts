@@ -66,7 +66,6 @@ export function useTranscriber(): Transcriber {
     switch (message.status) {
       case "progress":
         // Model file progress: update one of the progress items.
-        console.log(message);
         setProgressItems((prev) =>
           prev.map((item) => {
             if (item.file === message.file) {
@@ -78,7 +77,6 @@ export function useTranscriber(): Transcriber {
         break;
       case "update":
         // Received partial update
-        // console.log("update", message);
         // eslint-disable-next-line no-case-declarations
         const updateMessage = message as TranscriberUpdateData;
         setTranscript({
@@ -131,6 +129,7 @@ export function useTranscriber(): Transcriber {
         deault: break;
     }
   });
+
 
   const [model, setModel] = useState<string>(Constants.DEFAULT_MODEL);
   const [quantized, setQuantized] = useState<boolean>(

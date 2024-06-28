@@ -4,4 +4,6 @@ external make: (
   ~defaultValue: string,
   ~loading: React.element=?,
   ~value: string => unit=?,
+  ~loadAllVariants: bool=?,
+  ~fontsLoaded: bool => unit=?,
 ) => React.element = "default"

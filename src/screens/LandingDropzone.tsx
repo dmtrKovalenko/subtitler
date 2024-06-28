@@ -16,6 +16,7 @@ type LandingDropzoneProps = {
 const MODELS: Record<string, string> = {
   "Xenova/whisper-tiny": "Tiny (152 Mb)",
   "Xenova/whisper-base": "Base (291 Mb)",
+  "Xenova/whisper-small": "Medium (586 Mb)",
 };
 
 const ALL_MODELS = Object.keys(MODELS);

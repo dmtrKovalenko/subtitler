@@ -1,16 +1,13 @@
 import * as React from "react";
 import DecodeWorker from "./codecs/Decode?worker";
-import {
-  Transcriber,
-  TranscriberData,
-  useTranscriber,
-} from "./transcriber/useTranscriber";
+import { TranscriberData, useTranscriber } from "./transcriber/useTranscriber";
 import Constants from "./transcriber/Constants";
-import { Spinner } from "./ui/Spinner.gen";
+import { Spinner } from "./ui/Spinner";
 import { LandingDropzone } from "./screens/LandingDropzone";
 import { Progress } from "./ui/Progress";
 import { Editor } from "./screens/editor/Editor.gen";
 import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
+import { TransitionChild } from "@headlessui/react";
 
 const worker = new DecodeWorker();
 
@@ -19,6 +16,7 @@ type VideoFile = {
   file: File;
   objectURL: string;
   audioBuffer: AudioBuffer;
+  audioCtx: AudioContext;
 };
 
 export default function App() {
@@ -27,6 +25,7 @@ export default function App() {
   const [file, setFile] = React.useState<VideoFile | null>(null);
 
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const timelineVideoRef = React.useRef<HTMLVideoElement>(null);
   const [EditorContext, setEditorContext] = React.useState<React.FC<{
     children: React.ReactNode;
   }> | null>(null);
@@ -48,6 +47,7 @@ export default function App() {
       file,
       objectURL: URL.createObjectURL(file),
       audioBuffer,
+      audioCtx,
     });
 
     transcriber.start(audioBuffer);
@@ -92,20 +92,7 @@ export default function App() {
     return "Processing Audio";
   }, [transcriber.isModelLoading, transcriber.isBusy]);
 
-  const outputRef = React.useRef<TranscriberData["chunks"]>([
-    {
-      text: "Hello, world!",
-      timestamp: [0, 1],
-    },
-    {
-      text: "This is a test subtitle",
-      timestamp: [2, 4],
-    },
-    {
-      text: "This is a test subtitle",
-      timestamp: [4, null],
-    },
-  ]);
+  const outputRef = React.useRef<TranscriberData["chunks"]>([]);
   if (transcriber.output?.chunks) {
     outputRef.current = transcriber.output.chunks;
   }
@@ -120,52 +107,77 @@ export default function App() {
             height: e.currentTarget.videoHeight,
           },
           videoRef,
-          outputRef.current,
+          timelineVideoRef,
+          outputRef,
           canvasRef,
+          file?.audioBuffer,
         );
 
+        console.log(component);
         setEditorContext(component);
       }
     },
-    [],
+    [file],
   );
 
-  //if (!file) {
-  //  return (
-  //    <LandingDropzone
-  //      onDrop={onFile}
-  //      language={transcriber.language ?? "en"}
-  //      setLanguage={transcriber.setLanguage}
-  //      model={transcriber.model}
-  //      setModel={transcriber.setModel}
+  //const fakeOutputRef = React.useRef<TranscriberData["chunks"]>([
+  //  {
+  //    text: "Hello, world!",
+  //    timestamp: [0, 1],
+  //  },
+  //  {
+  //    text: "This is a test subtitle",
+  //    timestamp: [2, 4],
+  //  },
+  //  {
+  //    text: "This is a test subtitle",
+  //    timestamp: [4, null],
+  //  },
+  //]);
+  //
+  //return (
+  //  <>
+  //    <video
+  //      ref={videoRef}
+  //      className="hidden"
+  //      //src={file.objectURL}
+  //      src="https://cdn.pixabay.com/video/2024/05/31/214592_large.mp4"
+  //      onLoadedMetadata={handleMetadataLoad}
   //    />
-  //  );
-  //}
+  //    <video
+  //      muted
+  //      ref={timelineVideoRef}
+  //      className="hidden"
+  //      //src={file.objectURL}
+  //      src="https://cdn.pixabay.com/video/2024/05/31/214592_large.mp4"
+  //    />
+  //
+  //    {EditorContext && (
+  //      <EditorContext.make>
+  //        {/**<Editor subtitles={transcriber.output?.chunks} />*/}
+  //        <Editor subtitles={fakeOutputRef.current} />
+  //      </EditorContext.make>
+  //    )}
+  //  </>
+  //);
 
-  return (
-    <>
-      <video
-        ref={videoRef}
-        className="hidden"
-        //src={file.objectURL}
-        src="https://cdn.pixabay.com/video/2024/05/31/214592_large.mp4"
-        onLoadedMetadata={handleMetadataLoad}
+  if (!file) {
+    return (
+      <LandingDropzone
+        onDrop={onFile}
+        language={transcriber.language ?? "en"}
+        setLanguage={transcriber.setLanguage}
+        model={transcriber.model}
+        setModel={transcriber.setModel}
       />
-
-      {EditorContext && (
-        <EditorContext.make>
-          {/**<Editor subtitles={transcriber.output?.chunks} />*/}
-          <Editor subtitles={outputRef.current} />
-        </EditorContext.make>
-      )}
-    </>
-  );
+    );
+  }
 
   if (file && !transcriber.output) {
     return (
       <div className="container mx-auto flex items-center justify-center pt-[25%] flex-col">
         <div className="flex items-center justify-center gap-4">
-          <Spinner />
+          <Spinner sizeRem={3} />
           <h1 className="text-5xl">{status}</h1>
         </div>
         <div className="w-full flex flex-col gap-y-2 mt-12 max-w-[34rem]">
@@ -179,5 +191,30 @@ export default function App() {
     );
   }
 
-  return <span>lolfuck</span>;
+  return (
+    <>
+      <video
+        ref={videoRef}
+        className="hidden"
+        src={file.objectURL}
+        onLoadedMetadata={handleMetadataLoad}
+      />
+
+      <video
+        muted
+        ref={timelineVideoRef}
+        className="hidden"
+        src={file.objectURL}
+      />
+
+      {EditorContext && (
+        <EditorContext.make>
+          <Editor
+            subtitles={transcriber.output?.chunks ?? []}
+            transcriptionInProgress={transcriber.isBusy}
+          />
+        </EditorContext.make>
+      )}
+    </>
+  );
 }

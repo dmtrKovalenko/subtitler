@@ -33,6 +33,7 @@ let parseInt = value =>
 @react.component
 let make = () => {
   let style = Renderer.useStyle()
+  let fontInProgressRef = React.useRef(None)
 
   <div className="flex flex-col gap-6">
     <div
@@ -92,12 +93,21 @@ let make = () => {
       <Input.Field className="col-span-3">
         <Input.Label className="whitespace-nowrap"> {React.string("Font")} </Input.Label>
         <ReactFontPicker
+          loadAllVariants=true
           autoLoad=true
           loading={<div className="py-0.5 pl-3 font-light text-white text-base">
             {React.string("Inter")}
           </div>}
           defaultValue="Inter"
-          value={val => Renderer.dispatch(Renderer.SetFontFamily(val))}
+          value={val => fontInProgressRef.current = Some(val)}
+          fontsLoaded={loaded => {
+            if loaded {
+              fontInProgressRef.current->Option.forEach(font => {
+                Renderer.dispatch(Renderer.SetFontFamily(font))
+                fontInProgressRef.current = None
+              })
+            }
+          }}
         />
       </Input.Field>
       <div className="flex gap-2 col-span-3">

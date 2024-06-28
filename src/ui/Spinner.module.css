@@ -1,21 +1,23 @@
 .loader {
-  width: 48px;
-  height: 48px;
+  width: var(--loader-size, 3rem); /* Default size */
+  height: var(--loader-size, 3rem); /* Default size */
   display: inline-block;
   position: relative;
 }
+
 .loader::after,
 .loader::before {
   content: "";
   box-sizing: border-box;
-  width: 48px;
-  height: 48px;
-  border: 2px solid #fff;
+  width: inherit;
+  height: inherit;
+  border: calc(min(var(--loader-size, 3rem), 1rem) * 0.125) solid #fff;
   position: absolute;
   left: 0;
   top: 0;
   animation: rotation 2s ease-in-out infinite alternate;
 }
+
 .loader::after {
   border-color: #f97316;
   animation-direction: alternate-reverse;

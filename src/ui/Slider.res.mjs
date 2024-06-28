@@ -39,7 +39,7 @@ function Slider(props) {
                       className: "relative flex-grow h-1 rounded-full bg-slate-800"
                     }),
                 JsxRuntime.jsx(ReactSlider.Thumb, {
-                      className: "block cursor-grab w-[13px] h-[13px] bg-white transition-transform shadow-xl rounded-full focus:bg-gradient-to-tr from-orange-400 to-orange-600"
+                      className: "block cursor-grab w-[13px] h-[13px] bg-white transition-transform shadow-xl rounded-full focus:ring-2 ring-offset-1 ring-purple-400 focus:bg-gradient-to-tr from-orange-400 to-orange-600"
                     })
               ],
               className: "relative flex items-center select-none w-28 h-4 mx-2"

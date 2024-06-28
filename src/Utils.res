@@ -69,6 +69,7 @@ module Option = {
 }
 
 module Log = {
+  let logU = a => Js.Console.log(a)
   let andReturn = a => {
     Js.Console.log(a)
     a
@@ -104,6 +105,18 @@ module Duration = {
     } else {
       `${minutes->leftPad}:${seconds->leftPad}`
     }
+  }
+
+  let formatMiilis = timestamp => {
+    let (minutes, seconds) = Math.divideWithReminder(timestamp, 60.)
+    let millis = (timestamp -. seconds->Js.Math.floor_float) *. 1000.
+
+    // outputs 00:00,000
+    `${minutes->Int.toString->String.padStart(2, "0")}:${seconds
+      ->Float.toFixed(~digits=0)
+      ->String.padStart(2, "0")},${millis
+      ->Float.toFixed(~digits=0)
+      ->String.padStart(3, "0")}`
   }
 
   let formatFrame = (frame, fps) => {

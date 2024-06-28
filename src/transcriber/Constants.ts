@@ -29,6 +29,6 @@ export default {
   DEFAULT_MODEL: "Xenova/whisper-base",
   DEFAULT_SUBTASK: "transcribe",
   DEFAULT_LANGUAGE: "en",
-  DEFAULT_QUANTIZED: isMobileOrTablet,
+  DEFAULT_QUANTIZED: false,
   DEFAULT_MULTILINGUAL: true,
 };

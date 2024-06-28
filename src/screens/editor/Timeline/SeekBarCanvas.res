@@ -4,7 +4,7 @@ module Canvas = Webapi.Canvas
 module Canvas2d = Webapi.Canvas.Canvas2d
 
 let renderSeekBar = (ctx, size, playState: Player.state) => {
-  let x = frameToX(playState.frame, size)
+  let x = tsToFrame(playState.frame, size)
 
   ctx->Canvas2d.beginPath
   ctx->Canvas2d.moveTo(~x, ~y=0.)

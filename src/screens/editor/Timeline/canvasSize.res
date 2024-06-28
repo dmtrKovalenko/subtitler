@@ -13,7 +13,7 @@ type canvasSize = {
 @inline
 let timeline_margin_x = 64
 @inline
-let timeline_margin_y = 64
+let timeline_margin_y = 48
 @inline
 let scene_height_size = 120
 @inline
@@ -41,5 +41,5 @@ let useCanvasScale = (elementRef: React.ref<'a>, size) => {
   }, [size])
 }
 
-let frameToX = (frame, size: canvasSize) =>
-  frame *. size.frameToPxRatio +. (timeline_margin_x / 2)->Belt.Float.fromInt
+let tsToFrame = (ts, size: canvasSize) =>
+  ts *. size.frameToPxRatio +. (timeline_margin_x / 2)->Belt.Float.fromInt

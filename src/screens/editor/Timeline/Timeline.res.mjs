@@ -3,7 +3,6 @@
 import * as React from "react";
 import * as EditorContext from "../EditorContext.res.mjs";
 import * as SeekBarCanvas from "./SeekBarCanvas.res.mjs";
-import * as ControlsCanvas from "./ControlsCanvas.res.mjs";
 import * as SceneMapCanvas from "./SceneMapCanvas.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 
@@ -39,9 +38,6 @@ function Timeline(props) {
   return JsxRuntime.jsxs("div", {
               children: [
                 tmp,
-                JsxRuntime.jsx(ControlsCanvas.make, {
-                      size: size
-                    }),
                 JsxRuntime.jsx(SeekBarCanvas.make, {
                       size: size
                     })

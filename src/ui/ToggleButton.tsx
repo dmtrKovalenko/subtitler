@@ -134,6 +134,8 @@ export const ToggleGroup = <T extends ToggleSize | string | number | null>({
 
   return (
     <div
+      role="tablist"
+      tabIndex={0}
       style={{
         padding: `${BASE_BUTTON_PADDING_Y_REM}rem 0`,
       }}
@@ -150,7 +152,7 @@ export const ToggleGroup = <T extends ToggleSize | string | number | null>({
         }
       }}
       className={clsx(
-        "relative focus-within:ring-2 ring-orange-500 rounded-md bg-white/10 !py-1.5",
+        "relative outline-none focus-visible:ring-2 ring-orange-500 rounded-md bg-white/10 !py-1.5",
         className,
       )}
       {...other}
@@ -196,6 +198,7 @@ export const ToggleButton = <T extends string | number>({
 }: ToggleButtonProps<T>) => {
   return (
     <button
+      tabIndex={-1}
       type="button"
       className={clsx(
         "inline-flex flex-1 text-white items-center justify-center gap-2 overflow-auto px-2 outline-none",

@@ -10,11 +10,11 @@ module TimestampEditor = {
   @react.component
   let make = (~ts: option<float>) => {
     let inputRef = useMask({
-      mask: "__:__",
+      mask: "__:__,___",
       replacement: Js.Dict.fromArray([("_", RegExp.fromString("\\d"))]),
     })
 
-    let duration = Utils.Duration.formatSeconds(ts->Option.getWithDefault(0.0))
+    let duration = Utils.Duration.formatMiilis(ts->Option.getOr(0.0))
 
     <input
       ref={ReactDOM.Ref.domRef(inputRef)}
@@ -36,7 +36,7 @@ let make = (~chunk: Subtitles.subtitleCue) => {
     </div>
     <textarea
       rows={3}
-      value={chunk.text}
+      defaultValue={chunk.text}
       className={Cx.cx([
         "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
         "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",

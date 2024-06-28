@@ -16,8 +16,8 @@ function useCanvasScale(elementRef, size) {
         }), [size]);
 }
 
-function frameToX(frame, size) {
-  return frame * size.frameToPxRatio + 32;
+function tsToFrame(ts, size) {
+  return ts * size.frameToPxRatio + 32;
 }
 
 var audio_height = 60;
@@ -31,6 +31,6 @@ export {
   Canvas ,
   Canvas2d ,
   useCanvasScale ,
-  frameToX ,
+  tsToFrame ,
 }
 /* react Not a pure module */

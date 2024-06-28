@@ -5,6 +5,13 @@ type videoMeta = {
   duration: float,
 }
 
+@genType
+type dom = {
+  videoElement: Webapi.Dom.Element.t,
+  timelineVideoElement: Webapi.Dom.Element.t,
+  canvasRef: React.ref<Js.Nullable.t<Webapi.Dom.Element.t>>,
+}
+
 type style = {
   fontFamily: string,
   fontSizePx: int,
@@ -23,10 +30,8 @@ type renderVideoFrame = (
 
 @genType
 module type Ctx = {
-  let videoElement: Webapi.Dom.Element.t
+  let dom: dom
   let videoMeta: videoMeta
-  let canvasRef: React.ref<Js.nullable<Webapi.Dom.Element.t>>
-  let subtitlesRef: array<Subtitles.subtitleCue>
-
-  let renderVideoFrame: renderVideoFrame
+  let subtitlesRef: React.ref<array<Subtitles.subtitleCue>>
+  let audioBuffer: WebAudio.AudioBuffer.t
 }
