@@ -1,0 +1,21 @@
+{
+  "name": "Subtitles FFrames",
+  "short_name": "Subtitles",
+  "description": "Generate your subtitles using AI right on device",
+  "theme_color": "#18181b",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "display": "standalone"
+}
+

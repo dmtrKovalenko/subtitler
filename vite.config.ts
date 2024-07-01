@@ -11,6 +11,11 @@ export default defineConfig({
         //plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
       },
     }),
-    VitePWA({ registerType: "autoUpdate", injectRegister: "auto" }),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      manifest: {
+      },
+    }),
   ],
 });

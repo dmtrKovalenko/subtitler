@@ -90,7 +90,7 @@ module CollapseIcon = {
     ~color: string=?,
     ~className: string=?,
     ~style: ReactDOM.Style.t=?,
-  ) => React.element = "ArrowDownTrayIcon"
+  ) => React.element = "EyeSlashIcon"
 }
 
 module PauseIcon = {

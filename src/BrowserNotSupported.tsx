@@ -3,7 +3,7 @@ import BrowserGif from "./assets/giphy.webp";
 export function isBrowserSupported() {
   return (
     // @ts-expect-error
-    !navigator.gpu &&
+    navigator.gpu &&
     window.VideoDecoder &&
     window.AudioContext &&
     window.showSaveFilePicker
@@ -26,7 +26,10 @@ export function BrowserNotSupported() {
             Our subtitles generator uses some cool browser features like GPU
             access and video codecs to transcribe and render videos on your
             device. They are 100% aviailable in{" "}
-            <strong>the latest desktop Google Chrome</strong>.
+            <strong className="text-orange-900">
+              the latest desktop Google Chrome
+            </strong>
+            .
           </p>
         </div>
         <div className="flex-1 flex flex-col min-h-0 md:py-12">

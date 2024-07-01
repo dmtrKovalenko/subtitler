@@ -214,9 +214,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
       <FullScreenIcon className="size-6" />
     </DockButton>
     <DockButton onClick=toggleDock label="Show/Hide dock controls">
-      <CollapseIcon
-        className={Cx.cx(["size-6 transition-transform", isCollapsed ? "rotate-180" : ""])}
-      />
+      <CollapseIcon className="size-6 transition-transform" />
     </DockButton>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null

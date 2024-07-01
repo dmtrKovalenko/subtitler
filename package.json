@@ -7,7 +7,7 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "dev": "concurrently -r 'rescript -w'  'vite'",
-    "build": "vite build",
+    "build": "yarn res:build && vite build",
     "preview": "vite preview",
     "postinstall": "patch-package"
   },

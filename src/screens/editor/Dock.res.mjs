@@ -103,7 +103,6 @@ function Dock(props) {
   var context = EditorContext.useEditorContext();
   var match = Hooks.useToggle(false);
   var collapsedToggle = match[1];
-  var isCollapsed = match[0];
   var match$1 = context.usePlayer();
   var playerDispatch = match$1[1];
   var player = match$1[0];
@@ -348,11 +347,8 @@ function Dock(props) {
                       onClick: fullScreenToggler.toggle
                     }),
                 JsxRuntime.jsx(make$2, {
-                      children: JsxRuntime.jsx(Outline.ArrowDownTrayIcon, {
-                            className: Cx.cx([
-                                  "size-6 transition-transform",
-                                  isCollapsed ? "rotate-180" : ""
-                                ])
+                      children: JsxRuntime.jsx(Outline.EyeSlashIcon, {
+                            className: "size-6 transition-transform"
                           }),
                       label: "Show/Hide dock controls",
                       onClick: toggleDock
@@ -361,7 +357,7 @@ function Dock(props) {
               ],
               className: Cx.cx([
                     "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex -translate-x-1/2",
-                    isCollapsed ? "translate-y-16 duration-300" : ""
+                    match[0] ? "translate-y-16 duration-300" : ""
                   ])
             });
 }
