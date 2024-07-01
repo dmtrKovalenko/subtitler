@@ -49,6 +49,8 @@ var BarsIcon = {};
 
 var BarsCenterRightIcon = {};
 
+var RenderIcon = {};
+
 export {
   MusicalNotesIcon ,
   FontIcon ,
@@ -65,5 +67,6 @@ export {
   BarsCenterLeftIcon ,
   BarsIcon ,
   BarsCenterRightIcon ,
+  RenderIcon ,
 }
 /* react/jsx-runtime Not a pure module */

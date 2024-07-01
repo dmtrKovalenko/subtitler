@@ -1,8 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
 import WhisperWorker from "./whisper-worker?worker";
 import Constants from "./Constants";
+import { ProgressItem } from "../LolApp";
 
-interface ProgressItem {
+type Chunk = {
+  text: string;
+  timestamp: [number, number | null];
+  id: number | undefined;
+};
+
+interface TranscriberProgressMessage {
   file: string;
   loaded: number;
   progress: number;
@@ -12,31 +19,27 @@ interface ProgressItem {
 }
 
 interface TranscriberUpdateData {
-  data: [
-    string,
-    { chunks: { text: string; timestamp: [number, number | null] }[] },
-  ];
+  data: [string, { chunks: Chunk[] }];
   text: string;
 }
 
 interface TranscriberCompleteData {
   data: {
     text: string;
-    chunks: { text: string; timestamp: [number, number | null] }[];
+    chunks: Chunk[];
   };
 }
 
 export interface TranscriberData {
   isBusy: boolean;
   text: string;
-  chunks: { text: string; timestamp: [number, number | null] }[];
+  chunks: Chunk[];
 }
 
 export interface Transcriber {
   onInputChange: () => void;
   isBusy: boolean;
   isModelLoading: boolean;
-  progressItems: ProgressItem[];
   start: (audioData: AudioBuffer | undefined) => void;
   output?: TranscriberData;
   model: string;
@@ -51,24 +54,25 @@ export interface Transcriber {
 
 const worker: Worker = new WhisperWorker();
 
-export function useTranscriber(): Transcriber {
+export function useTranscriber(
+  setProgressItems: React.Dispatch<React.SetStateAction<ProgressItem[]>>,
+): Transcriber {
   const [transcript, setTranscript] = useState<TranscriberData | undefined>(
     undefined,
   );
   const [isBusy, setIsBusy] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
 
-  const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
-
   worker.addEventListener("message", (event) => {
     const message = event.data;
     // Update the state with the result
     switch (message.status) {
       case "progress":
+        const progressMessage = message as TranscriberProgressMessage;
         // Model file progress: update one of the progress items.
         setProgressItems((prev) =>
           prev.map((item) => {
-            if (item.file === message.file) {
+            if (item.title === progressMessage.file) {
               return { ...item, progress: message.progress };
             }
             return item;
@@ -99,14 +103,22 @@ export function useTranscriber(): Transcriber {
         break;
 
       case "initiate":
+        const initiateMessage = message as TranscriberProgressMessage;
         // Model file start load: add a new progress item to the list.
         setIsModelLoading(true);
         setProgressItems((prev) => {
-          if (prev.some((item) => item.file === message.file)) {
+          if (prev.some((item) => item.id === initiateMessage.file)) {
             return prev;
           }
 
-          return [...prev, message];
+          return [
+            ...prev,
+            {
+              id: initiateMessage.file,
+              title: initiateMessage.file,
+              progress: initiateMessage.progress,
+            },
+          ];
         });
         break;
       case "ready":
@@ -121,15 +133,15 @@ export function useTranscriber(): Transcriber {
       case "done":
         // Model file loaded: remove the progress item from the list.
         setProgressItems((prev) =>
-          prev.filter((item) => item.file !== message.file),
+          prev.filter((item) => item.id !== message.file),
         );
         break;
 
-        // initate/dwnload/done the
-        deault: break;
+      // initate/dwnload/done the
+      default:
+        break;
     }
   });
-
 
   const [model, setModel] = useState<string>(Constants.DEFAULT_MODEL);
   const [quantized, setQuantized] = useState<boolean>(
@@ -171,8 +183,8 @@ export function useTranscriber(): Transcriber {
           model,
           multilingual,
           quantized,
-          subtask: null,
-          language: "en",
+          subtask: "transcribe",
+          language,
         });
       }
     },
@@ -184,7 +196,6 @@ export function useTranscriber(): Transcriber {
       onInputChange,
       isBusy,
       isModelLoading,
-      progressItems,
       start: postRequest,
       output: transcript,
       model,
@@ -199,7 +210,6 @@ export function useTranscriber(): Transcriber {
   }, [
     isBusy,
     isModelLoading,
-    progressItems,
     postRequest,
     transcript,
     model,

@@ -31,7 +31,7 @@ var DockDivider = {
   make: make
 };
 
-var baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 duration-300";
+var baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300";
 
 var make$1 = React.memo(function (props) {
       var __className = props.className;
@@ -53,6 +53,8 @@ var DockSpace = {
 var make$2 = React.memo(function (props) {
       var __highlight = props.highlight;
       var onClick = props.onClick;
+      var __className = props.className;
+      var className = __className !== undefined ? __className : "";
       var highlight = __highlight !== undefined ? __highlight : false;
       return JsxRuntime.jsxs("button", {
                   children: [
@@ -62,13 +64,14 @@ var make$2 = React.memo(function (props) {
                         }),
                     JsxRuntime.jsx("span", {
                           children: props.children,
-                          className: "group-active:scale-90 transition-transform"
+                          className: "group-active:scale-90 flex items-center gap-2 transition-transform"
                         })
                   ],
                   className: Cx.cx([
                         baseClass,
-                        "group hover:scale-110",
-                        highlight ? "bg-gradient-to-tr from-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80" : "bg-slate-700 hover:bg-slate-500"
+                        "group hover:scale-110 transition-all duration-200",
+                        highlight ? "bg-gradient-to-tr from-amber-500/90 via-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80 focus-visible:!ring-white" : "bg-slate-700 hover:bg-slate-500",
+                        className
                       ]),
                   onClick: (function (param) {
                       onClick();
@@ -96,6 +99,7 @@ function getFpsMarker(fps, desiredFps) {
 
 function Dock(props) {
   var fullScreenToggler = props.fullScreenToggler;
+  var render = props.render;
   var context = EditorContext.useEditorContext();
   var match = Hooks.useToggle(false);
   var collapsedToggle = match[1];
@@ -110,12 +114,10 @@ function Dock(props) {
     playerDispatch(tmp);
   };
   var handleSetVolume = Hooks.useEvent(function (value) {
-        Core__Option.forEach(value, (function (value) {
-                playerDispatch({
-                      TAG: "SetVolume",
-                      _0: value
-                    });
-              }));
+        playerDispatch({
+              TAG: "SetVolume",
+              _0: value
+            });
       });
   var increaseVolume = Hooks.useEvent(function () {
         Core__Option.forEach(context.getImmediatePlayerState().volume, (function (volume) {
@@ -136,13 +138,13 @@ function Dock(props) {
   var handleSeekLeft = Hooks.useEvent(function () {
         playerDispatch({
               TAG: "Seek",
-              _0: context.getImmediatePlayerState().frame - 2
+              _0: context.getImmediatePlayerState().ts - 2
             });
       });
   var handleSeekRight = Hooks.useEvent(function () {
         playerDispatch({
               TAG: "Seek",
-              _0: context.getImmediatePlayerState().frame + 2
+              _0: context.getImmediatePlayerState().ts + 2
             });
       });
   var toggleMute = Hooks.useEvent(function () {
@@ -169,7 +171,7 @@ function Dock(props) {
       });
   React.useEffect((function () {
           var handleKeydown = function (e) {
-            if (!Utils.Bool.invert(Web.$$Element.isFocusable(e.target))) {
+            if (!Utils.Bool.invert(Web.isFocusable(e.target))) {
               return ;
             }
             var match = e.key;
@@ -240,17 +242,53 @@ function Dock(props) {
             });
         break;
     case "CantPlay" :
-        tmp = JsxRuntime.jsx(Spinner.make, {});
+    case "StoppedForRender" :
+        tmp = JsxRuntime.jsx(Spinner.make, {
+              size: 1.5,
+              className: "mx-1"
+            });
         break;
     
   }
   var volume = player.volume;
+  var match$3 = props.subtitlesManager.transcriptionState;
+  var tmp$1;
+  var exit = 0;
+  if (typeof match$3 !== "object") {
+    tmp$1 = null;
+  } else {
+    exit = 1;
+  }
+  if (exit === 1) {
+    tmp$1 = JsxRuntime.jsxs(JsxRuntime.Fragment, {
+          children: [
+            JsxRuntime.jsx(make, {}),
+            JsxRuntime.jsxs(make$2, {
+                  children: [
+                    "Render video",
+                    JsxRuntime.jsx(Outline.DocumentArrowDownIcon, {
+                          className: "size-5"
+                        })
+                  ],
+                  label: "Render video file",
+                  className: "whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4",
+                  onClick: (function () {
+                      playerDispatch("StopForRender");
+                      setTimeout((function () {
+                              render(context.getImmediateStyleState());
+                            }), 0);
+                    }),
+                  highlight: true
+                })
+          ]
+        });
+  }
   return JsxRuntime.jsxs("div", {
               children: [
                 JsxRuntime.jsxs(make$1, {
                       children: [
                         JsxRuntime.jsx("span", {
-                              children: Utils.Duration.formatSeconds(player.frame)
+                              children: Utils.Duration.formatSeconds(player.ts)
                             }),
                         JsxRuntime.jsx("span", {
                               children: " / ",
@@ -298,7 +336,8 @@ function Dock(props) {
                               max: Player.max_volume,
                               step: 1
                             })
-                      ]
+                      ],
+                      className: "w-40"
                     }),
                 JsxRuntime.jsx(make, {}),
                 JsxRuntime.jsx(make$2, {
@@ -317,7 +356,8 @@ function Dock(props) {
                           }),
                       label: "Show/Hide dock controls",
                       onClick: toggleDock
-                    })
+                    }),
+                tmp$1
               ],
               className: Cx.cx([
                     "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex -translate-x-1/2",

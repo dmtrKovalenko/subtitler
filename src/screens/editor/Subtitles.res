@@ -1,8 +1,14 @@
+type timestamp = (float, Js.nullable<float>)
+
 @genType
 type subtitleCue = {
+  id: option<float>,
   text: string,
-  timestamp: (float, Js.nullable<float>),
+  timestamp: timestamp,
 }
+
+let start = chunk => chunk.timestamp->fst
+let end = chunk => chunk.timestamp->snd
 
 @genType
 type currentPlayingCue = {
@@ -34,6 +40,7 @@ let lookupCurrentCue = (~subtitles, ~timestamp) => {
 }
 
 // tries to match current or next cue based on the previous one or lookup from the start
+@gentype
 let getOrLookupCurrentCue = (~timestamp, ~subtitles, ~prevCue) => {
   switch prevCue {
   | None => lookupCurrentCue(~subtitles, ~timestamp)
@@ -52,4 +59,123 @@ let getOrLookupCurrentCue = (~timestamp, ~subtitles, ~prevCue) => {
       }
     })
   }
+}
+
+let averageChunkLength = (subtitles: array<subtitleCue>) => {
+  let totalCharacters = subtitles->Array.reduce(0, (acc, subtitle) => {
+    acc + subtitle.text->String.length
+  })
+
+  totalCharacters / subtitles->Array.length
+}
+
+let addChunkId = (chunk: subtitleCue) => {
+  {
+    ...chunk,
+    id: Some(Math.random()),
+  }
+}
+
+let fillChunksIds = (subtitles: array<subtitleCue>) => subtitles->Array.map(addChunkId)
+
+// Simple alghortim taking into account word level timestamps
+// and combining them into chunks of a given max size
+let resizeChunks = (wordChunks, ~maxSize) => {
+  let resizedChunks = []
+  let chunkInProgressRef = ref(None)
+
+  let wordlen = chunkA => {
+    chunkA.text->String.trim->String.length
+  }
+
+  wordChunks->Array.forEach(chunk => {
+    // we need to keep the populate ids for every chunk on this step
+    let chunk = chunk->addChunkId
+
+    switch chunkInProgressRef.contents {
+    | None => chunkInProgressRef := Some(chunk)
+    | Some(chunkInProgress) if chunk->wordlen + chunkInProgress->wordlen < maxSize =>
+      chunkInProgressRef :=
+        Some({
+          id: Some(Math.random()),
+          text: chunkInProgress.text ++ chunk.text,
+          timestamp: (chunkInProgress.timestamp->fst, chunk.timestamp->snd),
+        })
+    | Some(chunkInProgress) =>
+      resizedChunks->Array.push(chunkInProgress)
+      chunkInProgressRef := Some(chunk)
+    }
+  })
+
+  chunkInProgressRef.contents->Option.forEach(chunk => Array.push(resizedChunks, chunk))
+
+  resizedChunks
+}
+
+let editChunkText = (chunks, index, newText) => {
+  chunks->Array.mapWithIndex((chunk, i) => {
+    if i == index {
+      {
+        ...chunk,
+        text: newText,
+      }
+    } else {
+      chunk
+    }
+  })
+}
+
+let sortChunks = chunks => {
+  Array.toSorted(chunks, (a, b) => {
+    let (startA, _) = a.timestamp
+    let (startB, _) = b.timestamp
+
+    startA -. startB
+  })
+}
+
+let editChunkTimestamp = (chunks, index, newTimestamp) => {
+  chunks
+  ->Utils.Log.andReturn
+  ->Array.mapWithIndex((chunk, i) => {
+    if i == index {
+      {
+        ...chunk,
+        timestamp: newTimestamp,
+      }
+    } else {
+      chunk
+    }
+  })
+  ->Utils.Log.andReturn
+  ->sortChunks
+}
+
+let removeChunk = (chunks, index, ~joinSiblingsTimestamps) => {
+  let chunkToRemove = chunks->Array.get(index)
+
+  chunkToRemove
+  ->Option.map(chunkToRemove => {
+    chunks->Utils.Array.filterMapWithIndex((chunk, i) => {
+      switch i {
+      | i if i == index => None
+      | i if joinSiblingsTimestamps && i == index - 1 =>
+        Some({
+          ...chunk,
+          timestamp: (chunk->start, chunkToRemove->end),
+        })
+      | i if joinSiblingsTimestamps && i == index + 1 =>
+        Some({
+          ...chunk,
+          timestamp: (
+            chunkToRemove->end->Js.Nullable.toOption->Option.getOr(chunk->start),
+            chunk->end,
+          ),
+        })
+      | _ => Some(chunk)
+      }
+    })
+  })
+  ->Utils.Log.andReturn
+  ->Option.getOr(chunks)
 }

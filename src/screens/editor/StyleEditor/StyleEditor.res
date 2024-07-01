@@ -1,26 +1,26 @@
 let font_weight_options = [
-  Renderer.Thin,
-  Renderer.ExtraLight,
-  Renderer.Light,
-  Renderer.Regular,
-  Renderer.Medium,
-  Renderer.SemiBold,
-  Renderer.Bold,
-  Renderer.ExtraBold,
-  Renderer.Black,
+  Style.Thin,
+  Style.ExtraLight,
+  Style.Light,
+  Style.Regular,
+  Style.Medium,
+  Style.SemiBold,
+  Style.Bold,
+  Style.ExtraBold,
+  Style.Black,
 ]
 
 let formatFontWeight = weight =>
   switch weight {
-  | Renderer.Thin => "Thin"
-  | Renderer.ExtraLight => "Extra Light"
-  | Renderer.Light => "Light"
-  | Renderer.Regular => "Regular"
-  | Renderer.Medium => "Medium"
-  | Renderer.SemiBold => "Semi Bold"
-  | Renderer.Bold => "Bold"
-  | Renderer.ExtraBold => "Extra Bold"
-  | Renderer.Black => "Black"
+  | Style.Thin => "Thin"
+  | Style.ExtraLight => "Extra Light"
+  | Style.Light => "Light"
+  | Style.Regular => "Regular"
+  | Style.Medium => "Medium"
+  | Style.SemiBold => "Semi Bold"
+  | Style.Bold => "Bold"
+  | Style.ExtraBold => "Extra Bold"
+  | Style.Black => "Black"
   }
 
 let parseInt = value =>
@@ -31,8 +31,9 @@ let parseInt = value =>
   }
 
 @react.component
-let make = () => {
-  let style = Renderer.useStyle()
+let make = Utils.neverRerender(() => {
+  let editorContext = EditorContext.useEditorContext()
+  let (style, dispatch) = editorContext.useStyle()
   let fontInProgressRef = React.useRef(None)
 
   <div className="flex flex-col gap-6">
@@ -48,8 +49,8 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetPosition(val, style.y))
-          ->Option.forEach(Renderer.dispatch)}
+          ->Option.map(val => Style.SetPosition(val, style.y))
+          ->Option.forEach(dispatch)}
       />
       <Input
         labelHidden=true
@@ -60,8 +61,8 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetPosition(style.x, val))
-          ->Option.forEach(Renderer.dispatch)}
+          ->Option.map(val => Style.SetPosition(style.x, val))
+          ->Option.forEach(dispatch)}
       />
       <Input
         labelHidden=true
@@ -72,8 +73,8 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetBlockWidth(val))
-          ->Option.forEach(Renderer.dispatch)}
+          ->Option.map(val => Style.SetBlockWidth(val))
+          ->Option.forEach(dispatch)}
       />
       <Input
         labelHidden=true
@@ -84,8 +85,8 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetBlockHeight(val))
-          ->Option.forEach(Renderer.dispatch)}
+          ->Option.map(val => Style.SetBlockHeight(val))
+          ->Option.forEach(dispatch)}
       />
     </div>
     <div
@@ -103,7 +104,7 @@ let make = () => {
           fontsLoaded={loaded => {
             if loaded {
               fontInProgressRef.current->Option.forEach(font => {
-                Renderer.dispatch(Renderer.SetFontFamily(font))
+                dispatch(Style.SetFontFamily(font))
                 fontInProgressRef.current = None
               })
             }
@@ -116,22 +117,21 @@ let make = () => {
           label="Fill"
           className="w-full col-span-1 flex-1"
           value={style.color}
-          onChange={value => Renderer.dispatch(Renderer.SetColor(value))}
+          onChange={value => dispatch(Style.SetColor(value))}
         />
         <Input
           type_="color"
           label="Stroke"
           className="w-full col-span-1 flex-1"
           value={style.strokeColor->Option.getOr(style.color)}
-          onChange={value => Renderer.dispatch(Renderer.SetStrokeColor(value))}
+          onChange={value => dispatch(Style.SetStrokeColor(value))}
         />
       </div>
       <Input.Field className="col-span-3">
         <Input.Label className="whitespace-nowrap"> {React.string("Font weight")} </Input.Label>
         <Combobox
           selected={style.fontWeight}
-          setSelected={value =>
-            value->Option.forEach(value => Renderer.dispatch(SetFontWeight(value)))}
+          setSelected={value => value->Option.forEach(value => dispatch(SetFontWeight(value)))}
           options={font_weight_options}
           formatValue={formatFontWeight}
           filter={value => item =>
@@ -151,24 +151,23 @@ let make = () => {
         onChange={value =>
           value
           ->parseInt
-          ->Option.map(val => Renderer.SetFontSizePx(val))
-          ->Option.forEach(Renderer.dispatch)}
+          ->Option.map(val => Style.SetFontSizePx(val))
+          ->Option.forEach(dispatch)}
       />
       <Input.Field className="col-span-2">
         <Input.Label className="whitespace-nowrap"> {React.string("Text align")} </Input.Label>
-        <ToggleButton.Group
-          value={style.align} onChange={value => Renderer.dispatch(Renderer.SetAlign(value))}>
-          <ToggleButton.Button value={Renderer.Left}>
+        <ToggleButton.Group value={style.align} onChange={value => dispatch(Style.SetAlign(value))}>
+          <ToggleButton.Button value={Style.Left}>
             <Icons.BarsCenterLeftIcon className="size-4" />
           </ToggleButton.Button>
-          <ToggleButton.Button value={Renderer.Center}>
+          <ToggleButton.Button value={Style.Center}>
             <Icons.BarsIcon className="size-4" />
           </ToggleButton.Button>
-          <ToggleButton.Button value={Renderer.Right}>
+          <ToggleButton.Button value={Style.Right}>
             <Icons.BarsCenterRightIcon className="size-4" />
           </ToggleButton.Button>
         </ToggleButton.Group>
       </Input.Field>
     </div>
   </div>
-}
+})

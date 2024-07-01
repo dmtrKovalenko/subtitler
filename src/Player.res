@@ -1,12 +1,12 @@
 open Subtitles
 
-type playState = Playing | Paused | WaitingForAction | CantPlay
+type playState = Playing | Paused | WaitingForAction | CantPlay | StoppedForRender
 
 /// This state should only contain a state that changes that affect the animation runtime or will likely change 60 t/s
 @genType
 type state = {
-  frame: float,
-  startPlayingFrame: float,
+  ts: float,
+  startPlayingTs: float,
   playState: playState,
   currentPlayingCue: option<currentPlayingCue>,
   volume: option<int>,
@@ -20,6 +20,8 @@ type action =
   | Play
   | Pause
   | SetVolume(int)
+  | StopForRender
+  | UpdateCurrentCue
 
 let currentFps: ref<option<int>> = ref(None)
 
@@ -40,17 +42,20 @@ module MakePlayer = (Ctx: Types.Ctx) => {
     }
 
     let initial = {
-      frame: 0.,
-      startPlayingFrame: 0.,
+      ts: 0.,
+      startPlayingTs: 0.,
       playState: Paused,
       currentPlayingCue: lookupCurrentCue(~timestamp=0., ~subtitles=Ctx.subtitlesRef.current),
       volume,
     }
   }
 
+  include UseObservable.Pubsub(PlayerState)
+
   let renderFrame = () => {
-    switch Ctx.dom.canvasRef.current->Js.Nullable.toOption {
-    | Some(el) => {
+    switch (Ctx.dom.canvasRef.current->Js.Nullable.toOption, get().playState) {
+    | (None, _) | (_, StoppedForRender) => ()
+    | (Some(el), _) => {
         let ctx = Webapi.Canvas.CanvasElement.getContext2d(el)
         Web.Video.drawOnCanvas(
           ctx,
@@ -61,47 +66,58 @@ module MakePlayer = (Ctx: Types.Ctx) => {
           ~dirtyHeight=Ctx.videoMeta.height,
         )
       }
-    | None => ()
     }
   }
 
-  include UseObservable.Pubsub(PlayerState)
   let reducer = action => {
     let state = get()
-    switch action {
-    | Seek(frame) | NewFrame(frame) if frame >= Ctx.videoMeta.duration || frame < 0. => {
-        ...state,
-        frame: 0.,
-        playState: Paused,
-        startPlayingFrame: frame,
+    if state.playState !== StoppedForRender {
+      switch action {
+      | Seek(ts) | NewFrame(ts) if ts >= Ctx.videoMeta.duration || ts < 0. => {
+          ...state,
+          ts: 0.,
+          playState: Paused,
+          startPlayingTs: ts,
+        }
+      | Seek(ts) => {
+          ...state,
+          ts,
+          startPlayingTs: ts,
+          currentPlayingCue: lookupCurrentCue(~timestamp=ts, ~subtitles=Ctx.subtitlesRef.current),
+        }
+      | NewFrame(ts) => {
+          ...state,
+          ts,
+          currentPlayingCue: getOrLookupCurrentCue(
+            ~timestamp=ts,
+            ~subtitles=Ctx.subtitlesRef.current,
+            ~prevCue=state.currentPlayingCue,
+          ),
+        }
+      | AllowPlay => {...state, playState: WaitingForAction}
+      | Play if state.ts <= 0. || state.ts >= Ctx.videoMeta.duration => {
+          ...state,
+          ts: 0.,
+          playState: Playing,
+        }
+      | Play => {...state, playState: Playing, startPlayingTs: state.ts}
+      | Pause => {...state, playState: Paused}
+      | SetVolume(volume) => {
+          ...state,
+          volume: Some(volume),
+        }
+      | UpdateCurrentCue => {
+          let currentPlayingCue = lookupCurrentCue(
+            ~timestamp=state.ts,
+            ~subtitles=Ctx.subtitlesRef.current,
+          )
+
+          {...state, currentPlayingCue}
+        }
+      | StopForRender => {...state, playState: StoppedForRender}
       }
-    | Seek(frame) => {
-        ...state,
-        frame,
-        startPlayingFrame: frame,
-        currentPlayingCue: lookupCurrentCue(~timestamp=frame, ~subtitles=Ctx.subtitlesRef.current),
-      }
-    | NewFrame(frame) => {
-        ...state,
-        frame,
-        currentPlayingCue: getOrLookupCurrentCue(
-          ~timestamp=frame,
-          ~subtitles=Ctx.subtitlesRef.current,
-          ~prevCue=state.currentPlayingCue,
-        ),
-      }
-    | AllowPlay => {...state, playState: WaitingForAction}
-    | Play if state.frame <= 0. || state.frame >= Ctx.videoMeta.duration => {
-        ...state,
-        frame: 0.,
-        playState: Playing,
-      }
-    | Play => {...state, playState: Playing, startPlayingFrame: state.frame}
-    | Pause => {...state, playState: Paused}
-    | SetVolume(volume) => {
-        ...state,
-        volume: Some(volume),
-      }
+    } else {
+      state
     }
   }
 
@@ -128,7 +144,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
     }
 
     switch action {
-    | Play if get().playState !== Playing => startPlaying(get().frame)
+    | Play if get().playState !== Playing => startPlaying(get().ts)
     | Seek(newFrame) => startPlaying(newFrame)
     | NewFrame(currentTs) if get().playState !== Playing => {
         Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)
@@ -139,6 +155,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
         Ctx.dom.videoElement->Web.Video.setVolume(volume->Float.fromInt /. 100.)
         Dom.Storage.setItem(volume_key, volume->Js.Int.toString, Dom.Storage.localStorage)
       }
+    | StopForRender => Web.Video.pause(Ctx.dom.videoElement)
     | _ => ()
     }
   }

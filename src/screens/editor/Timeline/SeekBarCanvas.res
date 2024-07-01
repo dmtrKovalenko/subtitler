@@ -4,7 +4,7 @@ module Canvas = Webapi.Canvas
 module Canvas2d = Webapi.Canvas.Canvas2d
 
 let renderSeekBar = (ctx, size, playState: Player.state) => {
-  let x = tsToFrame(playState.frame, size)
+  let x = tsToFrame(playState.ts, size)
 
   ctx->Canvas2d.beginPath
   ctx->Canvas2d.moveTo(~x, ~y=0.)
@@ -60,23 +60,23 @@ let make = (~size) => {
     ->ignore
 
     None
-  }, (size, player.frame, player.playState))
+  }, (size, player.ts, player.playState))
 
-  let handleMouseMove = Hooks.useEvent(e => {
+  let handleMouseMove = React.useCallback1(e => {
     if (
       editorContext.getImmediatePlayerState().playState !== Playing &&
         Webapi.Dom.document->Web.Document.hasFocus
     ) {
       dispatch(NewFrame(calculateFrameFromEvent(e, ~size)))
     }
-  })
+  }, [size])
 
-  let handleClick = Hooks.useEvent(e => {
+  let handleClick = React.useCallback1(e => {
     let frame = calculateFrameFromEvent(e, ~size)
 
     dispatch(Seek(frame))
     dispatch(Play)
-  })
+  }, [size])
 
   <canvas
     onClick=handleClick
@@ -86,7 +86,7 @@ let make = (~size) => {
       switch player.playState {
       | Paused | WaitingForAction => "cursor-col-resize"
       | Playing => "cursor-pointer"
-      | CantPlay => "cursor-wait"
+      | CantPlay | StoppedForRender => "cursor-wait"
       },
     ])}
     style={ReactDOMStyle.make(

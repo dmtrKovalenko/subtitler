@@ -18,7 +18,8 @@ type size = {
   height: int,
 }
 
-type rendererState = {
+@genType
+type style = {
   x: int,
   y: int,
   fontFamily: string,
@@ -30,7 +31,7 @@ type rendererState = {
   blockSize: size,
 }
 
-type rendererAction =
+type changeStyleAction =
   | SetPosition(int, int)
   | SetFontFamily(string)
   | SetFontWeight(fontWeight)
@@ -42,21 +43,36 @@ type rendererAction =
   | SetAlign(align)
   | Resize(size)
 
-module RendererObservable: UseObservable.Observable
-  with type t = rendererState
-  and type action = rendererAction = {
-  type t = rendererState
-  type action = rendererAction
+module type StyleObservable = UseObservable.Observable
+  with type t = style
+  and type action = changeStyleAction
+
+module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
+  type t = style
+  type action = changeStyleAction
+
+  let width = if Ctx.videoMeta.width > Ctx.videoMeta.height {
+    Ctx.videoMeta.width / 4
+  } else {
+    Ctx.videoMeta.width / 3 * 2
+  }
+
+  let center = Ctx.videoMeta.width / 2 - width / 2
+  let fontSizePx = Ctx.videoMeta.height / 30
 
   let initial = {
-    x: 0,
-    y: 0,
+    x: center,
+    y: if Ctx.videoMeta.width > Ctx.videoMeta.height {
+      Ctx.videoMeta.height - Ctx.videoMeta.height / 6
+    } else {
+      Ctx.videoMeta.height / 7
+    },
     fontFamily: "Inter",
     fontWeight: Regular,
-    fontSizePx: 44,
+    fontSizePx,
     color: "#ffffff",
     strokeColor: None,
-    blockSize: {width: 200, height: 44},
+    blockSize: {width, height: fontSizePx},
     align: Center,
   }
 
@@ -79,38 +95,4 @@ module RendererObservable: UseObservable.Observable
     | SetAlign(align) => {...state, align}
     | Resize(size) => {...state, blockSize: size}
     }
-}
-
-module Observer = UseObservable.MakeObserver(RendererObservable)
-
-@genType
-let useStyle = Observer.useObservable
-@genType
-let dispatch = Observer.dispatch
-
-@send
-external drawVideoImage: (
-  Webapi.Canvas.Canvas2d.t,
-  ~imageData: Webapi.Dom.Element.t,
-  ~dx: int=?,
-  ~dy: int=?,
-  ~dirtyWidth: int=?,
-  ~dirtyHeight: int=?,
-) => unit = "drawImage"
-
-let renderVideoFrame = (videoMeta: Types.videoMeta, videoElement) => (
-  ctx,
-  ~dx=?,
-  ~dy=?,
-  ~dirtyWidth=?,
-  ~dirtyHeight=?,
-) => {
-  drawVideoImage(
-    ctx,
-    ~imageData=videoElement,
-    ~dx=dx->Option.getOr(0),
-    ~dy=dy->Option.getOr(0),
-    ~dirtyWidth=dirtyWidth->Option.getOr(videoMeta.width),
-    ~dirtyHeight=dirtyHeight->Option.getOr(videoMeta.height),
-  )
-}
+})

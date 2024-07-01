@@ -1,34 +1,15 @@
 import { TranscriberData } from "../transcriber/useTranscriber";
 import { MP4Demuxer, Metadata } from "./Demuxer";
 import { Muxer, FileSystemWritableFileStreamTarget } from "mp4-muxer";
+import {
+  RendererContext,
+  createCtx,
+  loadGoogleFont,
+  renderCue,
+} from "./subtitle-renderer";
+import { style } from "../screens/editor/Style.gen";
 
 const QUEUE_SIZE = 64;
-
-function renderAnimationFrame(
-  text: string | null,
-  pendingFrame: VideoFrame,
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D,
-) {
-  if (!pendingFrame) {
-    return;
-  }
-
-  canvas.width = pendingFrame.displayWidth;
-  canvas.height = pendingFrame.displayHeight;
-  ctx.drawImage(
-    pendingFrame,
-    0,
-    0,
-    pendingFrame.displayWidth,
-    pendingFrame.displayHeight,
-  );
-  if (text) {
-    ctx.font = "48px sans-serif";
-    ctx.fillStyle = "white";
-    ctx.fillText(text, 200, 200);
-  }
-}
 
 function webcodecsCodecToMuxer(
   fullCodec: string,
@@ -55,21 +36,47 @@ function webcodecsCodecToMuxer(
   return "avc";
 }
 
+export type RenderProgressMessage =
+  | {
+      type: "encodeprogress";
+      progress: number;
+    }
+  | {
+      type: "renderprogress";
+      progress: number;
+    }
+  | {
+      type: "done";
+    }
+  | {
+      type: "error";
+      message: string;
+      error: unknown;
+    };
+
+const postMessage = (message: RenderProgressMessage) =>
+  self.postMessage(message);
+
 class EncoderMuxer {
-  encoder: VideoEncoder;
-  #muxer: Muxer<FileSystemWritableFileStreamTarget>;
+  videoMetadataRef: { current: Metadata | null };
+  encoder: VideoEncoder | undefined;
+  #muxer: Muxer<FileSystemWritableFileStreamTarget> | undefined;
+
   #fileStream: FileSystemWritableFileStream;
   #onEncodeQueueEmptied: () => void;
 
   constructor(
+    metadataRef: { current: Metadata | null },
     fileHandle: FileSystemWritableFileStream,
     onEncodeQueueDevastation: () => void,
   ) {
+    this.videoMetadataRef = metadataRef;
     this.#fileStream = fileHandle;
     this.#onEncodeQueueEmptied = onEncodeQueueDevastation;
   }
 
   configure(videoConfig: VideoDecoderConfig, audioConfig: AudioDecoderConfig) {
+    let encodedFrames = 0;
     if (!videoConfig.codedWidth || !videoConfig.codedHeight) {
       throw new Error("Can not resolve video size");
     }
@@ -93,8 +100,24 @@ class EncoderMuxer {
     });
 
     this.encoder = new VideoEncoder({
-      output: this.#muxer.addVideoChunk.bind(this.#muxer),
-      error: (e) => console.error(e),
+      output: (chunk, metadata) => {
+        if (this.videoMetadataRef.current) {
+          postMessage({
+            type: "encodeprogress",
+            progress:
+              (encodedFrames / this.videoMetadataRef.current.nbSamples) * 100,
+          });
+        }
+
+        encodedFrames++;
+        this.#muxer?.addVideoChunk(chunk, metadata);
+      },
+      error: (e) =>
+        postMessage({
+          message: "Error encoding video.",
+          type: "error",
+          error: e,
+        } as RenderProgressMessage),
     });
 
     this.encoder.configure({
@@ -104,7 +127,7 @@ class EncoderMuxer {
     });
 
     this.encoder.ondequeue = () => {
-      if (this.encoder.encodeQueueSize === 0) {
+      if (this.encoder?.encodeQueueSize === 0) {
         this.#onEncodeQueueEmptied();
       }
     };
@@ -118,35 +141,69 @@ class EncoderMuxer {
     return this.#muxer.addAudioChunkRaw.apply(this.#muxer, args);
   };
 
-  flush = () => {
-    this.encoder
-      .flush()
-      .then(() => {
-        console.log("finalizing");
-        this.#muxer.finalize();
-        console.log("saving");
-        this.#fileStream.close().then(() => console.log("saved"));
-      })
-      .catch(console.error);
+  flush = async () => {
+    try {
+      await this.encoder?.flush();
+      this.#muxer?.finalize();
+      await this.#fileStream.close();
+
+      postMessage({
+        type: "done",
+      });
+    } catch (e) {
+      postMessage({
+        message: "Failed to finalize vide muxing",
+        type: "error",
+        error: e,
+      });
+    }
   };
 }
 
-export async function start({ dataUri, canvas, fileHandle, _cues }) {
-  let metadata: Metadata | null = null;
+export type RenderMessage = {
+  type: "render";
+  dataUri: File;
+  canvas: OffscreenCanvas;
+  fileHandle: FileSystemFileHandle;
+  cues: TranscriberData["chunks"];
+  style: style;
+};
 
-  const cues: TranscriberData["chunks"] = _cues;
-  const ctx = canvas.getContext("2d");
+export async function render({
+  dataUri,
+  canvas,
+  fileHandle,
+  cues,
+  style,
+}: RenderMessage) {
+  let metadataRef: { current: Metadata | null } = {
+    current: null,
+  };
+
+  try {
+    await loadGoogleFont(style.fontFamily, style.fontWeight);
+  } catch (e) {
+    postMessage({
+      error: e,
+      type: "error",
+      message: "Failed to load font",
+    });
+
+    return;
+  }
+
+  let renderedFrames = 0;
+  let rendererCtx: RendererContext | null = null;
   const chunks: EncodedVideoChunk[] = [];
 
   function supplyChunks(first: number) {
     if (chunks.length > 0) {
-      console.log("supplying chunks");
       chunks.splice(0, first).forEach((chunk) => decoder.decode(chunk));
     }
   }
 
   const fileStream = await fileHandle.createWritable();
-  let encoderMuxer = new EncoderMuxer(fileStream, () => {
+  let encoderMuxer = new EncoderMuxer(metadataRef, fileStream, () => {
     if (chunks.length === 0) {
       encoderMuxer.flush();
     } else {
@@ -154,47 +211,42 @@ export async function start({ dataUri, canvas, fileHandle, _cues }) {
     }
   });
 
-  function getCurrentCue(timestampInMs: number) {
-    const timestamp = timestampInMs / 1e6;
-    const currentChunk = cues[0];
-    if (!currentChunk) {
-      return null;
-    }
-
-    if (currentChunk.timestamp[1] && timestamp > currentChunk.timestamp[1]) {
-      cues.shift();
-      return getCurrentCue(timestamp);
-    }
-
-    if (currentChunk.timestamp[0] <= timestamp) {
-      return currentChunk;
-    }
-
-    return 0;
-  }
-
   const decoder = new VideoDecoder({
     output(frame: VideoFrame) {
-      const timestamp = frame.timestamp;
-      const cue = getCurrentCue(timestamp);
-      renderAnimationFrame(cue?.text ?? null, frame, canvas, ctx);
-      frame.close();
-      const renderedFrame = new VideoFrame(canvas, { timestamp });
-      encoderMuxer.encoder.encode(renderedFrame);
+      if (!rendererCtx) {
+        throw new Error("Renderer context is not initialized");
+      }
+
+      const renderedFrame = renderCue(cues, frame, rendererCtx);
+      encoderMuxer.encoder?.encode(renderedFrame);
       renderedFrame.close();
-      console.log("frame processed");
+
+      renderedFrames++;
+      if (metadataRef.current) {
+        postMessage({
+          type: "renderprogress",
+          progress: (renderedFrames / metadataRef.current.nbSamples) * 100,
+        });
+      }
     },
     error(e) {
-      console.error(e);
+      postMessage({
+        type: "error",
+        error: e,
+        message: "Failed to decode video",
+      });
     },
   });
 
   let decodingStarted = false;
   // Fetch and demux the media data.
   new MP4Demuxer(dataUri, {
-    onMetadata(_metadata) {},
+    onMetadata(metadata: Metadata) {
+      metadataRef.current = metadata;
+    },
     onConfig(videoConfig: VideoDecoderConfig, audioConfig: AudioDecoderConfig) {
       decoder.configure(videoConfig);
+      rendererCtx = createCtx(videoConfig, canvas, style);
       encoderMuxer.configure(videoConfig, audioConfig);
     },
     onVideoChunk(chunk: EncodedVideoChunk) {
@@ -212,7 +264,13 @@ export async function start({ dataUri, canvas, fileHandle, _cues }) {
 
 // Listen for the start request.
 self.addEventListener("message", (message) => {
-  if (message.data.type === "decode") {
-    start(message.data);
+  if (message.data.type === "render") {
+    render(message.data).catch((e) => {
+      postMessage({
+        type: "error",
+        error: e,
+        message: "Failed to render video",
+      });
+    });
   }
 });

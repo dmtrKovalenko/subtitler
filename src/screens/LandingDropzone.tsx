@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Combobox } from "../ui/Combobox";
 import { ALL_LANGUAGES, LANGUAGE_NAME_MAP } from "./languages";
 import { SubtitlesStrikethrough } from "../ui/SubtitlesStrikethrough";
+import { isFocusable } from "../bindings/Web.gen";
 
 type LandingDropzoneProps = {
   language: string;
@@ -42,9 +43,8 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
         {...getRootProps({
           onClick: (e) => {
             if (
-              ["A", "BUTTON", "INPUT", "TEXTAREA", "SELECT"].includes(
-                (e.target as HTMLElement).tagName,
-              )
+              isFocusable(e.target) ||
+              !e.currentTarget.contains(e.target as HTMLElement)
             ) {
               e.stopPropagation();
             }

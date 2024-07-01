@@ -50,28 +50,36 @@ function renderMainScene(ctx, size, editorContext) {
             
           }));
   };
-  seekAndRender();
+  if (editorContext.dom.timelineVideoElement.readyState > 1) {
+    return seekAndRender();
+  } else {
+    return Web.Video.onLoadedData(editorContext.dom.timelineVideoElement, (function () {
+                  seekAndRender();
+                }));
+  }
 }
 
 function renderAudioWaveForm(ctx, startTs, endTs, x0, y0, audioSpaceWidth, editorContext) {
   var Ctx = editorContext.ctx;
-  var positionEnd = (endTs - startTs) * Ctx.audioBuffer.sampleRate | 0;
-  var length = positionEnd - 0 | 0;
-  var sector = length / audioSpaceWidth * 1;
-  var position = 0;
-  var mid = CanvasSize.audio_height / 2 | 0;
-  var x = x0;
-  ctx.beginPath();
-  ctx.strokeStyle = "#e2e8f0";
-  var fltpData = Ctx.audioBuffer.getChannelData(0);
-  while(x < audioSpaceWidth || position < positionEnd) {
-    var pcm = Core__Option.getOr(fltpData[position], 0.0);
-    var y = mid + y0 + pcm * mid;
-    ctx.lineTo(x, y);
-    position = Math.floor(position + sector);
-    x = Math.floor(x + 1);
-  };
-  ctx.stroke();
+  return Core__Option.map(Ctx.audioBuffer, (function (audioBuffer) {
+                var positionEnd = (endTs - startTs) * audioBuffer.sampleRate | 0;
+                var length = positionEnd - 0 | 0;
+                var sector = length / audioSpaceWidth * 1;
+                var position = 0;
+                var mid = CanvasSize.audio_height / 2 | 0;
+                var x = x0;
+                ctx.beginPath();
+                ctx.strokeStyle = "#e2e8f0";
+                var fltpData = audioBuffer.getChannelData(0);
+                while(x < audioSpaceWidth || position < positionEnd) {
+                  var pcm = Core__Option.getOr(fltpData[position], 0.0);
+                  var y = mid + y0 + pcm * mid;
+                  ctx.lineTo(x, y);
+                  position = Math.floor(position + sector);
+                  x = Math.floor(x + 1);
+                };
+                ctx.stroke();
+              }));
 }
 
 function renderAudio(ctx, size, editorContext) {

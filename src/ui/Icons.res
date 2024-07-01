@@ -46,7 +46,11 @@ module ForwardIcon = {
 
 module BackwardIcon = {
   @react.component
-  let make = (~color: string=?, ~className: string=?, ~style: ReactDOM.Style.t=?) => {
+  let make = (
+    ~color: option<string>=?,
+    ~className: option<string>=?,
+    ~style: option<ReactDOM.Style.t>=?,
+  ) => {
     <ForwardIcon color style className={Cx.cx([className->Option.getOr(""), "rotate-180"])} />
   }
 }
@@ -132,4 +136,13 @@ module BarsCenterRightIcon = {
     ~className: string=?,
     ~style: ReactDOM.Style.t=?,
   ) => React.element = "Bars3BottomRightIcon"
+}
+
+module RenderIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "DocumentArrowDownIcon"
 }

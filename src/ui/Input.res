@@ -10,7 +10,7 @@ module Label = {
   }
 
   @react.component
-  let make = (~children: React.element, ~className: string=?) => {
+  let make = (~children: React.element, ~className: option<string>=?) => {
     <HeadlessLabel
       className={Cx.cx(["text-sm/6 ml-1.5 font-medium text-white", className->Option.getOr("")])}>
       {children}

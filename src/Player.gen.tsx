@@ -9,11 +9,12 @@ export type playState =
     "Playing"
   | "Paused"
   | "WaitingForAction"
-  | "CantPlay";
+  | "CantPlay"
+  | "StoppedForRender";
 
 export type state = {
-  readonly frame: number; 
-  readonly startPlayingFrame: number; 
+  readonly ts: number; 
+  readonly startPlayingTs: number; 
   readonly playState: playState; 
   readonly currentPlayingCue: (undefined | Subtitles_currentPlayingCue); 
   readonly volume: (undefined | number)
@@ -23,6 +24,8 @@ export type action =
     "AllowPlay"
   | "Play"
   | "Pause"
+  | "StopForRender"
+  | "UpdateCurrentCue"
   | { TAG: "Seek"; _0: number }
   | { TAG: "NewFrame"; _0: number }
   | { TAG: "SetVolume"; _0: number };

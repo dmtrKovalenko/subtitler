@@ -17,8 +17,8 @@ function MakePlayer(Ctx) {
   var volume = savedValue !== undefined ? Belt_Int.fromString(savedValue) : 60;
   var initial_currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, 0);
   var initial = {
-    frame: 0,
-    startPlayingFrame: 0,
+    ts: 0,
+    startPlayingTs: 0,
     playState: "Paused",
     currentPlayingCue: initial_currentPlayingCue,
     volume: volume
@@ -27,44 +27,51 @@ function MakePlayer(Ctx) {
     volume: volume,
     initial: initial
   };
-  var renderFrame = function () {
-    var el = Ctx.dom.canvasRef.current;
-    if (el == null) {
-      return ;
-    }
-    var ctx = el.getContext("2d");
-    ctx.drawImage(Ctx.dom.videoElement, 0, 0, Ctx.videoMeta.width, Ctx.videoMeta.height);
-  };
   var include = UseObservable.Pubsub({
         initial: initial
       });
   var get = include.get;
   var set = include.set;
+  var renderFrame = function () {
+    var match = Ctx.dom.canvasRef.current;
+    var match$1 = get().playState;
+    if (match == null) {
+      return ;
+    }
+    if (match$1 === "StoppedForRender") {
+      return ;
+    }
+    var ctx = match.getContext("2d");
+    ctx.drawImage(Ctx.dom.videoElement, 0, 0, Ctx.videoMeta.width, Ctx.videoMeta.height);
+  };
   var reducer = function (action) {
     var state = get();
+    if (state.playState === "StoppedForRender") {
+      return state;
+    }
     if (typeof action !== "object") {
       switch (action) {
         case "AllowPlay" :
             return {
-                    frame: state.frame,
-                    startPlayingFrame: state.startPlayingFrame,
+                    ts: state.ts,
+                    startPlayingTs: state.startPlayingTs,
                     playState: "WaitingForAction",
                     currentPlayingCue: state.currentPlayingCue,
                     volume: state.volume
                   };
         case "Play" :
-            if (state.frame <= 0 || state.frame >= Ctx.videoMeta.duration) {
+            if (state.ts <= 0 || state.ts >= Ctx.videoMeta.duration) {
               return {
-                      frame: 0,
-                      startPlayingFrame: state.startPlayingFrame,
+                      ts: 0,
+                      startPlayingTs: state.startPlayingTs,
                       playState: "Playing",
                       currentPlayingCue: state.currentPlayingCue,
                       volume: state.volume
                     };
             } else {
               return {
-                      frame: state.frame,
-                      startPlayingFrame: state.frame,
+                      ts: state.ts,
+                      startPlayingTs: state.ts,
                       playState: "Playing",
                       currentPlayingCue: state.currentPlayingCue,
                       volume: state.volume
@@ -72,10 +79,27 @@ function MakePlayer(Ctx) {
             }
         case "Pause" :
             return {
-                    frame: state.frame,
-                    startPlayingFrame: state.startPlayingFrame,
+                    ts: state.ts,
+                    startPlayingTs: state.startPlayingTs,
                     playState: "Paused",
                     currentPlayingCue: state.currentPlayingCue,
+                    volume: state.volume
+                  };
+        case "StopForRender" :
+            return {
+                    ts: state.ts,
+                    startPlayingTs: state.startPlayingTs,
+                    playState: "StoppedForRender",
+                    currentPlayingCue: state.currentPlayingCue,
+                    volume: state.volume
+                  };
+        case "UpdateCurrentCue" :
+            var currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, state.ts);
+            return {
+                    ts: state.ts,
+                    startPlayingTs: state.startPlayingTs,
+                    playState: state.playState,
+                    currentPlayingCue: currentPlayingCue,
                     volume: state.volume
                   };
         
@@ -87,8 +111,8 @@ function MakePlayer(Ctx) {
             break;
         case "SetVolume" :
             return {
-                    frame: state.frame,
-                    startPlayingFrame: state.startPlayingFrame,
+                    ts: state.ts,
+                    startPlayingTs: state.startPlayingTs,
                     playState: state.playState,
                     currentPlayingCue: state.currentPlayingCue,
                     volume: action._0
@@ -96,11 +120,11 @@ function MakePlayer(Ctx) {
         
       }
     }
-    var frame = action._0;
-    if (frame >= Ctx.videoMeta.duration || frame < 0) {
+    var ts = action._0;
+    if (ts >= Ctx.videoMeta.duration || ts < 0) {
       return {
-              frame: 0,
-              startPlayingFrame: frame,
+              ts: 0,
+              startPlayingTs: ts,
               playState: "Paused",
               currentPlayingCue: state.currentPlayingCue,
               volume: state.volume
@@ -108,21 +132,21 @@ function MakePlayer(Ctx) {
     }
     if (typeof action === "object") {
       if (action.TAG === "Seek") {
-        var frame$1 = action._0;
+        var ts$1 = action._0;
         return {
-                frame: frame$1,
-                startPlayingFrame: frame$1,
+                ts: ts$1,
+                startPlayingTs: ts$1,
                 playState: state.playState,
-                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, frame$1),
+                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, ts$1),
                 volume: state.volume
               };
       }
-      var frame$2 = action._0;
+      var ts$2 = action._0;
       return {
-              frame: frame$2,
-              startPlayingFrame: state.startPlayingFrame,
+              ts: ts$2,
+              startPlayingTs: state.startPlayingTs,
               playState: state.playState,
-              currentPlayingCue: Subtitles.getOrLookupCurrentCue(frame$2, Ctx.subtitlesRef.current, state.currentPlayingCue),
+              currentPlayingCue: Subtitles.getOrLookupCurrentCue(ts$2, Ctx.subtitlesRef.current, state.currentPlayingCue),
               volume: state.volume
             };
     }
@@ -155,16 +179,18 @@ function MakePlayer(Ctx) {
     };
     if (typeof action !== "object") {
       switch (action) {
-        case "AllowPlay" :
-            return ;
         case "Play" :
             if (get().playState !== "Playing") {
-              return startPlaying(get().frame);
+              return startPlaying(get().ts);
             } else {
               return ;
             }
         case "Pause" :
+        case "StopForRender" :
             Ctx.dom.videoElement.pause();
+            return ;
+        case "AllowPlay" :
+        case "UpdateCurrentCue" :
             return ;
         
       }
@@ -193,7 +219,6 @@ function MakePlayer(Ctx) {
   };
   return {
           PlayerState: PlayerState,
-          renderFrame: renderFrame,
           mutableState: include.mutableState,
           listeners: include.listeners,
           get: get,
@@ -201,6 +226,7 @@ function MakePlayer(Ctx) {
           nextId: include.nextId,
           subscribe: include.subscribe,
           useObservable: include.useObservable,
+          renderFrame: renderFrame,
           reducer: reducer,
           onFrame: onFrame,
           sideEffect: sideEffect,

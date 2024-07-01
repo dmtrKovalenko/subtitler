@@ -7,6 +7,7 @@ import * as Js_string from "rescript/lib/es6/js_string.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
 import * as Caml_int32 from "rescript/lib/es6/caml_int32.js";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
+import * as Core__Float from "@rescript/core/src/Core__Float.res.mjs";
 import * as PervasivesU from "rescript/lib/es6/pervasivesU.js";
 
 function last(arr) {
@@ -17,9 +18,27 @@ function removeInPlace(arr, index) {
   return arr.splice(index, 1);
 }
 
-var $$Array = {
+function filterMapWithIndex(a, f) {
+  var l = a.length;
+  var r = new Array(l);
+  var j = 0;
+  for(var i = 0; i < l; ++i){
+    var v = a[i];
+    var v$1 = f(v, i);
+    if (v$1 !== undefined) {
+      r[j] = Caml_option.valFromOption(v$1);
+      j = j + 1 | 0;
+    }
+    
+  }
+  r.length = j;
+  return r;
+}
+
+var $$Array$1 = {
   last: last,
-  removeInPlace: removeInPlace
+  removeInPlace: removeInPlace,
+  filterMapWithIndex: filterMapWithIndex
 };
 
 function divideFloat(a, b) {
@@ -113,6 +132,10 @@ function logU(a) {
   console.log(a);
 }
 
+function logU2(a, b) {
+  console.log(a, b);
+}
+
 function andReturn(a) {
   console.log(a);
   return a;
@@ -120,6 +143,7 @@ function andReturn(a) {
 
 var Log = {
   logU: logU,
+  logU2: logU2,
   andReturn: andReturn
 };
 
@@ -171,8 +195,21 @@ function formatSeconds(seconds) {
 function formatMiilis(timestamp) {
   var match = divideWithReminder(timestamp, 60);
   var seconds = match[1];
-  var millis = (timestamp - Math.floor(seconds)) * 1000;
+  var millis = (seconds - Math.floor(seconds)) * 1000;
   return match[0].toString().padStart(2, "0") + ":" + seconds.toFixed(0).padStart(2, "0") + "," + millis.toFixed(0).padStart(3, "0");
+}
+
+function parseMillisInputToSeconds(timestamp) {
+  var minutesString = timestamp.slice(0, 2);
+  var secondsString = timestamp.slice(3, 5);
+  var millisString = timestamp.slice(6, 9);
+  var match = Core__Float.fromString(minutesString);
+  var match$1 = Core__Float.fromString(secondsString);
+  var match$2 = Core__Float.fromString(millisString);
+  if (match !== undefined && match$1 !== undefined && match$2 !== undefined) {
+    return match * 60 + match$1 + match$2 / 1000;
+  }
+  
 }
 
 function formatFrame(frame, fps) {
@@ -183,6 +220,7 @@ var Duration = {
   leftPad: leftPad,
   formatSeconds: formatSeconds,
   formatMiilis: formatMiilis,
+  parseMillisInputToSeconds: parseMillisInputToSeconds,
   formatFrame: formatFrame
 };
 
@@ -193,7 +231,7 @@ function neverRerender(__x) {
 }
 
 export {
-  $$Array ,
+  $$Array$1 as $$Array,
   $$Math ,
   $$Option ,
   Log ,

@@ -17,7 +17,8 @@
     "@rescript/core",
     "@rescript/react",
     "rescript-classnames",
-    "rescript-webapi"
+    "rescript-webapi",
+    "rescript-debounce-react"
   ],
   "bsc-flags": ["-open RescriptCore"],
   "jsx": {

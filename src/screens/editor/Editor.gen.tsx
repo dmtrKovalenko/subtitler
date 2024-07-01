@@ -7,10 +7,16 @@ import * as EditorJS from './Editor.res.mjs';
 
 import type {Jsx_element as PervasivesU_Jsx_element} from './PervasivesU.gen';
 
-import type {subtitleCue as Subtitles_subtitleCue} from './Subtitles.gen';
+import type {style as Style_style} from './Style.gen';
 
-export type props<subtitles,transcriptionInProgress> = { readonly subtitles: subtitles; readonly transcriptionInProgress: transcriptionInProgress };
+import type {subtitlesManager as ChunksList_subtitlesManager} from '../../../src/screens/editor/ChunksList/ChunksList.gen';
+
+export type props<subtitlesManager,render,rendererPreviewCanvasRef> = {
+  readonly subtitlesManager: subtitlesManager; 
+  readonly render: render; 
+  readonly rendererPreviewCanvasRef: rendererPreviewCanvasRef
+};
 
 export const a: <T1>() => {[id: string]: T1} = EditorJS.a as any;
 
-export const Editor: (_1:props<Subtitles_subtitleCue[],boolean>) => PervasivesU_Jsx_element = EditorJS.make as any;
+export const Editor: (_1:props<ChunksList_subtitlesManager,((_1:Style_style) => void),any>) => PervasivesU_Jsx_element = EditorJS.make as any;

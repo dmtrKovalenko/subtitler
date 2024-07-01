@@ -43,7 +43,6 @@ self.addEventListener("message", async (event) => {
   let transcript = await transcribe(
     message.audio,
     message.model,
-    message.multilingual,
     message.quantized,
     message.subtask,
     message.language,
@@ -147,7 +146,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
 
     // Language and task
     language: language,
-    task: subtask,
+    task: "transcribe",
 
     // Return timestamps
     return_timestamps: "word",

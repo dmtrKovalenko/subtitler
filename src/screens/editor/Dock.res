@@ -1,6 +1,7 @@
 open Icons
 open Cx
 open Webapi
+open ChunksList
 open Player
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
@@ -14,7 +15,7 @@ module DockDivider = {
 }
 
 module DockSpace = {
-  let baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 duration-300"
+  let baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300"
 
   @react.component
   let make = React.memo((~children, ~className="") => {
@@ -27,18 +28,21 @@ module DockSpace = {
 module DockButton = {
   @react.component
   let make = React.memo(
-    React.forwardRef((~children, ~label, ~onClick: 'a => unit, ~highlight=false) => {
+    React.forwardRef((~children, ~label, ~className="", ~onClick: 'a => unit, ~highlight=false) => {
       <button
         onClick={_ => onClick()}
         className={cx([
           DockSpace.baseClass,
-          "group hover:scale-110",
+          "group hover:scale-110 transition-all duration-200",
           highlight
-            ? "bg-gradient-to-tr from-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80"
+            ? "bg-gradient-to-tr from-amber-500/90 via-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80 focus-visible:!ring-white"
             : "bg-slate-700 hover:bg-slate-500",
+          className,
         ])}>
         <span className="sr-only"> {React.string(label)} </span>
-        <span className="group-active:scale-90 transition-transform"> {children} </span>
+        <span className="group-active:scale-90 flex items-center gap-2 transition-transform">
+          {children}
+        </span>
       </button>
     }),
   )
@@ -60,7 +64,7 @@ let getFpsMarker = (fps, desiredFps) => {
 type dir = Back | Forth
 
 @react.component
-let make = (~fullScreenToggler: Hooks.toggle) => {
+let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
   let context = EditorContext.useEditorContext()
   let (isCollapsed, collapsedToggle) = Hooks.useToggle(false)
   let (player, playerDispatch) = context.usePlayer()
@@ -81,9 +85,7 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
     ->ignore
   }
 
-  let handleSetVolume = Hooks.useEvent(value => {
-    value->Option.forEach(value => playerDispatch(SetVolume(value)))
-  })
+  let handleSetVolume = Hooks.useEvent(value => playerDispatch(SetVolume(value)))
 
   let increaseVolume = Hooks.useEvent(() => {
     context.getImmediatePlayerState().volume->Option.forEach(volume =>
@@ -98,11 +100,11 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
   })
 
   let handleSeekLeft = Hooks.useEvent(() => {
-    playerDispatch(Seek(context.getImmediatePlayerState().frame -. 2.))
+    playerDispatch(Seek(context.getImmediatePlayerState().ts -. 2.))
   })
 
   let handleSeekRight = Hooks.useEvent(() => {
-    playerDispatch(Seek(context.getImmediatePlayerState().frame +. 2.))
+    playerDispatch(Seek(context.getImmediatePlayerState().ts +. 2.))
   })
 
   let toggleMute = Hooks.useEvent(() => {
@@ -130,7 +132,7 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
         e
         ->KeyboardEvent.target
         ->EventTarget.unsafeAsElement
-        ->Web.Element.isFocusable
+        ->Web.isFocusable
         ->Utils.Bool.invert
       ) {
         switch e->KeyboardEvent.key {
@@ -169,7 +171,7 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
       isCollapsed ? "translate-y-16 duration-300" : "",
     ])}>
     <DockSpace className="tabular-nums space-x-1">
-      <span> {player.frame->Utils.Duration.formatSeconds->React.string} </span>
+      <span> {player.ts->Utils.Duration.formatSeconds->React.string} </span>
       <span className="normal-nums relative bottom-px"> {React.string(" / ")} </span>
       <span>
         {context.videoMeta.duration
@@ -183,7 +185,7 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
     </DockButton>
     <DockButton onClick=handlePlayOrPause highlight=true label="Play">
       {switch player.playState {
-      | CantPlay => <Spinner />
+      | CantPlay | StoppedForRender => <Spinner size=1.5 className="mx-1" />
       | Playing => <PauseIcon className="size-6" />
       | Paused
       | WaitingForAction =>
@@ -193,7 +195,7 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
     <DockButton onClick=handleSeekRight label="Play back 5 seconds">
       <ForwardIcon className="size-6" />
     </DockButton>
-    <DockSpace>
+    <DockSpace className="w-40">
       {switch player.volume {
       | Some(volume) if volume > 0 => <VolumeIcon className="size-6" />
       | _ => <VolumeLowIcon className="size-6 text-gray-400" />
@@ -216,5 +218,23 @@ let make = (~fullScreenToggler: Hooks.toggle) => {
         className={Cx.cx(["size-6 transition-transform", isCollapsed ? "rotate-180" : ""])}
       />
     </DockButton>
+    {switch subtitlesManager.transcriptionState {
+    | TranscriptionInProgress => React.null
+    | _ =>
+      <>
+        <DockDivider />
+        <DockButton
+          highlight=true
+          label="Render video file"
+          onClick={_ => {
+            playerDispatch(StopForRender)
+            setTimeout(() => render(context.getImmediateStyleState()), 0)->ignore
+          }}
+          className="whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4">
+          {React.string("Render video")}
+          <RenderIcon className="size-5" />
+        </DockButton>
+      </>
+    }}
   </div>
 }

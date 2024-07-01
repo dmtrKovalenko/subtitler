@@ -33,5 +33,5 @@ module type Ctx = {
   let dom: dom
   let videoMeta: videoMeta
   let subtitlesRef: React.ref<array<Subtitles.subtitleCue>>
-  let audioBuffer: WebAudio.AudioBuffer.t
+  let audioBuffer: option<WebAudio.AudioBuffer.t>
 }

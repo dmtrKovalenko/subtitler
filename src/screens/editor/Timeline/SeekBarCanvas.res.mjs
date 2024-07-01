@@ -2,7 +2,6 @@
 
 import * as Cx from "rescript-classnames/src/Cx.res.mjs";
 import * as Web from "../../../bindings/Web.res.mjs";
-import * as Hooks from "../../../hooks/Hooks.res.mjs";
 import * as React from "react";
 import * as Js_math from "rescript/lib/es6/js_math.js";
 import * as CanvasSize from "./canvasSize.res.mjs";
@@ -12,7 +11,7 @@ import * as EditorContext from "../EditorContext.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 
 function renderSeekBar(ctx, size, playState) {
-  var x = CanvasSize.tsToFrame(playState.frame, size);
+  var x = CanvasSize.tsToFrame(playState.ts, size);
   ctx.beginPath();
   ctx.moveTo(x, 0);
   ctx.lineTo(x, size.height);
@@ -55,26 +54,26 @@ function SeekBarCanvas(props) {
                 }));
         }), [
         size,
-        player.frame,
+        player.ts,
         player.playState
       ]);
-  var handleMouseMove = Hooks.useEvent(function (e) {
-        if (editorContext.getImmediatePlayerState().playState !== "Playing" && document.hasFocus()) {
-          return dispatch({
-                      TAG: "NewFrame",
-                      _0: calculateFrameFromEvent(e, size)
-                    });
-        }
-        
-      });
-  var handleClick = Hooks.useEvent(function (e) {
-        var frame = calculateFrameFromEvent(e, size);
-        dispatch({
-              TAG: "Seek",
-              _0: frame
-            });
-        dispatch("Play");
-      });
+  var handleMouseMove = React.useCallback((function (e) {
+          if (editorContext.getImmediatePlayerState().playState !== "Playing" && document.hasFocus()) {
+            return dispatch({
+                        TAG: "NewFrame",
+                        _0: calculateFrameFromEvent(e, size)
+                      });
+          }
+          
+        }), [size]);
+  var handleClick = React.useCallback((function (e) {
+          var frame = calculateFrameFromEvent(e, size);
+          dispatch({
+                TAG: "Seek",
+                _0: frame
+              });
+          dispatch("Play");
+        }), [size]);
   var match$1 = player.playState;
   var tmp;
   switch (match$1) {
@@ -86,6 +85,7 @@ function SeekBarCanvas(props) {
         tmp = "cursor-col-resize";
         break;
     case "CantPlay" :
+    case "StoppedForRender" :
         tmp = "cursor-wait";
         break;
     
@@ -120,4 +120,4 @@ export {
   calculateFrameFromEvent ,
   make ,
 }
-/* Hooks Not a pure module */
+/* react Not a pure module */

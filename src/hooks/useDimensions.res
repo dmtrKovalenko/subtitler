@@ -1,5 +1,4 @@
 open Webapi
-
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
 type dimensions = {
@@ -15,11 +14,13 @@ let getDimensions = _ => {
 let useDimensions = () => {
   let (dimensions, setDimensions) = React.useState(getDimensions)
 
-  React.useLayoutEffect(() => {
-    let handleResize = _ => {
-      setDimensions(getDimensions) // Calling the function correctly
-    }
+  // because we use asynchronous callbacks for timeline preview we must use debounce
+  // and not  throttling here to avoid lagging and infinite async seeks of the video
+  let handleResize = ReactDebounce.useDebounced(_ => {
+    setDimensions(getDimensions)
+  }, ~wait=200)
 
+  React.useLayoutEffect(() => {
     // Proper use of pipe operators and lambda expression
     Dom.window
     ->DocumentEvent.asEventTarget

@@ -1,30 +1,27 @@
 open Types
 open Hooks
+open ChunksList
 
 @genType
 let a = Js.Dict.empty
 
+Js.Console.log("Happy subtitles making experience!")
+
 @genType.as("Editor") @react.component
-let make = (~subtitles, ~transcriptionInProgress) => {
+let make = (~subtitlesManager, ~render, ~rendererPreviewCanvasRef) => {
   let (isFullScreen, fullScreenToggler) = Hooks.useToggle(false)
   let ctx = EditorContext.useEditorContext()
   let layout = useEditorLayout(~isFullScreen)
 
-  React.useEffect0(() => {
-    ctx.dom.canvasRef.current
-    ->Js.Nullable.toOption
-    ->Belt.Option.forEach(Js.Console.log2("Happy video hacking! Your preview will be rendered at"))
+  let transcriptionInProgress = subtitlesManager.transcriptionState == TranscriptionInProgress
 
-    None
-  })
-
-  let subtitlesTitle = if !transcriptionInProgress {
-    "Subtitles"->React.string
-  } else {
+  let subtitlesTitle = if transcriptionInProgress {
     <div className="gap-2 inline-flex items-center">
       <Spinner />
-      <span> {"Subtitles"->React.string} </span>
+      <span> {"Transcribing"->React.string} </span>
     </div>
+  } else {
+    "Subtitles"->React.string
   }
 
   let styleTitle = React.string("Style")
@@ -36,15 +33,15 @@ let make = (~subtitles, ~transcriptionInProgress) => {
       ->Belt.Option.map(size =>
         <div
           style={size->UseEditorLayout.sizeToStyle}
-          className="@container col-span-2 h-full overflow-auto flex flex-col p-4 border-r border-zinc-800">
+          className="@container col-span-2 py-2 h-full overflow-auto flex flex-col px-4 border-r border-zinc-800">
           <div className="@2xl:hidden flex items-center flex-col mb-6 pt-1 gap-2">
             <Tabs
-              defaultIndex=1
+              defaultIndex=0
               tabs=[
                 {
                   id: "subtitles",
                   name: subtitlesTitle,
-                  content: <ChunksList subtitles />,
+                  content: <ChunksList subtitlesManager />,
                 },
                 {
                   id: "style",
@@ -54,10 +51,19 @@ let make = (~subtitles, ~transcriptionInProgress) => {
               ]
             />
           </div>
-          <div className="hidden @2xl:flex divide-x divide-zinc-700">
-            <div className="pr-6 flex-1 flex flex-col justify-center gap-y-4">
-              <h2 className="mx-auto text-xl"> {subtitlesTitle} </h2>
-              <ChunksList subtitles />
+          <div className="hidden @2xl:flex pt-2 flex-1 max-h-full divide-x divide-zinc-700">
+            <div
+              className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
+              <h2
+                className={Cx.cx([
+                  "mx-auto text-xl",
+                  transcriptionInProgress
+                    ? "sticky top-0 bg-zinc-600/5 px-2 rounded-lg backdrop-blur"
+                    : "",
+                ])}>
+                {subtitlesTitle}
+              </h2>
+              <ChunksList subtitlesManager />
             </div>
             <div className="pl-6 flex-1 flex flex-col gap-y-4">
               <h2 className="mx-auto text-xl"> {styleTitle} </h2>
@@ -82,8 +88,20 @@ let make = (~subtitles, ~transcriptionInProgress) => {
           )}
           className="bg-black origin-top-left absolute left-0 top-0"
         />
+        <canvas
+          ref={ReactDOM.Ref.domRef(rendererPreviewCanvasRef)}
+          width={ctx.videoMeta.width->Int.toString}
+          height={ctx.videoMeta.height->Int.toString}
+          style={ReactDOMStyle.make(
+            ~width=`${ctx.videoMeta.width->Int.toString}px`,
+            ~height=`${ctx.videoMeta.height->Int.toString}px`,
+            ~transform=`scale(${layout.preview.scale->Js.Float.toString})`,
+            (),
+          )}
+          className="origin-top-left absolute left-0 top-0"
+        />
         <EditorCanvas
-          subtitles
+          subtitles=subtitlesManager.activeSubtitles
           width=ctx.videoMeta.width
           height=ctx.videoMeta.height
           style={ReactDOMStyle.make(
@@ -104,6 +122,6 @@ let make = (~subtitles, ~transcriptionInProgress) => {
       </div>
     )
     ->Utils.Option.unwrapOr(React.null)}
-    <Dock fullScreenToggler />
+    <Dock render fullScreenToggler subtitlesManager />
   </div>
 }

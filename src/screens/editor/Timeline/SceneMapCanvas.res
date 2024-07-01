@@ -71,7 +71,11 @@ let renderMainScene = (ctx, size, editorContext: EditorContext.editorContext) =>
     })
   }
 
-  seekAndRender()
+  if editorContext.dom.timelineVideoElement->Web.Video.readyState > 1 {
+    seekAndRender()
+  } else {
+    editorContext.dom.timelineVideoElement->Web.Video.onLoadedData(_ => seekAndRender())
+  }
 }
 
 let renderAudioWaveForm = (
@@ -85,38 +89,40 @@ let renderAudioWaveForm = (
 ) => {
   module Ctx = unpack(editorContext.ctx)
 
-  let positionStart = 0
-  let positionEnd = Int.fromFloat(
-    (endTs -. startTs) *.
-      Ctx.audioBuffer
-      ->WebAudio.AudioBuffer.getSampleRate
-      ->Float.fromInt,
-  )
-  let length = positionEnd - positionStart
+  Ctx.audioBuffer->Option.map(audioBuffer => {
+    let positionStart = 0
+    let positionEnd = Int.fromFloat(
+      (endTs -. startTs) *.
+        audioBuffer
+        ->WebAudio.AudioBuffer.getSampleRate
+        ->Float.fromInt,
+    )
+    let length = positionEnd - positionStart
 
-  let step = 1.
-  let sector = length->Float.fromInt /. audioSpaceWidth *. step
+    let step = 1.
+    let sector = length->Float.fromInt /. audioSpaceWidth *. step
 
-  let position = ref(positionStart)
-  let mid = Float.fromInt(audio_height / 2)
-  let x = ref(x0)
+    let position = ref(positionStart)
+    let mid = Float.fromInt(audio_height / 2)
+    let x = ref(x0)
 
-  ctx->Canvas2d.beginPath
-  ctx->Canvas2d.setStrokeStyle(String, "#e2e8f0")
+    ctx->Canvas2d.beginPath
+    ctx->Canvas2d.setStrokeStyle(String, "#e2e8f0")
 
-  let fltpData = Ctx.audioBuffer->WebAudio.AudioBuffer.getChannelData(0)
+    let fltpData = audioBuffer->WebAudio.AudioBuffer.getChannelData(0)
 
-  while x.contents < audioSpaceWidth || position.contents < positionEnd {
-    let pcm = fltpData->TypedArray.get(position.contents)->Option.getOr(0.0)
+    while x.contents < audioSpaceWidth || position.contents < positionEnd {
+      let pcm = fltpData->TypedArray.get(position.contents)->Option.getOr(0.0)
 
-    let y = mid +. y0 +. pcm *. mid
-    ctx->Canvas2d.lineTo(~x=x.contents, ~y)
+      let y = mid +. y0 +. pcm *. mid
+      ctx->Canvas2d.lineTo(~x=x.contents, ~y)
 
-    position := (position.contents->Float.fromInt +. sector)->Utils.Math.floor
-    x := (x.contents +. step)->Js.Math.floor_float
-  }
+      position := (position.contents->Float.fromInt +. sector)->Utils.Math.floor
+      x := (x.contents +. step)->Js.Math.floor_float
+    }
 
-  ctx->Canvas2d.stroke
+    ctx->Canvas2d.stroke
+  })
 }
 
 let renderAudio = (ctx, size, editorContext: EditorContext.editorContext) => {

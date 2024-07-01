@@ -21,6 +21,7 @@
     "@rescript/react": "^0.12.1",
     "@tailwindcss/container-queries": "^0.1.1",
     "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@xenova/transformers": "^2.17.2",
     "babel-plugin-react-compiler": "^0.0.0-experimental-938cd9a-20240601",
     "class-variance-authority": "^0.7.0",
@@ -39,6 +40,7 @@
     "react-konva": "^18.2.10",
     "rescript": "11.1.1",
     "rescript-classnames": "^7.0.1",
+    "rescript-debounce-react": "^2.0.1",
     "rescript-webapi": "^0.9.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.4.5"
@@ -48,7 +50,8 @@
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.4.4",
-    "vite": "^5.0.6"
+    "vite": "^5.0.6",
+    "vite-plugin-pwa": "^0.20.0"
   },
   "resolutions": {
     "wrap-ansi": "7.0.0",

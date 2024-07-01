@@ -1,9 +1,8 @@
 import * as React from "react";
 import { Layer, Stage, StageProps, Text, Transformer } from "react-konva";
-import * as Renderer from "./Renderer.gen";
 import { subtitleCue } from "./Subtitles.gen";
-import type Konva from "konva";
 import { useEditorContext } from "./EditorContext.gen";
+import type Konva from "konva";
 
 type EditorCanvasProps = {
   width: number;
@@ -20,8 +19,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 }) => {
   const editorContext = useEditorContext();
   const [player, _] = editorContext.usePlayer();
-
-  const subtitleStyle = Renderer.useStyle();
+  const [subtitleStyle, styleDispatch] = editorContext.useStyle();
 
   const textRef = React.useRef<Konva.Text | null>(null);
   const transformerRef = React.useRef<Konva.Transformer | null>(null);
@@ -43,7 +41,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         scaleX: 1,
       });
 
-      Renderer.dispatch({
+      styleDispatch({
         TAG: "Resize",
         _0: { width: newWidth, height: newHeight },
       });
@@ -54,6 +52,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
     : "";
 
+  if (player.playState === "StoppedForRender") {
+    return null;
+  }
+
   return (
     <Stage width={width} height={height} className={className} style={style}>
       <Layer>
@@ -62,7 +64,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           draggable
           fillAfterStrokeEnabled
           fontStyle={subtitleStyle.fontWeight.toString()}
-          text={currentSubtitle}
+          text={currentSubtitle.trim()}
           x={subtitleStyle.x}
           y={subtitleStyle.y}
           width={subtitleStyle.blockSize.width}
@@ -71,9 +73,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           stroke={subtitleStyle.strokeColor}
           onTransform={handleResize}
           align={subtitleStyle.align.toLowerCase()}
+          verticalAlign="middle"
           fontFamily={subtitleStyle.fontFamily}
           onDragEnd={(e) => {
-            Renderer.dispatch({
+            styleDispatch({
               TAG: "SetPosition",
               _0: Math.floor(e.target.x()),
               _1: Math.floor(e.target.y()),

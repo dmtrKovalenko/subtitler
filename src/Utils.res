@@ -5,6 +5,25 @@ module Array = {
   external spliceInPlace: (array<'a>, ~start: int, ~remove: int) => array<'a> = "splice"
 
   let removeInPlace = (arr, ~index) => spliceInPlace(arr, ~start=index, ~remove=1)
+  @new external makeUninitializedUnsafe: int => array<'a> = "Array"
+  @set external truncateToLengthUnsafe: (array<'a>, int) => unit = "length"
+
+  let filterMapWithIndex = (a, f) => {
+    let l = RescriptCore.Array.length(a)
+    let r = makeUninitializedUnsafe(l)
+    let j = ref(0)
+    for i in 0 to l - 1 {
+      let v = Core__Array.getUnsafe(a, i)
+      switch f(v, i) {
+      | None => ()
+      | Some(v) =>
+        Core__Array.setUnsafe(r, j.contents, v)
+        j.contents = j.contents + 1
+      }
+    }
+    truncateToLengthUnsafe(r, j.contents)
+    r
+  }
 }
 
 module Math = {
@@ -70,6 +89,8 @@ module Option = {
 
 module Log = {
   let logU = a => Js.Console.log(a)
+  let logU2 = (a, b) => Js.Console.log2(a, b)
+
   let andReturn = a => {
     Js.Console.log(a)
     a
@@ -109,7 +130,7 @@ module Duration = {
 
   let formatMiilis = timestamp => {
     let (minutes, seconds) = Math.divideWithReminder(timestamp, 60.)
-    let millis = (timestamp -. seconds->Js.Math.floor_float) *. 1000.
+    let millis = (seconds -. seconds->Js.Math.floor_float) *. 1000.
 
     // outputs 00:00,000
     `${minutes->Int.toString->String.padStart(2, "0")}:${seconds
@@ -117,6 +138,24 @@ module Duration = {
       ->String.padStart(2, "0")},${millis
       ->Float.toFixed(~digits=0)
       ->String.padStart(3, "0")}`
+  }
+
+  // parses 00:00,000 string and outputs seconds
+  let parseMillisInputToSeconds = timestamp => {
+    let minutesString = timestamp->String.slice(~start=0, ~end=2)
+    let secondsString = timestamp->String.slice(~start=3, ~end=5)
+    let millisString = timestamp->String.slice(~start=6, ~end=9)
+
+    switch (
+      Float.fromString(minutesString),
+      Float.fromString(secondsString),
+      Float.fromString(millisString),
+    ) {
+    | (Some(minutes), Some(seconds), Some(millis)) =>
+      let totalSeconds = minutes *. 60. +. seconds +. millis /. 1000.
+      Some(totalSeconds)
+    | _ => None
+    }
   }
 
   let formatFrame = (frame, fps) => {
