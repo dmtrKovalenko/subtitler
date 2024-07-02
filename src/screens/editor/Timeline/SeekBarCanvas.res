@@ -52,10 +52,7 @@ let make = (~size) => {
       let ctx = Webapi.Canvas.CanvasElement.getContext2d(canvasElement)
       ctx->Canvas2d.clearRect(~x=0., ~y=0., ~w=size.scaledWidth, ~h=size.scaledHeight)
 
-      switch player.playState {
-      | CantPlay => ()
-      | _ => renderSeekBar(ctx, size, player)
-      }->ignore
+      renderSeekBar(ctx, size, player)
     })
     ->ignore
 
@@ -84,9 +81,9 @@ let make = (~size) => {
     className={Cx.cx([
       "absolute inset-0",
       switch player.playState {
-      | Paused | WaitingForAction => "cursor-col-resize"
+      | Paused | Idle => "cursor-col-resize"
       | Playing => "cursor-pointer"
-      | CantPlay | StoppedForRender => "cursor-wait"
+      | StoppedForRender => "cursor-wait"
       },
     ])}
     style={ReactDOMStyle.make(

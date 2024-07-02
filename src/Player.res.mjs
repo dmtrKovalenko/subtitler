@@ -4,6 +4,7 @@ import * as Utils from "./Utils.res.mjs";
 import * as Belt_Int from "rescript/lib/es6/belt_Int.js";
 import * as Subtitles from "./screens/editor/Subtitles.res.mjs";
 import * as Dom_storage from "rescript/lib/es6/dom_storage.js";
+import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as UseObservable from "./hooks/useObservable.res.mjs";
 
 var currentFps = {
@@ -19,7 +20,7 @@ function MakePlayer(Ctx) {
   var initial = {
     ts: 0,
     startPlayingTs: 0,
-    playState: "Paused",
+    playState: "Idle",
     currentPlayingCue: initial_currentPlayingCue,
     volume: volume
   };
@@ -46,109 +47,124 @@ function MakePlayer(Ctx) {
   };
   var reducer = function (action) {
     var state = get();
-    if (state.playState === "StoppedForRender") {
-      return state;
-    }
+    var exit = 0;
     if (typeof action !== "object") {
-      switch (action) {
-        case "AllowPlay" :
-            return {
-                    ts: state.ts,
-                    startPlayingTs: state.startPlayingTs,
-                    playState: "WaitingForAction",
-                    currentPlayingCue: state.currentPlayingCue,
-                    volume: state.volume
-                  };
-        case "Play" :
-            if (state.ts <= 0 || state.ts >= Ctx.videoMeta.duration) {
-              return {
-                      ts: 0,
-                      startPlayingTs: state.startPlayingTs,
-                      playState: "Playing",
-                      currentPlayingCue: state.currentPlayingCue,
-                      volume: state.volume
-                    };
-            } else {
-              return {
-                      ts: state.ts,
-                      startPlayingTs: state.ts,
-                      playState: "Playing",
-                      currentPlayingCue: state.currentPlayingCue,
-                      volume: state.volume
-                    };
-            }
-        case "Pause" :
-            return {
-                    ts: state.ts,
-                    startPlayingTs: state.startPlayingTs,
-                    playState: "Paused",
-                    currentPlayingCue: state.currentPlayingCue,
-                    volume: state.volume
-                  };
-        case "StopForRender" :
-            return {
-                    ts: state.ts,
-                    startPlayingTs: state.startPlayingTs,
-                    playState: "StoppedForRender",
-                    currentPlayingCue: state.currentPlayingCue,
-                    volume: state.volume
-                  };
-        case "UpdateCurrentCue" :
-            var currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, state.ts);
-            return {
-                    ts: state.ts,
-                    startPlayingTs: state.startPlayingTs,
-                    playState: state.playState,
-                    currentPlayingCue: currentPlayingCue,
-                    volume: state.volume
-                  };
-        
-      }
-    } else {
-      switch (action.TAG) {
-        case "Seek" :
-        case "NewFrame" :
-            break;
-        case "SetVolume" :
-            return {
-                    ts: state.ts,
-                    startPlayingTs: state.startPlayingTs,
-                    playState: state.playState,
-                    currentPlayingCue: state.currentPlayingCue,
-                    volume: action._0
-                  };
-        
-      }
-    }
-    var ts = action._0;
-    if (ts >= Ctx.videoMeta.duration || ts < 0) {
-      return {
-              ts: 0,
-              startPlayingTs: ts,
-              playState: "Paused",
-              currentPlayingCue: state.currentPlayingCue,
-              volume: state.volume
-            };
-    }
-    if (typeof action === "object") {
-      if (action.TAG === "Seek") {
-        var ts$1 = action._0;
+      if (action === "AbortRender") {
         return {
-                ts: ts$1,
-                startPlayingTs: ts$1,
-                playState: state.playState,
-                currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, ts$1),
+                ts: state.ts,
+                startPlayingTs: state.startPlayingTs,
+                playState: "Paused",
+                currentPlayingCue: state.currentPlayingCue,
                 volume: state.volume
               };
       }
-      var ts$2 = action._0;
-      return {
-              ts: ts$2,
-              startPlayingTs: state.startPlayingTs,
-              playState: state.playState,
-              currentPlayingCue: Subtitles.getOrLookupCurrentCue(ts$2, Ctx.subtitlesRef.current, state.currentPlayingCue),
-              volume: state.volume
-            };
+      exit = 1;
+    } else {
+      exit = 1;
+    }
+    if (exit === 1) {
+      if (state.playState === "StoppedForRender") {
+        return state;
+      }
+      var exit$1 = 0;
+      if (typeof action !== "object") {
+        switch (action) {
+          case "Play" :
+              if (state.ts <= 0 || state.ts >= Ctx.videoMeta.duration) {
+                return {
+                        ts: 0,
+                        startPlayingTs: state.startPlayingTs,
+                        playState: "Playing",
+                        currentPlayingCue: state.currentPlayingCue,
+                        volume: state.volume
+                      };
+              } else {
+                return {
+                        ts: state.ts,
+                        startPlayingTs: state.ts,
+                        playState: "Playing",
+                        currentPlayingCue: state.currentPlayingCue,
+                        volume: state.volume
+                      };
+              }
+          case "Pause" :
+              return {
+                      ts: state.ts,
+                      startPlayingTs: state.startPlayingTs,
+                      playState: "Paused",
+                      currentPlayingCue: state.currentPlayingCue,
+                      volume: state.volume
+                    };
+          case "StopForRender" :
+              return {
+                      ts: state.ts,
+                      startPlayingTs: state.startPlayingTs,
+                      playState: "StoppedForRender",
+                      currentPlayingCue: state.currentPlayingCue,
+                      volume: state.volume
+                    };
+          case "UpdateCurrentCue" :
+              var currentPlayingCue = Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, state.ts);
+              return {
+                      ts: state.ts,
+                      startPlayingTs: state.startPlayingTs,
+                      playState: state.playState,
+                      currentPlayingCue: currentPlayingCue,
+                      volume: state.volume
+                    };
+          
+        }
+      } else {
+        switch (action.TAG) {
+          case "Seek" :
+          case "NewFrame" :
+              exit$1 = 2;
+              break;
+          case "SetVolume" :
+              return {
+                      ts: state.ts,
+                      startPlayingTs: state.startPlayingTs,
+                      playState: state.playState,
+                      currentPlayingCue: state.currentPlayingCue,
+                      volume: action._0
+                    };
+          
+        }
+      }
+      if (exit$1 === 2) {
+        var ts = action._0;
+        if (ts >= Ctx.videoMeta.duration || ts < 0) {
+          return {
+                  ts: 0,
+                  startPlayingTs: ts,
+                  playState: "Paused",
+                  currentPlayingCue: state.currentPlayingCue,
+                  volume: state.volume
+                };
+        }
+        if (typeof action === "object") {
+          if (action.TAG === "Seek") {
+            var ts$1 = action._0;
+            return {
+                    ts: ts$1,
+                    startPlayingTs: ts$1,
+                    playState: state.playState,
+                    currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, ts$1),
+                    volume: state.volume
+                  };
+          }
+          var ts$2 = action._0;
+          return {
+                  ts: ts$2,
+                  startPlayingTs: state.startPlayingTs,
+                  playState: state.playState === "Idle" ? "Paused" : state.playState,
+                  currentPlayingCue: Subtitles.getOrLookupCurrentCue(ts$2, Ctx.subtitlesRef.current, state.currentPlayingCue),
+                  volume: state.volume
+                };
+        }
+        
+      }
+      
     }
     
   };
@@ -171,6 +187,9 @@ function MakePlayer(Ctx) {
   };
   var sideEffect = function (action, dispatch) {
     var startPlaying = function (currentTs) {
+      Core__Option.forEach(get().volume, (function (volume) {
+              Ctx.dom.videoElement.volume = volume / 100;
+            }));
       Ctx.dom.videoElement.play();
       Ctx.dom.videoElement.currentTime = currentTs;
       requestAnimationFrame(function (param) {
@@ -189,7 +208,7 @@ function MakePlayer(Ctx) {
         case "StopForRender" :
             Ctx.dom.videoElement.pause();
             return ;
-        case "AllowPlay" :
+        case "AbortRender" :
         case "UpdateCurrentCue" :
             return ;
         

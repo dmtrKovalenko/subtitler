@@ -69,12 +69,18 @@ module Option = {
     | Some(Some(val)) => Some(val)
     | _ => None
     }
-
   @inline
   let unwrapOr = (option, default) =>
     switch option {
     | Some(val) => val
     | None => default
+    }
+
+  @inline
+  let unwrapOrElse = (option, elseFn) =>
+    switch option {
+    | Some(val) => Some(val)
+    | None => elseFn()
     }
 
   let some = val => Some(val)

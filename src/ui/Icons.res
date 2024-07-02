@@ -146,3 +146,12 @@ module RenderIcon = {
     ~style: ReactDOM.Style.t=?,
   ) => React.element = "DocumentArrowDownIcon"
 }
+
+module EditIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PencilSquareIcon"
+}

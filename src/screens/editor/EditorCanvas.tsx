@@ -3,6 +3,7 @@ import { Layer, Stage, StageProps, Text, Transformer } from "react-konva";
 import { subtitleCue } from "./Subtitles.gen";
 import { useEditorContext } from "./EditorContext.gen";
 import type Konva from "konva";
+import { WelcomeScreen } from "./WelcomeScreen";
 
 type EditorCanvasProps = {
   width: number;
@@ -54,6 +55,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   if (player.playState === "StoppedForRender") {
     return null;
+  }
+
+  if (player.playState === "Idle") {
+    return <WelcomeScreen />;
   }
 
   return (

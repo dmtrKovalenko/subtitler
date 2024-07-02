@@ -39,6 +39,19 @@ let lookupCurrentCue = (~subtitles, ~timestamp) => {
   })
 }
 
+let lookUpLastPlayedCue = (~subtitles, ~timestamp) => {
+  subtitles->Array.reduceRightWithIndex(None, (acc, subtitle, index) => {
+    switch acc {
+    | None if compareTsToRange(subtitle.timestamp, timestamp) =>
+      Some({
+        currentIndex: index,
+        currentCue: subtitle,
+      })
+    | _ => acc
+    }
+  })
+}
+
 // tries to match current or next cue based on the previous one or lookup from the start
 @gentype
 let getOrLookupCurrentCue = (~timestamp, ~subtitles, ~prevCue) => {

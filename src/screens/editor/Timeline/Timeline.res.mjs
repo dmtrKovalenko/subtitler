@@ -9,7 +9,6 @@ import * as JsxRuntime from "react/jsx-runtime";
 function Timeline(props) {
   var sectionSize = props.sectionSize;
   var editorContext = EditorContext.useEditorContext();
-  var match = editorContext.usePlayer();
   var size = React.useMemo((function () {
           var scale = window.devicePixelRatio;
           var maxSceneWidth = sectionSize.width - 64;
@@ -30,14 +29,11 @@ function Timeline(props) {
         sectionSize.scale,
         editorContext.videoMeta.duration
       ]);
-  var match$1 = match[0].playState;
-  var tmp;
-  tmp = match$1 === "CantPlay" ? null : JsxRuntime.jsx(SceneMapCanvas.make, {
-          size: size
-        });
   return JsxRuntime.jsxs("div", {
               children: [
-                tmp,
+                JsxRuntime.jsx(SceneMapCanvas.make, {
+                      size: size
+                    }),
                 JsxRuntime.jsx(SeekBarCanvas.make, {
                       size: size
                     })

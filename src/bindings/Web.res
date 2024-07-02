@@ -11,30 +11,29 @@ module Element = {
   @get external firstChild: Webapi.Dom.Element.t => option<Webapi.Dom.Element.t> = "children[0]"
 
   let targetAsElement = %raw(`_ => _`)
-
 }
 
 @genType
-  let isFocusable = el =>
-    switch el->Webapi.Dom.Element.tagName {
-    | "TEXTAREA" | "SELECT" | "INPUT" | "BUTTON" | "A" => true
-    | _ =>
-      switch el->Webapi.Dom.Element.getAttribute("role") {
-      | Some("slider")
-      | Some("option")
-      | Some("input")
-      | Some("button")
-      | Some("checkbox")
-      | Some("link") => true
-      | _ => false
-      }
+let isFocusable = el =>
+  switch el->Webapi.Dom.Element.tagName {
+  | "TEXTAREA" | "SELECT" | "INPUT" | "BUTTON" | "A" => true
+  | _ =>
+    switch el->Webapi.Dom.Element.getAttribute("role") {
+    | Some("slider")
+    | Some("option")
+    | Some("input")
+    | Some("button")
+    | Some("checkbox")
+    | Some("link") => true
+    | _ => false
     }
+  }
 
-  let isFocusingInteractiveElement = () =>
-    Webapi.Dom.document
-    ->Webapi.Dom.Document.activeElement
-    ->Option.map(isFocusable)
-    ->Option.getOr(false)
+let isFocusingInteractiveElement = () =>
+  Webapi.Dom.document
+  ->Webapi.Dom.Document.activeElement
+  ->Option.map(isFocusable)
+  ->Option.getOr(false)
 
 module Video = {
   type t = Webapi.Dom.Element.t

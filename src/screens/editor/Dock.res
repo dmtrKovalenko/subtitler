@@ -1,5 +1,6 @@
 open Icons
 open Cx
+open Shortcut
 open Webapi
 open ChunksList
 open Player
@@ -48,31 +49,33 @@ module DockButton = {
   )
 }
 
-type fpsMarker = Green | Yellow | Red | White
-
-let getFpsMarker = (fps, desiredFps) => {
-  let desiredFps = desiredFps->Belt.Float.fromInt
-
-  switch fps {
-  | None => White
-  | Some(fps) if fps < desiredFps *. 0.5 => Red
-  | Some(fps) if fps < desiredFps *. 0.8 => Yellow
-  | _ => Green
-  }
-}
-
-type dir = Back | Forth
+@gentype
+let shortcuts = [
+  {key: " ", modifier: NoModifier, action: PlayOrPause},
+  {key: "ArrowRight", modifier: NoModifier, action: SeekForward},
+  {key: "l", modifier: NoModifier, action: SeekForward},
+  {key: "ArrowLeft", modifier: NoModifier, action: SeekBack},
+  {key: "h", modifier: NoModifier, action: SeekBack},
+  {key: "ArrowUp", modifier: NoModifier, action: SeekToPreviousCue},
+  {key: "k", modifier: NoModifier, action: SeekToPreviousCue},
+  {key: "ArrowDown", modifier: NoModifier, action: SeekToNextCue},
+  {key: "j", modifier: NoModifier, action: SeekToNextCue},
+  {key: "i", modifier: NoModifier, action: EditCurrentSubtitle},
+  {key: "t", modifier: NoModifier, action: ToggleDock},
+  {key: "r", modifier: NoModifier, action: StartRender},
+  {key: "f", modifier: NoModifier, action: ToggleFullScreen},
+  {key: "m", modifier: NoModifier, action: Mute},
+  {key: "Home", modifier: NoModifier, action: SeekToStart},
+  {key: "ArrowLeft", modifier: Meta, action: SeekToStart},
+  {key: "End", modifier: NoModifier, action: SeekToEnd},
+  {key: "ArrowRight", modifier: Meta, action: SeekToEnd},
+]
 
 @react.component
 let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
   let context = EditorContext.useEditorContext()
   let (isCollapsed, collapsedToggle) = Hooks.useToggle(false)
   let (player, playerDispatch) = context.usePlayer()
-
-  //  let (debouncedFps, _) = UseDebounce.useThrottle(
-  //    AnimationRuntime.AudioRuntime.runtimeFps.contents,
-  //    ~ms=100,
-  //  )
 
   let handlePlayOrPause = _ => {
     open Player
@@ -119,51 +122,60 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     playerDispatch(Seek(context.videoMeta.duration))
   })
 
-  let toggleDock = Hooks.useEvent(() => {
-    collapsedToggle.toggle()
-    Js.Console.log("Press t to show/hide dock controls")
+  let editCurrentSubtitle = Hooks.useEvent(() => {
+    setTimeout(() =>
+      Webapi.Dom.window
+      ->ChunkEditor.CurrentTextArea.getCurrentTextArea
+      ->Option.forEach(Webapi.Dom.HtmlInputElement.focus)
+    , 0)->ignore
   })
 
-  React.useEffect1(() => {
-    let handleKeydown = e => {
-      open! Dom
+  let moveToCue = Hooks.useEvent(shift => {
+    let currentOrLastCue =
+      context.getImmediatePlayerState().currentPlayingCue->Utils.Option.unwrapOrElse(() =>
+        Subtitles.lookUpLastPlayedCue(
+          ~subtitles=subtitlesManager.activeSubtitles,
+          ~timestamp=context.getImmediatePlayerState().ts,
+        )
+      )
 
-      if (
-        e
-        ->KeyboardEvent.target
-        ->EventTarget.unsafeAsElement
-        ->Web.isFocusable
-        ->Utils.Bool.invert
-      ) {
-        switch e->KeyboardEvent.key {
-        | " " => handlePlayOrPause()
-        | "0" | "J" | "Home" => seekToStart()
-        | "ArrowLeft" if e->KeyboardEvent.shiftKey => seekToStart()
-        | "G" | "End" => seekToEnd()
-        | "ArrowRight" if e->KeyboardEvent.shiftKey => seekToEnd()
-        | "ArrowDown" | "h" if e->KeyboardEvent.ctrlKey => toggleMute()
-        | "ArrowLeft" | "j" => handleSeekLeft()
-        | "ArrowRight" | "k" => handleSeekRight()
-        | "ArrowUp" | "l" => increaseVolume()
-        | "ArrowDown" | "h" => decreaseVolume()
-        | "t" | "T" => collapsedToggle.toggle()
-        | "f" | "F" => fullScreenToggler.toggle()
-        | _ => ()
-        }
+    switch currentOrLastCue {
+    | Some({currentIndex, _}) =>
+      let newIndex = currentIndex + shift
+
+      switch subtitlesManager.activeSubtitles->Array.get(newIndex) {
+      | Some(newCue) => playerDispatch(Seek(newCue->Subtitles.start))
+      | None => ()
       }
+    | None if shift < 0 => handleSeekLeft()
+    | None if shift > 0 => handleSeekRight()
+    | None => ()
     }
+  })
 
-    Dom.window
-    ->DocumentEvent.asEventTarget
-    ->Dom.EventTarget.addKeyDownEventListener(handleKeydown)
-
-    Some(
-      () =>
-        Dom.window
-        ->DocumentEvent.asEventTarget
-        ->Dom.EventTarget.removeKeyDownEventListener(handleKeydown),
-    )
-  }, [])
+  useKeyboardShortcuts(shortcuts, shortcut =>
+    switch shortcut.action {
+    | PlayOrPause => handlePlayOrPause()
+    | SeekForward => handleSeekRight()
+    | SeekBack => handleSeekLeft()
+    | IncreaseVolume => increaseVolume()
+    | DecreaseVolume => decreaseVolume()
+    | EditCurrentSubtitle => editCurrentSubtitle()
+    | ToggleDock => collapsedToggle.toggle()
+    | StartRender => {
+        playerDispatch(StopForRender)
+        render(context.getImmediateStyleState())
+        ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
+        ->ignore
+      }
+    | ToggleFullScreen => fullScreenToggler.toggle()
+    | SeekToStart => seekToStart()
+    | SeekToEnd => seekToEnd()
+    | SeekToNextCue => moveToCue(1)
+    | SeekToPreviousCue => moveToCue(-1)
+    | Mute => toggleMute()
+    }
+  )
 
   <div
     className={Cx.cx([
@@ -185,10 +197,10 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     </DockButton>
     <DockButton onClick=handlePlayOrPause highlight=true label="Play">
       {switch player.playState {
-      | CantPlay | StoppedForRender => <Spinner size=1.5 className="mx-1" />
+      | StoppedForRender => <Spinner size=1.5 className="mx-1" />
       | Playing => <PauseIcon className="size-6" />
       | Paused
-      | WaitingForAction =>
+      | Idle =>
         <PlayIcon className="size-6" />
       }}
     </DockButton>
@@ -213,8 +225,8 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     <DockButton onClick=fullScreenToggler.toggle label="Turn on/off full-screen mode">
       <FullScreenIcon className="size-6" />
     </DockButton>
-    <DockButton onClick=toggleDock label="Show/Hide dock controls">
-      <CollapseIcon className="size-6 transition-transform" />
+    <DockButton onClick=editCurrentSubtitle label="Edit current subtitle">
+      <EditIcon className="size-6 transition-transform" />
     </DockButton>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null
@@ -226,7 +238,9 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
           label="Render video file"
           onClick={_ => {
             playerDispatch(StopForRender)
-            setTimeout(() => render(context.getImmediateStyleState()), 0)->ignore
+            render(context.getImmediateStyleState())
+            ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
+            ->ignore
           }}
           className="whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4">
           {React.string("Render video")}

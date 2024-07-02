@@ -4,7 +4,7 @@ include UseEditorLayout
 let useEvent = (fn: 'a => unit) => {
   let ref = React.useRef(fn)
 
-  React.useLayoutEffect0(() => {
+  React.useLayoutEffectOnEveryRender(() => {
     ref.current = fn
     None
   })

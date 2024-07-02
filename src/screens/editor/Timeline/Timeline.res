@@ -3,7 +3,6 @@ open CanvasSize
 @react.component
 let make = (~sectionSize: UseEditorLayout.sectionSize) => {
   let editorContext = EditorContext.useEditorContext()
-  let (player, _) = editorContext.usePlayer()
 
   let size = React.useMemo4(() => {
     let scale = Web.Window.devicePixelRatio
@@ -23,10 +22,7 @@ let make = (~sectionSize: UseEditorLayout.sectionSize) => {
   }, (sectionSize.height, sectionSize.width, sectionSize.scale, editorContext.videoMeta.duration))
 
   <div className="relative">
-    {switch player.playState {
-    | CantPlay => React.null
-    | _ => <SceneMapCanvas size />
-    }}
+    <SceneMapCanvas size />
     <SeekBarCanvas size />
   </div>
 }

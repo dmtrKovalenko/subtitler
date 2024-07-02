@@ -8,7 +8,7 @@ let a = Js.Dict.empty
 Js.Console.log("Happy subtitles making experience!")
 
 @genType.as("Editor") @react.component
-let make = (~subtitlesManager, ~render, ~rendererPreviewCanvasRef) => {
+let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) => {
   let (isFullScreen, fullScreenToggler) = Hooks.useToggle(false)
   let ctx = EditorContext.useEditorContext()
   let layout = useEditorLayout(~isFullScreen)
@@ -124,4 +124,4 @@ let make = (~subtitlesManager, ~render, ~rendererPreviewCanvasRef) => {
     ->Utils.Option.unwrapOr(React.null)}
     <Dock render fullScreenToggler subtitlesManager />
   </div>
-}
+})

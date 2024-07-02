@@ -6,9 +6,9 @@ import * as UseEditorLayout from "./useEditorLayout.res.mjs";
 
 function useEvent(fn) {
   var ref = React.useRef(fn);
-  React.useLayoutEffect((function () {
-          ref.current = fn;
-        }), []);
+  React.useLayoutEffect(function () {
+        ref.current = fn;
+      });
   return React.useCallback((function (arg) {
                 ref.current(arg);
               }), []);

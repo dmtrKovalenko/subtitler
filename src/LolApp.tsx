@@ -101,81 +101,84 @@ export default function LolApp() {
     transcriber.isBusy,
   );
 
-  const render = async (style: style) => {
-    const worker = new RenderWorker();
-    if (!file || !rendererPreviewCanvasRef.current) {
-      return;
-    }
+  const render = React.useCallback(
+    async (style: style) => {
+      const worker = new RenderWorker();
+      if (!file || !rendererPreviewCanvasRef.current) {
+        return;
+      }
 
-    let fileHandle = await window.showSaveFilePicker({
-      suggestedName: `video.mp4`,
-      types: [
+      let fileHandle = await window.showSaveFilePicker({
+        suggestedName: `video.mp4`,
+        types: [
+          {
+            description: "Video File",
+            accept: { "video/mp4": [".mp4"] },
+          },
+        ],
+      });
+
+      const offscreenCanvas =
+        rendererPreviewCanvasRef.current?.transferControlToOffscreen();
+      if (!offscreenCanvas) {
+        return;
+      }
+
+      setRenderState("rendering");
+      setProgressItems([
         {
-          description: "Video File",
-          accept: { "video/mp4": [".mp4"] },
+          id: "renderprogress",
+          title: "Rendering frames",
+          progress: 0,
         },
-      ],
-    });
+        {
+          id: "encodeprogress",
+          title: "Encoding video",
+          progress: 0,
+        },
+      ]);
 
-    const offscreenCanvas =
-      rendererPreviewCanvasRef.current?.transferControlToOffscreen();
-    if (!offscreenCanvas) {
-      return;
-    }
+      worker.postMessage(
+        {
+          type: "render",
+          style,
+          dataUri: file.file,
+          fileHandle,
+          canvas: offscreenCanvas,
+          cues: subtitlesManager.activeSubtitles,
+        } as RenderMessage,
+        [offscreenCanvas],
+      );
 
-    setRenderState("rendering");
-    setProgressItems([
-      {
-        id: "renderprogress",
-        title: "Rendering frames",
-        progress: 0,
-      },
-      {
-        id: "encodeprogress",
-        title: "Encoding video",
-        progress: 0,
-      },
-    ]);
+      worker.addEventListener(
+        "message",
+        (e: MessageEvent<RenderProgressMessage>) => {
+          if (e.data.type === "done") {
+            setRenderState("done");
+            setProgressItems([]);
+            worker.terminate();
+          }
 
-    worker.postMessage(
-      {
-        type: "render",
-        style,
-        dataUri: file.file,
-        fileHandle,
-        canvas: offscreenCanvas,
-        cues: subtitlesManager.activeSubtitles,
-      } as RenderMessage,
-      [offscreenCanvas],
-    );
+          if (
+            e.data.type === "renderprogress" ||
+            e.data.type === "encodeprogress"
+          ) {
+            const progress = e.data.progress;
+            setProgressItems((prev) =>
+              prev.map((item) => {
+                if (item.id === e.data.type) {
+                  return { ...item, progress };
+                }
 
-    worker.addEventListener(
-      "message",
-      (e: MessageEvent<RenderProgressMessage>) => {
-        if (e.data.type === "done") {
-          setRenderState("done");
-          setProgressItems([]);
-          worker.terminate();
-        }
-
-        if (
-          e.data.type === "renderprogress" ||
-          e.data.type === "encodeprogress"
-        ) {
-          const progress = e.data.progress;
-          setProgressItems((prev) =>
-            prev.map((item) => {
-              if (item.id === e.data.type) {
-                return { ...item, progress };
-              }
-
-              return item;
-            }),
-          );
-        }
-      },
-    );
-  };
+                return item;
+              }),
+            );
+          }
+        },
+      );
+    },
+    [subtitlesManager],
+  );
 
   const [status, description] = React.useMemo(() => {
     if (transcriber.isModelLoading) {
@@ -219,7 +222,7 @@ export default function LolApp() {
     },
     [file],
   );
-
+  //
   //const fakeState = useChunksState(
   //  [
   //    {
@@ -265,7 +268,7 @@ export default function LolApp() {
   //    )}
   //  </>
   //);
-
+  //
   if (!file) {
     return (
       <LandingDropzone

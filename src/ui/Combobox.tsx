@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Combobox as HeadlessCombobox,
   ComboboxButton,
@@ -43,12 +44,15 @@ export function Combobox<TValue extends string | number>({
         <ComboboxInput
           className={clsx(
             "w-full capitalize rounded-lg border-none bg-white/10 py-1.5 pr-8 pl-3 text-sm/6 text-white",
-            "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-white/25",
+            "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-orange-500",
           )}
           displayValue={formatValue}
           onChange={(event) => setQuery(event.target.value)}
         />
-        <ComboboxButton className="group absolute inset-y-0 right-0 px-2.5">
+        <ComboboxButton
+          aria-label="Open dropdown list"
+          className="group absolute inset-y-0 right-0 px-2.5"
+        >
           <ChevronDownIcon className="size-4 fill-white/60 group-data-[hover]:fill-white" />
         </ComboboxButton>
       </div>

@@ -101,13 +101,11 @@ let make = Utils.neverRerender(() => {
           </div>}
           defaultValue="Inter"
           value={val => fontInProgressRef.current = Some(val)}
-          fontsLoaded={loaded => {
-            if loaded {
-              fontInProgressRef.current->Option.forEach(font => {
-                dispatch(Style.SetFontFamily(font))
-                fontInProgressRef.current = None
-              })
-            }
+          fontsLoaded={_ => {
+            fontInProgressRef.current->Option.forEach(font => {
+              dispatch(Style.SetFontFamily(font))
+              fontInProgressRef.current = None
+            })
           }}
         />
       </Input.Field>

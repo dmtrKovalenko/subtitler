@@ -106,6 +106,14 @@ function unwrapOr(option, $$default) {
   }
 }
 
+function unwrapOrElse(option, elseFn) {
+  if (option !== undefined) {
+    return Caml_option.some(Caml_option.valFromOption(option));
+  } else {
+    return elseFn();
+  }
+}
+
 function some(val) {
   return Caml_option.some(val);
 }
@@ -124,6 +132,7 @@ var $$Option = {
   unwrap: unwrap,
   flatten: flatten,
   unwrapOr: unwrapOr,
+  unwrapOrElse: unwrapOrElse,
   some: some,
   zip: zip
 };

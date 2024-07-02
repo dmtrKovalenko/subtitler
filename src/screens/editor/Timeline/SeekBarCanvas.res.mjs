@@ -46,11 +46,7 @@ function SeekBarCanvas(props) {
           Belt_Option.map(Caml_option.nullable_to_opt(seekCanvasRef.current), (function (canvasElement) {
                   var ctx = canvasElement.getContext("2d");
                   ctx.clearRect(0, 0, size.scaledWidth, size.scaledHeight);
-                  var match = player.playState;
-                  if (match !== "CantPlay") {
-                    renderSeekBar(ctx, size, player);
-                  }
-                  
+                  renderSeekBar(ctx, size, player);
                 }));
         }), [
         size,
@@ -81,10 +77,9 @@ function SeekBarCanvas(props) {
         tmp = "cursor-pointer";
         break;
     case "Paused" :
-    case "WaitingForAction" :
+    case "Idle" :
         tmp = "cursor-col-resize";
         break;
-    case "CantPlay" :
     case "StoppedForRender" :
         tmp = "cursor-wait";
         break;

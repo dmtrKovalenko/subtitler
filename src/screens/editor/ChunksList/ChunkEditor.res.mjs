@@ -2,6 +2,7 @@
 
 import * as Cx from "rescript-classnames/src/Cx.res.mjs";
 import * as Web from "../../../bindings/Web.res.mjs";
+import * as Hooks from "../../../hooks/Hooks.res.mjs";
 import * as Utils from "../../../Utils.res.mjs";
 import * as React from "react";
 import * as Js_dict from "rescript/lib/es6/js_dict.js";
@@ -12,6 +13,25 @@ import * as Mask from "@react-input/mask";
 import * as JsxRuntime from "react/jsx-runtime";
 import * as Outline from "@heroicons/react/24/outline";
 import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
+
+function useEditorInputHandler() {
+  var ctx = EditorContext.useEditorContext();
+  return Hooks.useEvent(function ($$event) {
+              var key = $$event.key;
+              switch (key) {
+                case " " :
+                    if ($$event.shiftKey || $$event.ctrlKey || $$event.metaKey) {
+                      return ctx.playerImmediateDispatch("Play");
+                    } else {
+                      return ;
+                    }
+                case "Escape" :
+                    return $$event.target.blur();
+                default:
+                  return ;
+              }
+            });
+}
 
 function ChunkEditor$TimestampEditor(props) {
   var onChange = props.onChange;
@@ -45,6 +65,7 @@ function ChunkEditor$TimestampEditor(props) {
                   ]),
               placeholder: "till the next cue",
               readOnly: props.readonly,
+              onKeyDown: useEditorInputHandler(),
               onChange: (function (e) {
                   var value = e.target.value;
                   var value$1 = Utils.Duration.parseMillisInputToSeconds(value);
@@ -66,6 +87,8 @@ var TimestampEditor = {
   make: ChunkEditor$TimestampEditor
 };
 
+var CurrentTextArea = {};
+
 var make = React.memo(function (props) {
       var onTextChange = props.onTextChange;
       var onTimestampChange = props.onTimestampChange;
@@ -78,9 +101,11 @@ var make = React.memo(function (props) {
       var start = match[0];
       var ctx = EditorContext.useEditorContext();
       var ref = React.useRef(null);
+      var textAreaRef = React.useRef(null);
       var previousCurrentRef = React.useRef(current);
       React.useEffect((function () {
               if (current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement()) {
+                window.__fframes_currentcue_textarea = Core__Option.flatMap(Caml_option.nullable_to_opt(textAreaRef.current), Webapi__Dom__HtmlInputElement.ofElement);
                 Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
                         el.scrollIntoView({
                               behavior: "smooth",
@@ -136,6 +161,7 @@ var make = React.memo(function (props) {
                           className: "flex items-center gap-1"
                         }),
                     JsxRuntime.jsx("textarea", {
+                          ref: Caml_option.some(textAreaRef),
                           className: Cx.cx([
                                 "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                                 "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
@@ -143,13 +169,7 @@ var make = React.memo(function (props) {
                           readOnly: readonly,
                           rows: chunk.text === "" ? 2 : 3,
                           value: chunk.text,
-                          onKeyDown: (function ($$event) {
-                              var key = $$event.key;
-                              if (key === " " && ($$event.shiftKey || $$event.ctrlKey)) {
-                                return ctx.playerImmediateDispatch("Play");
-                              }
-                              
-                            }),
+                          onKeyDown: useEditorInputHandler(),
                           onChange: (function (e) {
                               onTextChange(index, e.target.value);
                             })
@@ -181,12 +201,15 @@ var make = React.memo(function (props) {
                         "gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
                         current ? "!border-zinc-500" : ""
                       ]),
+                  id: current ? "current-cue" : "",
                   onFocus: seekToThisCue
                 });
     });
 
 export {
+  useEditorInputHandler ,
   TimestampEditor ,
+  CurrentTextArea ,
   make ,
 }
 /* make Not a pure module */

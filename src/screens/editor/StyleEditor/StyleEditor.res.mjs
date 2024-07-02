@@ -154,17 +154,14 @@ var make = Utils.neverRerender(function (props) {
                                               fontInProgressRef.current = val;
                                             }),
                                           loadAllVariants: true,
-                                          fontsLoaded: (function (loaded) {
-                                              if (loaded) {
-                                                return Core__Option.forEach(fontInProgressRef.current, (function (font) {
-                                                              dispatch({
-                                                                    TAG: "SetFontFamily",
-                                                                    _0: font
-                                                                  });
-                                                              fontInProgressRef.current = undefined;
-                                                            }));
-                                              }
-                                              
+                                          fontsLoaded: (function (param) {
+                                              Core__Option.forEach(fontInProgressRef.current, (function (font) {
+                                                      dispatch({
+                                                            TAG: "SetFontFamily",
+                                                            _0: font
+                                                          });
+                                                      fontInProgressRef.current = undefined;
+                                                    }));
                                             })
                                         })
                                   ]

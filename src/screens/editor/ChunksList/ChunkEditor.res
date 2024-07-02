@@ -6,6 +6,24 @@ type maskInput = {
 @module("@react-input/mask")
 external useMask: maskInput => React.ref<Js.nullable<Webapi.Dom.Element.t>> = "useMask"
 
+let useEditorInputHandler = () => {
+  let ctx = EditorContext.useEditorContext()
+
+  Hooks.useEvent(event => {
+    let key = ReactEvent.Keyboard.key(event)
+
+    switch key {
+    | "Escape" => ReactEvent.Keyboard.target(event)["blur"]()
+    | " "
+      if event->ReactEvent.Keyboard.shiftKey ||
+      event->ReactEvent.Keyboard.ctrlKey ||
+      event->ReactEvent.Keyboard.metaKey =>
+      ctx.playerImmediateDispatch(Play)
+    | _ => ()
+    }
+  })
+}
+
 module TimestampEditor = {
   @react.component
   let make = (~ts: option<float>, ~onChange, ~readonly) => {
@@ -37,6 +55,7 @@ module TimestampEditor = {
     <input
       readOnly=readonly
       ref={ReactDOM.Ref.domRef(inputRef)}
+      onKeyDown={useEditorInputHandler()}
       onChange={e => {
         let value = ReactEvent.Form.target(e)["value"]
         switch Utils.Duration.parseMillisInputToSeconds(value) {
@@ -56,6 +75,18 @@ module TimestampEditor = {
   }
 }
 
+// lol this is soo bad but it works
+module CurrentTextArea = {
+  @set
+  external setCurrentCueTextArea: (
+    Webapi.Dom.Window.t,
+    option<Webapi.Dom.HtmlInputElement.t>,
+  ) => unit = "__fframes_currentcue_textarea"
+  @get
+  external getCurrentTextArea: Webapi.Dom.Window.t => option<Webapi.Dom.HtmlInputElement.t> =
+    "__fframes_currentcue_textarea"
+}
+
 @react.component
 let make = React.memo((
   ~index: int,
@@ -70,10 +101,16 @@ let make = React.memo((
   let ctx = EditorContext.useEditorContext()
 
   let ref = React.useRef(null)
+  let textAreaRef = React.useRef(null)
   let previousCurrentRef = React.useRef(current)
 
   React.useEffect1(() => {
+    open Webapi
     if current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement() {
+      Dom.window->CurrentTextArea.setCurrentCueTextArea(
+        textAreaRef.current->Js.Nullable.toOption->Option.flatMap(Dom.HtmlInputElement.ofElement),
+      )
+
       ref.current
       ->Js.Nullable.toOption
       ->Option.forEach(
@@ -97,6 +134,7 @@ let make = React.memo((
   }, [start])
 
   <div
+    id={current ? "current-cue" : ""}
     ref={ReactDOM.Ref.domRef(ref)}
     onFocus=seekToThisCue
     className={Cx.cx([
@@ -125,18 +163,10 @@ let make = React.memo((
     <textarea
       rows={chunk.text === "" ? 2 : 3}
       readOnly=readonly
+      ref={ReactDOM.Ref.domRef(textAreaRef)}
       value={chunk.text}
       onChange={e => onTextChange(index, ReactEvent.Form.target(e)["value"])}
-      onKeyDown={event => {
-        let key = ReactEvent.Keyboard.key(event)
-
-        switch key {
-        | " " if event->ReactEvent.Keyboard.shiftKey || event->ReactEvent.Keyboard.ctrlKey =>
-          ctx.playerImmediateDispatch(Play)
-
-        | _ => ()
-        }
-      }}
+      onKeyDown={useEditorInputHandler()}
       className={Cx.cx([
         "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
         "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",

@@ -8,8 +8,7 @@ import type {currentPlayingCue as Subtitles_currentPlayingCue} from '../src/scre
 export type playState = 
     "Playing"
   | "Paused"
-  | "WaitingForAction"
-  | "CantPlay"
+  | "Idle"
   | "StoppedForRender";
 
 export type state = {
@@ -21,10 +20,10 @@ export type state = {
 };
 
 export type action = 
-    "AllowPlay"
-  | "Play"
+    "Play"
   | "Pause"
   | "StopForRender"
+  | "AbortRender"
   | "UpdateCurrentCue"
   | { TAG: "Seek"; _0: number }
   | { TAG: "NewFrame"; _0: number }

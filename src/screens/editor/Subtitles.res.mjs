@@ -40,6 +40,19 @@ function lookupCurrentCue(subtitles, timestamp) {
               }));
 }
 
+function lookUpLastPlayedCue(subtitles, timestamp) {
+  return Core__Array.reduceRightWithIndex(subtitles, undefined, (function (acc, subtitle, index) {
+                if (acc !== undefined || !compareTsToRange(subtitle.timestamp, timestamp)) {
+                  return acc;
+                } else {
+                  return {
+                          currentIndex: index,
+                          currentCue: subtitle
+                        };
+                }
+              }));
+}
+
 function getOrLookupCurrentCue(timestamp, subtitles, prevCue) {
   if (prevCue !== undefined) {
     if (compareTsToRange(prevCue.currentCue.timestamp, timestamp)) {
@@ -184,6 +197,7 @@ export {
   end ,
   compareTsToRange ,
   lookupCurrentCue ,
+  lookUpLastPlayedCue ,
   getOrLookupCurrentCue ,
   averageChunkLength ,
   addChunkId ,
