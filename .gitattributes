@@ -1,0 +1,2 @@
+*.res.mjs linguist-vendored
+*.gen.tsx linguist-vendored
