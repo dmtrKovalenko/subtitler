@@ -22,7 +22,7 @@ export function BrowserNotSupported() {
             Your browser is not supported
           </h1>
 
-          <p className="mt-4 mx-auto text-center text-balance text-lg md:text-xl text-black/90 sm:mt-12 max-w-2xl">
+          <p className="mt-4 mx-auto text-center text-balance sm:text-lg lg:text-xl text-black/90 sm:mt-12 max-w-2xl">
             Our subtitles generator uses some cool browser features like GPU
             access and video codecs to transcribe and render videos on your
             device. They are 100% aviailable in{" "}

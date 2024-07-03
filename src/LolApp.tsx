@@ -30,8 +30,9 @@ export type ProgressItem = {
   progress: number;
 };
 
-// lol why this is written in typescript? 💀 aa my eyes are bleeding from this shity states
-export default function LolApp() {
+// Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
+export default function SubtitleApp() {
+  // Changed name to be more descriptive
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const rendererPreviewCanvasRef = React.useRef<HTMLCanvasElement>(null);
   const [progressItems, setProgressItems] = React.useState<ProgressItem[]>([]);
@@ -186,20 +187,20 @@ export default function LolApp() {
     if (transcriber.isModelLoading) {
       return [
         "Loading AI model",
-        "Now the AI model is loading, this will happen only once, your next visit everything will be blazing fast",
+        "The AI model is now loading. This will happen only once. On your next visit, everything will be much faster.",
       ];
     }
 
     if (transcriber.isBusy) {
       return [
         "Transcribing",
-        "We are starting to transcribe your video, in a moment editor will appear",
+        "We are currently transcribing your video. The editor will appear shortly.",
       ];
     }
 
     return [
       "Processing Audio",
-      "We are loading and processing the audio from your video",
+      "We are loading and processing the audio from your video.",
     ];
   }, [transcriber.isModelLoading, transcriber.isBusy]);
 
@@ -286,6 +287,36 @@ export default function LolApp() {
   if (file && !transcriber.output) {
     return (
       <div className="container mx-auto flex items-center justify-center pt-[25%] flex-col">
+        <svg
+          className="absolute inset-0 -z-10 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
+          aria-hidden="true"
+        >
+          <defs>
+            <pattern
+              id="983e3e4c-de6d-4c3f-8d64-b9761d1534cc"
+              width={200}
+              height={200}
+              x="50%"
+              y={-1}
+              patternUnits="userSpaceOnUse"
+            >
+              <path d="M.5 200V.5H200" fill="none" />
+            </pattern>
+          </defs>
+          <svg x="50%" y={-1} className="overflow-visible fill-gray-800/20">
+            <path
+              d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
+              strokeWidth={0}
+            />
+          </svg>
+          <rect
+            width="100%"
+            height="100%"
+            strokeWidth={0}
+            fill="url(#983e3e4c-de6d-4c3f-8d64-b9761d1534cc)"
+          />
+        </svg>
+
         <div className="flex items-center justify-center gap-4">
           <Spinner sizeRem={3} />
           <h1 className="text-5xl">{status}</h1>
@@ -308,9 +339,9 @@ export default function LolApp() {
     );
   }
 
-  // if you are here wondering how this was implemented and surprised that I used
+  // If you are wondering how this was implemented and are surprised that I used
   // 2 video elements - just know I was too lazy to do something else, but you
-  // probably should use webcodecs and manually decode, bufferize and render frames
+  // probably should use webcodecs and manually decode, bufferize, and render frames.
   return (
     <>
       <video
@@ -351,8 +382,8 @@ export default function LolApp() {
               </h2>
               <p className="text-gray-300 text-balance text-center text-lg max-w-screen-sm mt-4">
                 In a moment you'll get your video with subtitles created at the
-                selected location. Please do not close this tab as it might
-                interrupt the rendering.
+                selected location. For faster and more reliable render do not
+                leave this tab.
               </p>
 
               <div className="w-full flex flex-col gap-y-2 mt-8 max-w-[34rem]">
@@ -375,9 +406,9 @@ export default function LolApp() {
                 Video Rendered!
               </h2>
               <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
-                You'll find your video in the file you selected a moment before.
-                Time for publishing but before you do that ... just know ...
-                👉👈 your video is amazing!
+                You'll find your video in the location you selected a moment
+                before. Time for publishing but before you do that ... just know
+                ... 👉👈 your video is amazing!
               </p>
 
               <a

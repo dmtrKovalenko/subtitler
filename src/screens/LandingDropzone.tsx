@@ -103,9 +103,9 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             <SubtitlesStrikethrough>captions</SubtitlesStrikethrough> generator
           </h1>
           <p className="mx-16 text-center text-balance mt-4 text-gray-400 text-xl">
-            Start right now by dragging your video file anywhere. Make sure that
-            we are performing all the text-to-speech processing and video
-            rendering right in your browser and{" "}
+            Start right now by dragging your video file anywhere. Rest assured
+            that we perform all the text-to-speech processing and video
+            rendering right in your browser, and{" "}
             <strong>do not send anything</strong> to the server.
           </p>
           <div className="mt-8 flex gap-6 justify-between mx-auto max-w-[34rem]">
@@ -154,23 +154,35 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           <a
             target="_blank"
             rel="noopener noreferrer"
+            className="rounded-full outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2"
             href="https://github.com/dmtrKovalenko/subtitler"
+            onClick={(e) => e.stopPropagation()}
           >
-            <GithubIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
+            <span className="sr-only">Project sources</span>
+            <GithubIcon className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
+          </a>
+          <a
+            target="_blank"
+            className="rounded-full outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2"
+            rel="noopener noreferrer"
+            href="https://x.com/neogoose_btw"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="sr-only">Follow on twitter</span>
+            <TwitterIcon className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
           </a>
           <a
             target="_blank"
             rel="noopener noreferrer"
-            href="https://github.com/dmtrKovalenko/subtitler"
-          >
-            <TwitterIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
-          </a>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
+            className="rounded-full outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2"
             href="https://github.com/sponsors/dmtrKovalenko"
+            onClick={(e) => e.stopPropagation()}
           >
-            <HeartIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
+            <span className="sr-only">Support this project developlment</span>
+            <HeartIcon
+              aria-hidden
+              className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500"
+            />
           </a>
         </div>
       </div>
