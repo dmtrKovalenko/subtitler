@@ -29,6 +29,7 @@
     "clsx": "^2.1.1",
     "concurrently": "^8.2.2",
     "file-saver": "^2.0.5",
+    "js-confetti": "^0.12.0",
     "konva": "^9.3.12",
     "mp4-muxer": "^4.2.0",
     "mp4box": "^0.5.2",

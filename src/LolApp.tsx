@@ -156,6 +156,10 @@ export default function SubtitleApp() {
         "message",
         (e: MessageEvent<RenderProgressMessage>) => {
           if (e.data.type === "done") {
+            import("js-confetti").then(({ default: JsConfetti }) => {
+              new JsConfetti().addConfetti();
+            });
+            document.title = `✅ Subtitles rendered!`;
             setRenderState("done");
             setProgressItems([]);
             worker.terminate();
