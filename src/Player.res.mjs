@@ -148,7 +148,7 @@ function MakePlayer(Ctx) {
             return {
                     ts: ts$1,
                     startPlayingTs: ts$1,
-                    playState: state.playState,
+                    playState: state.playState === "Idle" ? "Paused" : state.playState,
                     currentPlayingCue: Subtitles.lookupCurrentCue(Ctx.subtitlesRef.current, ts$1),
                     volume: state.volume
                   };
@@ -186,21 +186,20 @@ function MakePlayer(Ctx) {
     
   };
   var sideEffect = function (action, dispatch) {
-    var startPlaying = function (currentTs) {
-      Core__Option.forEach(get().volume, (function (volume) {
-              Ctx.dom.videoElement.volume = volume / 100;
-            }));
-      Ctx.dom.videoElement.play();
-      Ctx.dom.videoElement.currentTime = currentTs;
-      requestAnimationFrame(function (param) {
-            onFrame(dispatch);
-          });
-    };
     if (typeof action !== "object") {
       switch (action) {
         case "Play" :
             if (get().playState !== "Playing") {
-              return startPlaying(get().ts);
+              var currentTs = get().ts;
+              Core__Option.forEach(get().volume, (function (volume) {
+                      Ctx.dom.videoElement.volume = volume / 100;
+                    }));
+              Ctx.dom.videoElement.play();
+              Ctx.dom.videoElement.currentTime = currentTs;
+              requestAnimationFrame(function (param) {
+                    onFrame(dispatch);
+                  });
+              return ;
             } else {
               return ;
             }
@@ -216,7 +215,8 @@ function MakePlayer(Ctx) {
     } else {
       switch (action.TAG) {
         case "Seek" :
-            return startPlaying(action._0);
+            Ctx.dom.videoElement.currentTime = action._0;
+            return renderFrame();
         case "NewFrame" :
             if (get().playState !== "Playing") {
               Ctx.dom.videoElement.currentTime = action._0;

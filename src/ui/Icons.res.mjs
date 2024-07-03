@@ -17,11 +17,11 @@ var PlayIcon = {};
 var ForwardIcon = {};
 
 function Icons$BackwardIcon(props) {
-  return JsxRuntime.jsx(Outline.ForwardIcon, {
+  return JsxRuntime.jsx(Outline.ArrowUturnRightIcon, {
               color: Caml_option.some(props.color),
               className: Cx.cx([
                     Core__Option.getOr(props.className, ""),
-                    "rotate-180"
+                    "scale-x-[-1]"
                   ]),
               style: Caml_option.some(props.style)
             });

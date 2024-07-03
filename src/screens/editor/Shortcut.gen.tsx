@@ -5,7 +5,7 @@
 
 import * as ShortcutJS from './Shortcut.res.mjs';
 
-export type modifier = "Shift" | "Meta" | "NoModifier";
+export type modifier = "Shift" | "Meta" | "Ctrl" | "NoModifier";
 
 export type shortcut<action> = {
   readonly action: action; 

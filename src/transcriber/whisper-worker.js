@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
 import { pipeline, env } from "@xenova/transformers";
 
-// Disable local models
-env.allowLocalModels = false;
+// Specify a custom location for models (defaults to '/models/').
+env.localModelPath = "/models/";
+env.allowRemoteModels = true;
 
 // Define model factories
 // Ensures only one model is created of each type
@@ -23,9 +24,14 @@ class PipelineFactory {
       this.instance = pipeline(this.task, this.model, {
         quantized: this.quantized,
         progress_callback,
+        dtype: {
+          encoder_model: "fp32",
+          decoder_model_merged: "q4", // or 'fp32' ('fp16' is broken)
+        },
+        device: "webgpu",
 
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
-        revision: this.model.includes("/whisper-medium")
+        revision: this.model.includes("whisper-medium")
           ? "no_attentions"
           : "main",
       });

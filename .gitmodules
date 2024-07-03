@@ -1,0 +1,9 @@
+[submodule "public/models/whisper-tiny"]
+	path = public/models/whisper-tiny
+	url = https://huggingface.co/Xenova/whisper-tiny
+[submodule "public/models/whisper-base"]
+	path = public/models/whisper-base
+	url = https://huggingface.co/Xenova/whisper-base
+[submodule "public/models/whisper-small"]
+	path = public/models/whisper-small
+	url = https://huggingface.co/onnx-community/whisper-small

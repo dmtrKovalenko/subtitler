@@ -21,6 +21,104 @@ import * as Outline from "@heroicons/react/24/outline";
 
 var DocumentEvent = Webapi__Dom__EventTarget.Impl({});
 
+var shortcuts = [
+  {
+    action: "PlayOrPause",
+    key: " ",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekForward",
+    key: "ArrowRight",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekForward",
+    key: "l",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekBack",
+    key: "ArrowLeft",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekBack",
+    key: "h",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToPreviousCue",
+    key: "ArrowUp",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToPreviousCue",
+    key: "k",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToNextCue",
+    key: "ArrowDown",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToNextCue",
+    key: "j",
+    modifier: "NoModifier"
+  },
+  {
+    action: "EditCurrentSubtitle",
+    key: "i",
+    modifier: "NoModifier"
+  },
+  {
+    action: "EditCurrentSubtitle",
+    key: "Enter",
+    modifier: "NoModifier"
+  },
+  {
+    action: "ToggleDock",
+    key: "t",
+    modifier: "NoModifier"
+  },
+  {
+    action: "StartRender",
+    key: "r",
+    modifier: "NoModifier"
+  },
+  {
+    action: "ToggleFullScreen",
+    key: "f",
+    modifier: "NoModifier"
+  },
+  {
+    action: "Mute",
+    key: "m",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToStart",
+    key: "Home",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToStart",
+    key: "ArrowLeft",
+    modifier: "Meta"
+  },
+  {
+    action: "SeekToEnd",
+    key: "End",
+    modifier: "NoModifier"
+  },
+  {
+    action: "SeekToEnd",
+    key: "ArrowRight",
+    modifier: "Meta"
+  }
+];
+
 var make = Utils.neverRerender(function (props) {
       return JsxRuntime.jsx("div", {
                   children: JsxRuntime.jsx("hr", {
@@ -84,99 +182,6 @@ var make$2 = React.memo(function (props) {
 var DockButton = {
   make: make$2
 };
-
-var shortcuts = [
-  {
-    action: "PlayOrPause",
-    key: " ",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekForward",
-    key: "ArrowRight",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekForward",
-    key: "l",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekBack",
-    key: "ArrowLeft",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekBack",
-    key: "h",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToPreviousCue",
-    key: "ArrowUp",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToPreviousCue",
-    key: "k",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToNextCue",
-    key: "ArrowDown",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToNextCue",
-    key: "j",
-    modifier: "NoModifier"
-  },
-  {
-    action: "EditCurrentSubtitle",
-    key: "i",
-    modifier: "NoModifier"
-  },
-  {
-    action: "ToggleDock",
-    key: "t",
-    modifier: "NoModifier"
-  },
-  {
-    action: "StartRender",
-    key: "r",
-    modifier: "NoModifier"
-  },
-  {
-    action: "ToggleFullScreen",
-    key: "f",
-    modifier: "NoModifier"
-  },
-  {
-    action: "Mute",
-    key: "m",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToStart",
-    key: "Home",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToStart",
-    key: "ArrowLeft",
-    modifier: "Meta"
-  },
-  {
-    action: "SeekToEnd",
-    key: "End",
-    modifier: "NoModifier"
-  },
-  {
-    action: "SeekToEnd",
-    key: "ArrowRight",
-    modifier: "Meta"
-  }
-];
 
 function Dock(props) {
   var fullScreenToggler = props.fullScreenToggler;
@@ -276,6 +281,12 @@ function Dock(props) {
         }
         
       });
+  var startRender = Hooks.useEvent(function () {
+        playerDispatch("StopForRender");
+        Core__Promise.$$catch(render(context.getImmediateStyleState()), (function (param) {
+                return Promise.resolve(playerDispatch("AbortRender"));
+              }));
+      });
   Shortcut.useKeyboardShortcuts(shortcuts, (function (shortcut) {
           var match = shortcut.action;
           switch (match) {
@@ -294,11 +305,7 @@ function Dock(props) {
             case "ToggleDock" :
                 return collapsedToggle.toggle();
             case "StartRender" :
-                playerDispatch("StopForRender");
-                Core__Promise.$$catch(render(context.getImmediateStyleState()), (function (param) {
-                        return Promise.resolve(playerDispatch("AbortRender"));
-                      }));
-                return ;
+                return startRender();
             case "ToggleFullScreen" :
                 return fullScreenToggler.toggle();
             case "SeekToStart" :
@@ -319,13 +326,13 @@ function Dock(props) {
   switch (match$2) {
     case "Playing" :
         tmp = JsxRuntime.jsx(Solid.PauseIcon, {
-              className: "size-6"
+              className: "size-6 mx-0.5"
             });
         break;
     case "Paused" :
     case "Idle" :
         tmp = JsxRuntime.jsx(Solid.PlayIcon, {
-              className: "size-6"
+              className: "size-6 mx-0.5"
             });
         break;
     case "StoppedForRender" :
@@ -351,19 +358,14 @@ function Dock(props) {
             JsxRuntime.jsx(make, {}),
             JsxRuntime.jsxs(make$2, {
                   children: [
-                    "Render video",
-                    JsxRuntime.jsx(Outline.DocumentArrowDownIcon, {
+                    JsxRuntime.jsx(Outline.SparklesIcon, {
                           className: "size-5"
-                        })
+                        }),
+                    "Render video"
                   ],
                   label: "Render video file",
                   className: "whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4",
-                  onClick: (function () {
-                      playerDispatch("StopForRender");
-                      Core__Promise.$$catch(render(context.getImmediateStyleState()), (function (param) {
-                              return Promise.resolve(playerDispatch("AbortRender"));
-                            }));
-                    }),
+                  onClick: startRender,
                   highlight: true
                 })
           ]
@@ -389,7 +391,7 @@ function Dock(props) {
                 JsxRuntime.jsx(make, {}),
                 JsxRuntime.jsx(make$2, {
                       children: JsxRuntime.jsx(Icons.BackwardIcon.make, {
-                            className: "size-6"
+                            className: "size-5 mx-0.5"
                           }),
                       label: "Play forward 5 seconds",
                       onClick: handleSeekLeft
@@ -401,8 +403,8 @@ function Dock(props) {
                       highlight: true
                     }),
                 JsxRuntime.jsx(make$2, {
-                      children: JsxRuntime.jsx(Outline.ForwardIcon, {
-                            className: "size-6"
+                      children: JsxRuntime.jsx(Outline.ArrowUturnRightIcon, {
+                            className: "size-5 mx-0.5"
                           }),
                       label: "Play back 5 seconds",
                       onClick: handleSeekRight
@@ -410,9 +412,9 @@ function Dock(props) {
                 JsxRuntime.jsxs(make$1, {
                       children: [
                         volume !== undefined && volume > 0 ? JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
-                                className: "size-6"
+                                className: "size-7"
                               }) : JsxRuntime.jsx(Outline.SpeakerXMarkIcon, {
-                                className: "size-6 text-gray-400"
+                                className: "size-7 text-gray-400"
                               }),
                         JsxRuntime.jsx(Slider.make, {
                               onValueChange: handleSetVolume,
@@ -428,14 +430,14 @@ function Dock(props) {
                 JsxRuntime.jsx(make, {}),
                 JsxRuntime.jsx(make$2, {
                       children: JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
-                            className: "size-6"
+                            className: "size-6 mx-0.5"
                           }),
                       label: "Turn on/off full-screen mode",
                       onClick: fullScreenToggler.toggle
                     }),
                 JsxRuntime.jsx(make$2, {
                       children: JsxRuntime.jsx(Outline.PencilSquareIcon, {
-                            className: "size-6 transition-transform"
+                            className: "size-6 mx-0.5"
                           }),
                       label: "Edit current subtitle",
                       onClick: editCurrentSubtitle
@@ -453,10 +455,10 @@ var make$3 = Dock;
 
 export {
   DocumentEvent ,
+  shortcuts ,
   DockDivider ,
   DockSpace ,
   DockButton ,
-  shortcuts ,
   make$3 as make,
 }
 /* DocumentEvent Not a pure module */

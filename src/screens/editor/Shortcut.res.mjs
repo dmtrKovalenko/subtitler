@@ -50,6 +50,8 @@ function validateEventModifier(e, modifier) {
         return e.shiftKey;
     case "Meta" :
         return e.metaKey;
+    case "Ctrl" :
+        return e.ctrlKey;
     case "NoModifier" :
         if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
           return Utils.Bool.invert(Web.isFocusable(e.target));

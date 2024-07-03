@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
 import clsx from "clsx";
+import { GithubIcon, HeartIcon, TwitterIcon } from "./SocialIcons";
 import { Combobox } from "../ui/Combobox";
 import { ALL_LANGUAGES, LANGUAGE_NAME_MAP } from "./languages";
 import { SubtitlesStrikethrough } from "../ui/SubtitlesStrikethrough";
@@ -15,9 +16,9 @@ type LandingDropzoneProps = {
 };
 
 const MODELS: Record<string, string> = {
-  "Xenova/whisper-tiny": "Tiny (152 Mb)",
-  "Xenova/whisper-base": "Base (291 Mb)",
-  "Xenova/whisper-small": "Medium (586 Mb)",
+  "whisper-tiny": "Tiny (152 Mb)",
+  "whisper-base": "Base (291 Mb)",
+  //"whisper-small": "Medium (586 Mb)",
 };
 
 const ALL_MODELS = Object.keys(MODELS);
@@ -38,7 +39,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
     });
 
   return (
-    <div className="p-4 w-screen h-screen">
+    <div className="p-4 flex flex-col w-screen h-screen">
       <div
         {...getRootProps({
           onClick: (e) => {
@@ -51,7 +52,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           },
         })}
         className={clsx(
-          "mt-1 flex items-center flex-col w-full h-full justify-center rounded-xl border-2 border-dashed p-6 border-gray-500 transition-colors focus:border-accent-500 focus:outline-none active:border-orange-400",
+          "mt-1 flex-1 flex items-center flex-col w-full h-full justify-center rounded-2xl border-2 border-dashed p-6 border-gray-500 transition-colors focus:border-accent-500 focus:outline-none active:border-orange-400 focus:border-orange-400",
           {
             "border-red-400": isDragReject,
             "border-blue-400": isDragActive,
@@ -67,7 +68,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           </div>
         )}
 
-        <div className="container">
+        <div className="container flex-1 flex flex-col items-center justify-center">
           <h1 className="text-2xl text-center font-bold tracking-tight sm:text-6xl">
             Free on-device AI{" "}
             <SubtitlesStrikethrough>captions</SubtitlesStrikethrough> generator
@@ -119,6 +120,29 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
               Let's go!
             </button>
           </div>
+        </div>
+        <div className="mt-auto flex gap-6">
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://github.com/dmtrKovalenko/subtitler"
+          >
+            <GithubIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+          </a>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://github.com/dmtrKovalenko/subtitler"
+          >
+            <TwitterIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+          </a>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://github.com/dmtrKovalenko/subtitler"
+          >
+            <HeartIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+          </a>
         </div>
       </div>
     </div>

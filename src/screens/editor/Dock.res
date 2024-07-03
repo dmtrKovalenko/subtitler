@@ -6,6 +6,29 @@ open ChunksList
 open Player
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
+@gentype
+let shortcuts = [
+  {key: " ", modifier: NoModifier, action: PlayOrPause},
+  {key: "ArrowRight", modifier: NoModifier, action: SeekForward},
+  {key: "l", modifier: NoModifier, action: SeekForward},
+  {key: "ArrowLeft", modifier: NoModifier, action: SeekBack},
+  {key: "h", modifier: NoModifier, action: SeekBack},
+  {key: "ArrowUp", modifier: NoModifier, action: SeekToPreviousCue},
+  {key: "k", modifier: NoModifier, action: SeekToPreviousCue},
+  {key: "ArrowDown", modifier: NoModifier, action: SeekToNextCue},
+  {key: "j", modifier: NoModifier, action: SeekToNextCue},
+  {key: "i", modifier: NoModifier, action: EditCurrentSubtitle},
+  {key: "Enter", modifier: NoModifier, action: EditCurrentSubtitle},
+  {key: "t", modifier: NoModifier, action: ToggleDock},
+  {key: "r", modifier: NoModifier, action: StartRender},
+  {key: "f", modifier: NoModifier, action: ToggleFullScreen},
+  {key: "m", modifier: NoModifier, action: Mute},
+  {key: "Home", modifier: NoModifier, action: SeekToStart},
+  {key: "ArrowLeft", modifier: Meta, action: SeekToStart},
+  {key: "End", modifier: NoModifier, action: SeekToEnd},
+  {key: "ArrowRight", modifier: Meta, action: SeekToEnd},
+]
+
 module DockDivider = {
   @react.component
   let make = Utils.neverRerender(() =>
@@ -48,28 +71,6 @@ module DockButton = {
     }),
   )
 }
-
-@gentype
-let shortcuts = [
-  {key: " ", modifier: NoModifier, action: PlayOrPause},
-  {key: "ArrowRight", modifier: NoModifier, action: SeekForward},
-  {key: "l", modifier: NoModifier, action: SeekForward},
-  {key: "ArrowLeft", modifier: NoModifier, action: SeekBack},
-  {key: "h", modifier: NoModifier, action: SeekBack},
-  {key: "ArrowUp", modifier: NoModifier, action: SeekToPreviousCue},
-  {key: "k", modifier: NoModifier, action: SeekToPreviousCue},
-  {key: "ArrowDown", modifier: NoModifier, action: SeekToNextCue},
-  {key: "j", modifier: NoModifier, action: SeekToNextCue},
-  {key: "i", modifier: NoModifier, action: EditCurrentSubtitle},
-  {key: "t", modifier: NoModifier, action: ToggleDock},
-  {key: "r", modifier: NoModifier, action: StartRender},
-  {key: "f", modifier: NoModifier, action: ToggleFullScreen},
-  {key: "m", modifier: NoModifier, action: Mute},
-  {key: "Home", modifier: NoModifier, action: SeekToStart},
-  {key: "ArrowLeft", modifier: Meta, action: SeekToStart},
-  {key: "End", modifier: NoModifier, action: SeekToEnd},
-  {key: "ArrowRight", modifier: Meta, action: SeekToEnd},
-]
 
 @react.component
 let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
@@ -153,7 +154,14 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     }
   })
 
-  useKeyboardShortcuts(shortcuts, shortcut =>
+  let startRender = Hooks.useEvent(_ => {
+    playerDispatch(StopForRender)
+    render(context.getImmediateStyleState())
+    ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
+    ->ignore
+  })
+
+  shortcuts->useKeyboardShortcuts(shortcut =>
     switch shortcut.action {
     | PlayOrPause => handlePlayOrPause()
     | SeekForward => handleSeekRight()
@@ -162,12 +170,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     | DecreaseVolume => decreaseVolume()
     | EditCurrentSubtitle => editCurrentSubtitle()
     | ToggleDock => collapsedToggle.toggle()
-    | StartRender => {
-        playerDispatch(StopForRender)
-        render(context.getImmediateStyleState())
-        ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
-        ->ignore
-      }
+    | StartRender => startRender()
     | ToggleFullScreen => fullScreenToggler.toggle()
     | SeekToStart => seekToStart()
     | SeekToEnd => seekToEnd()
@@ -193,24 +196,24 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     </DockSpace>
     <DockDivider />
     <DockButton onClick=handleSeekLeft label="Play forward 5 seconds">
-      <BackwardIcon className="size-6" />
+      <BackwardIcon className="size-5 mx-0.5" />
     </DockButton>
     <DockButton onClick=handlePlayOrPause highlight=true label="Play">
       {switch player.playState {
       | StoppedForRender => <Spinner size=1.5 className="mx-1" />
-      | Playing => <PauseIcon className="size-6" />
+      | Playing => <PauseIcon className="size-6 mx-0.5" />
       | Paused
       | Idle =>
-        <PlayIcon className="size-6" />
+        <PlayIcon className="size-6 mx-0.5" />
       }}
     </DockButton>
     <DockButton onClick=handleSeekRight label="Play back 5 seconds">
-      <ForwardIcon className="size-6" />
+      <ForwardIcon className="size-5 mx-0.5" />
     </DockButton>
     <DockSpace className="w-40">
       {switch player.volume {
-      | Some(volume) if volume > 0 => <VolumeIcon className="size-6" />
-      | _ => <VolumeLowIcon className="size-6 text-gray-400" />
+      | Some(volume) if volume > 0 => <VolumeIcon className="size-7" />
+      | _ => <VolumeLowIcon className="size-7 text-gray-400" />
       }}
       <Slider
         disabled={player.volume->Option.isNone}
@@ -223,10 +226,10 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     </DockSpace>
     <DockDivider />
     <DockButton onClick=fullScreenToggler.toggle label="Turn on/off full-screen mode">
-      <FullScreenIcon className="size-6" />
+      <FullScreenIcon className="size-6 mx-0.5" />
     </DockButton>
     <DockButton onClick=editCurrentSubtitle label="Edit current subtitle">
-      <EditIcon className="size-6 transition-transform" />
+      <EditIcon className="size-6 mx-0.5" />
     </DockButton>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null
@@ -236,15 +239,10 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
         <DockButton
           highlight=true
           label="Render video file"
-          onClick={_ => {
-            playerDispatch(StopForRender)
-            render(context.getImmediateStyleState())
-            ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
-            ->ignore
-          }}
+          onClick={startRender}
           className="whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4">
-          {React.string("Render video")}
           <RenderIcon className="size-5" />
+          {React.string("Render video")}
         </DockButton>
       </>
     }}

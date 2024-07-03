@@ -3,7 +3,7 @@ open Dom
 
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
-type modifier = Shift | Meta | NoModifier
+type modifier = Shift | Meta | Ctrl | NoModifier
 @genType
 type shortcut<'action> = {action: 'action, key: string, modifier: modifier}
 
@@ -46,6 +46,7 @@ let formatAction = action => {
 
 let validateEventModifier = (e, modifier) => {
   switch modifier {
+  | Ctrl => e->KeyboardEvent.ctrlKey
   | Shift => e->KeyboardEvent.shiftKey
   | Meta => e->KeyboardEvent.metaKey
   | NoModifier =>

@@ -86,6 +86,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
         ...state,
         ts,
         startPlayingTs: ts,
+        playState: state.playState === Idle ? Paused : state.playState,
         currentPlayingCue: lookupCurrentCue(~timestamp=ts, ~subtitles=Ctx.subtitlesRef.current),
       }
     | NewFrame(ts) => {
@@ -148,7 +149,10 @@ module MakePlayer = (Ctx: Types.Ctx) => {
 
     switch action {
     | Play if get().playState !== Playing => startPlaying(get().ts)
-    | Seek(newFrame) => startPlaying(newFrame)
+    | Seek(currentTs) => {
+        Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)
+        renderFrame()
+      }
     | NewFrame(currentTs) if get().playState !== Playing => {
         Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)
         renderFrame()

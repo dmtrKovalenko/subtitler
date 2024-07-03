@@ -41,7 +41,7 @@ module ForwardIcon = {
     ~color: option<string>=?,
     ~className: string=?,
     ~style: option<ReactDOM.Style.t>=?,
-  ) => React.element = "ForwardIcon"
+  ) => React.element = "ArrowUturnRightIcon"
 }
 
 module BackwardIcon = {
@@ -51,7 +51,7 @@ module BackwardIcon = {
     ~className: option<string>=?,
     ~style: option<ReactDOM.Style.t>=?,
   ) => {
-    <ForwardIcon color style className={Cx.cx([className->Option.getOr(""), "rotate-180"])} />
+    <ForwardIcon color style className={Cx.cx([className->Option.getOr(""), "scale-x-[-1]"])} />
   }
 }
 
@@ -144,7 +144,7 @@ module RenderIcon = {
     ~color: string=?,
     ~className: string=?,
     ~style: ReactDOM.Style.t=?,
-  ) => React.element = "DocumentArrowDownIcon"
+  ) => React.element = "SparklesIcon"
 }
 
 module EditIcon = {

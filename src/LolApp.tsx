@@ -84,6 +84,7 @@ export default function LolApp() {
       },
     ]);
 
+    document.title = `${file.name} subtitles`;
     setFile({
       name: file.name,
       file,
@@ -109,7 +110,7 @@ export default function LolApp() {
       }
 
       let fileHandle = await window.showSaveFilePicker({
-        suggestedName: `video.mp4`,
+        suggestedName: `transcribed_${file.name}`,
         types: [
           {
             description: "Video File",
@@ -163,6 +164,7 @@ export default function LolApp() {
             e.data.type === "renderprogress" ||
             e.data.type === "encodeprogress"
           ) {
+            document.title = `${Math.floor(e.data.progress)}% — subtitles for ${file.name}`;
             const progress = e.data.progress;
             setProgressItems((prev) =>
               prev.map((item) => {
