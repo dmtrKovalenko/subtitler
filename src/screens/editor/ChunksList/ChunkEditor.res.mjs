@@ -101,8 +101,6 @@ var TimestampEditor = {
   make: ChunkEditor$TimestampEditor
 };
 
-var CurrentTextArea = {};
-
 var make = React.memo(function (props) {
       var onTextChange = props.onTextChange;
       var onTimestampChange = props.onTimestampChange;
@@ -119,7 +117,6 @@ var make = React.memo(function (props) {
       var previousCurrentRef = React.useRef(current);
       React.useEffect((function () {
               if (current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement()) {
-                window.__fframes_currentcue_textarea = Core__Option.flatMap(Caml_option.nullable_to_opt(textAreaRef.current), Webapi__Dom__HtmlInputElement.ofElement);
                 Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
                         el.scrollIntoView({
                               behavior: "smooth",
@@ -226,7 +223,6 @@ var make = React.memo(function (props) {
 export {
   useEditorInputHandler ,
   TimestampEditor ,
-  CurrentTextArea ,
   make ,
 }
 /* make Not a pure module */

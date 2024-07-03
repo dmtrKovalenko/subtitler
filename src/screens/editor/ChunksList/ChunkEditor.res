@@ -81,18 +81,6 @@ module TimestampEditor = {
   }
 }
 
-// lol this is soo bad but it works
-module CurrentTextArea = {
-  @set
-  external setCurrentCueTextArea: (
-    Webapi.Dom.Window.t,
-    option<Webapi.Dom.HtmlInputElement.t>,
-  ) => unit = "__fframes_currentcue_textarea"
-  @get
-  external getCurrentTextArea: Webapi.Dom.Window.t => option<Webapi.Dom.HtmlInputElement.t> =
-    "__fframes_currentcue_textarea"
-}
-
 @react.component
 let make = React.memo((
   ~index: int,
@@ -111,12 +99,7 @@ let make = React.memo((
   let previousCurrentRef = React.useRef(current)
 
   React.useEffect1(() => {
-    open Webapi
     if current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement() {
-      Dom.window->CurrentTextArea.setCurrentCueTextArea(
-        textAreaRef.current->Js.Nullable.toOption->Option.flatMap(Dom.HtmlInputElement.ofElement),
-      )
-
       ref.current
       ->Js.Nullable.toOption
       ->Option.forEach(

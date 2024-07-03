@@ -15,6 +15,7 @@ import type {
   RenderProgressMessage,
 } from "./codecs/render-worker";
 import clsx from "clsx";
+import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
 
 type VideoFile = {
   name: string;
@@ -33,6 +34,7 @@ export type ProgressItem = {
 // Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
 export default function SubtitleApp() {
   // Changed name to be more descriptive
+  const failWith = React.useContext(ShowErrorContext);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const rendererPreviewCanvasRef = React.useRef<HTMLCanvasElement>(null);
   const [progressItems, setProgressItems] = React.useState<ProgressItem[]>([]);
@@ -56,43 +58,53 @@ export default function SubtitleApp() {
       return;
     }
 
-    const audioCtx = new AudioContext({
-      sampleRate: Constants.SAMPLING_RATE,
-    });
+    let audioBuffer;
+    try {
+      const audioCtx = new AudioContext({
+        sampleRate: Constants.SAMPLING_RATE,
+      });
 
-    setProgressItems([
-      {
-        id: "decodeprogress",
-        title: "Decoding Audio",
-        progress: 0,
-      },
-    ]);
-    const arrayBuffer = await file.arrayBuffer();
-    setProgressItems([
-      {
-        id: "decodeprogress",
-        title: "Decoding Audio",
-        progress: 25,
-      },
-    ]);
+      setProgressItems([
+        {
+          id: "decodeprogress",
+          title: "Decoding Audio",
+          progress: 0,
+        },
+      ]);
+      const arrayBuffer = await file.arrayBuffer();
+      setProgressItems([
+        {
+          id: "decodeprogress",
+          title: "Decoding Audio",
+          progress: 25,
+        },
+      ]);
 
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    setProgressItems([
-      {
-        id: "decodeprogress",
-        title: "Decoding Audio",
-        progress: 100,
-      },
-    ]);
+      audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      setProgressItems([
+        {
+          id: "decodeprogress",
+          title: "Decoding Audio",
+          progress: 100,
+        },
+      ]);
 
-    document.title = `${file.name} subtitles`;
-    setFile({
-      name: file.name,
-      file,
-      objectURL: URL.createObjectURL(file),
-      audioBuffer,
-      audioCtx,
-    });
+      document.title = `${file.name} subtitles`;
+      setFile({
+        name: file.name,
+        file,
+        objectURL: URL.createObjectURL(file),
+        audioBuffer,
+        audioCtx,
+      });
+    } catch (e) {
+      failWith(
+        new UserFacingError(
+          "We couldn't find decodable audio stream in your video",
+          e,
+        ),
+      );
+    }
 
     setProgressItems([]);
     transcriber.start(audioBuffer);
@@ -155,6 +167,11 @@ export default function SubtitleApp() {
       worker.addEventListener(
         "message",
         (e: MessageEvent<RenderProgressMessage>) => {
+          if (e.data.type === "error") {
+            failWith(
+              new UserFacingError("Failed to render subtitles", e.data.error),
+            );
+          }
           if (e.data.type === "done") {
             import("js-confetti").then(({ default: JsConfetti }) => {
               new JsConfetti().addConfetti();

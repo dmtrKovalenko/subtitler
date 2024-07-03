@@ -208,7 +208,7 @@ function formatMiilis(timestamp) {
   return match[0].toString().padStart(2, "0") + ":" + seconds.toFixed(0).padStart(2, "0") + "," + millis.toFixed(0).padStart(3, "0");
 }
 
-function parseMillisInputToSeconds(timestamp) {
+function parseMillisInputToSecondsTimestampString(timestamp) {
   var minutesString = timestamp.slice(0, 2);
   var secondsString = timestamp.slice(3, 5);
   var millisString = timestamp.slice(6, 9);
@@ -240,6 +240,17 @@ function parseMillisInputToSeconds(timestamp) {
         };
 }
 
+function parseMillisInputToSeconds(inputStr) {
+  if (inputStr.length !== 9) {
+    return {
+            TAG: "Error",
+            _0: "Input string is not completed"
+          };
+  } else {
+    return parseMillisInputToSecondsTimestampString(inputStr);
+  }
+}
+
 function formatFrame(frame, fps) {
   return formatSeconds(frame / fps);
 }
@@ -248,6 +259,7 @@ var Duration = {
   leftPad: leftPad,
   formatSeconds: formatSeconds,
   formatMiilis: formatMiilis,
+  parseMillisInputToSecondsTimestampString: parseMillisInputToSecondsTimestampString,
   parseMillisInputToSeconds: parseMillisInputToSeconds,
   formatFrame: formatFrame
 };

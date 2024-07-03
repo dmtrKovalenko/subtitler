@@ -147,7 +147,7 @@ module Duration = {
   }
 
   // parses 00:00,000 string and outputs seconds
-  let parseMillisInputToSeconds = timestamp => {
+  let parseMillisInputToSecondsTimestampString = timestamp => {
     let minutesString = timestamp->String.slice(~start=0, ~end=2)
     let secondsString = timestamp->String.slice(~start=3, ~end=5)
     let millisString = timestamp->String.slice(~start=6, ~end=9)
@@ -161,6 +161,14 @@ module Duration = {
       let totalSeconds = minutes *. 60. +. seconds +. millis /. 1000.
       Ok(totalSeconds)
     | _ => Error("Invalid timestamp format")
+    }
+  }
+
+  let parseMillisInputToSeconds = inputStr => {
+    if inputStr->String.length !== 9 {
+      Error("Input string is not completed")
+    } else {
+      parseMillisInputToSecondsTimestampString(inputStr)
     }
   }
 
