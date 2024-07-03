@@ -16,6 +16,7 @@ import type {
 } from "./codecs/render-worker";
 import clsx from "clsx";
 import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
+import { createLogger } from "./hooks/useAnalytics";
 
 type VideoFile = {
   name: string;
@@ -31,8 +32,10 @@ export type ProgressItem = {
   progress: number;
 };
 
+const log = createLogger();
+
 // Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
-export default function SubtitleApp() {
+export default function LolApp() {
   // Changed name to be more descriptive
   const failWith = React.useContext(ShowErrorContext);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -97,6 +100,8 @@ export default function SubtitleApp() {
         audioBuffer,
         audioCtx,
       });
+
+      log("video_uploaded");
     } catch (e) {
       failWith(
         new UserFacingError(
@@ -117,6 +122,8 @@ export default function SubtitleApp() {
 
   const render = React.useCallback(
     async (style: style) => {
+      log("video_render_started");
+
       const worker = new RenderWorker();
       if (!file || !rendererPreviewCanvasRef.current) {
         return;
@@ -173,6 +180,7 @@ export default function SubtitleApp() {
             );
           }
           if (e.data.type === "done") {
+            log("video_rendered");
             import("js-confetti").then(({ default: JsConfetti }) => {
               new JsConfetti().addConfetti();
             });

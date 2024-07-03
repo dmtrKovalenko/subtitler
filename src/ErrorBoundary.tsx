@@ -1,5 +1,6 @@
 import * as React from "react";
 import pandaImage from "./assets/fail-panda.gif";
+import { logException } from "./hooks/useAnalytics";
 
 type ErrorBoundaryProps = {
   children?: React.ReactNode;
@@ -36,14 +37,16 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     };
   }
 
-  logError = (error: unknown, additionalInfo?: string) => {};
+  logError = (error: unknown, additionalInfo?: React.ErrorInfo) => {
+    logException(error, additionalInfo);
+  };
 
   componentDidCatch(e: unknown, { componentStack }: React.ErrorInfo) {
     if (!this.state.error) {
       return;
     }
 
-    this.logError(e);
+    this.logError(e, componentStack as any);
   }
 
   getErrorDetails = () => {
@@ -71,7 +74,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   render() {
     if (this.state.error === null) {
       return (
-        <ShowErrorContext.Provider value={(error) => this.setState({ error })}>
+        <ShowErrorContext.Provider
+          value={(error) => {
+            this.setState({ error });
+            this.logError(error);
+          }}
+        >
           {this.props.children}
         </ShowErrorContext.Provider>
       );
