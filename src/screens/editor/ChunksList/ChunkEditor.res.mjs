@@ -10,6 +10,7 @@ import * as Caml_option from "rescript/lib/es6/caml_option.js";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as EditorContext from "../EditorContext.res.mjs";
 import * as Mask from "@react-input/mask";
+import * as Js_null_undefined from "rescript/lib/es6/js_null_undefined.js";
 import * as JsxRuntime from "react/jsx-runtime";
 import * as Outline from "@heroicons/react/24/outline";
 import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
@@ -35,6 +36,7 @@ function useEditorInputHandler() {
 
 function ChunkEditor$TimestampEditor(props) {
   var onChange = props.onChange;
+  var allowEmpty = props.allowEmpty;
   var ts = props.ts;
   var inputRef = Mask.useMask({
         mask: "__:__,___",
@@ -68,17 +70,29 @@ function ChunkEditor$TimestampEditor(props) {
               onKeyDown: useEditorInputHandler(),
               onChange: (function (e) {
                   var value = e.target.value;
-                  var value$1 = Utils.Duration.parseMillisInputToSeconds(value);
-                  if (value$1 !== undefined) {
-                    onChange(value$1);
-                    return setHasParseError(function (param) {
-                                return false;
-                              });
-                  } else {
+                  var value$1 = value.trim() === "" ? undefined : Caml_option.some(value);
+                  var match = Core__Option.map(value$1, Utils.Duration.parseMillisInputToSeconds);
+                  if (match === undefined) {
+                    if (allowEmpty) {
+                      onChange(undefined);
+                      return setHasParseError(function (param) {
+                                  return false;
+                                });
+                    } else {
+                      return setHasParseError(function (param) {
+                                  return true;
+                                });
+                    }
+                  }
+                  if (match.TAG !== "Ok") {
                     return setHasParseError(function (param) {
                                 return true;
                               });
                   }
+                  onChange(match._0);
+                  setHasParseError(function (param) {
+                        return false;
+                      });
                 })
             });
 }
@@ -131,14 +145,16 @@ var make = React.memo(function (props) {
                           children: [
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: start,
+                                  allowEmpty: false,
                                   onChange: (function (seconds) {
+                                      var seconds$1 = Utils.$$Option.unwrap(seconds);
                                       onTimestampChange(index, [
-                                            seconds,
+                                            seconds$1,
                                             chunk.timestamp[1]
                                           ]);
                                       ctx.playerImmediateDispatch({
                                             TAG: "NewFrame",
-                                            _0: seconds
+                                            _0: seconds$1
                                           });
                                       ctx.playerImmediateDispatch("UpdateCurrentCue");
                                     }),
@@ -149,10 +165,11 @@ var make = React.memo(function (props) {
                                 }),
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: Caml_option.nullable_to_opt(match[1]),
+                                  allowEmpty: true,
                                   onChange: (function (seconds) {
                                       onTimestampChange(index, [
                                             chunk.timestamp[0],
-                                            seconds
+                                            Js_null_undefined.fromOption(seconds)
                                           ]);
                                     }),
                                   readonly: readonly

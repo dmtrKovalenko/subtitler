@@ -215,10 +215,29 @@ function parseMillisInputToSeconds(timestamp) {
   var match = Core__Float.fromString(minutesString);
   var match$1 = Core__Float.fromString(secondsString);
   var match$2 = Core__Float.fromString(millisString);
-  if (match !== undefined && match$1 !== undefined && match$2 !== undefined) {
-    return match * 60 + match$1 + match$2 / 1000;
+  if (match === undefined) {
+    return {
+            TAG: "Error",
+            _0: "Invalid timestamp format"
+          };
   }
-  
+  if (match$1 === undefined) {
+    return {
+            TAG: "Error",
+            _0: "Invalid timestamp format"
+          };
+  }
+  if (match$2 === undefined) {
+    return {
+            TAG: "Error",
+            _0: "Invalid timestamp format"
+          };
+  }
+  var totalSeconds = match * 60 + match$1 + match$2 / 1000;
+  return {
+          TAG: "Ok",
+          _0: totalSeconds
+        };
 }
 
 function formatFrame(frame, fps) {

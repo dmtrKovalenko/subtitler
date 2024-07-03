@@ -33,7 +33,7 @@ class PipelineFactory {
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
         revision: this.model.includes("whisper-medium")
           ? "no_attentions"
-          : "main",
+          : "output_attentionss",
       });
     }
 
@@ -147,7 +147,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
     do_sample: false,
 
     // Sliding window
-    chunk_length_s: 30,
+    chunk_length_s: 20,
     stride_length_s: 5,
 
     // Language and task

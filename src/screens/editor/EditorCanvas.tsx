@@ -30,7 +30,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       transformerRef.current?.nodes([textRef.current]);
       transformerRef.current?.getLayer()?.batchDraw();
     }
-  }, []);
+  });
 
   function handleResize() {
     if (textRef.current !== null) {
@@ -52,11 +52,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const currentSubtitle = player.currentPlayingCue
     ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
     : "";
-
-  if (player.playState === "StoppedForRender") {
-    return null;
-  }
-
+  //
+  //if (player.playState === "StoppedForRender") {
+  //  return null;
+  //}
+  //
   if (player.playState === "Idle") {
     return <WelcomeScreen />;
   }

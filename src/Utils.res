@@ -159,8 +159,8 @@ module Duration = {
     ) {
     | (Some(minutes), Some(seconds), Some(millis)) =>
       let totalSeconds = minutes *. 60. +. seconds +. millis /. 1000.
-      Some(totalSeconds)
-    | _ => None
+      Ok(totalSeconds)
+    | _ => Error("Invalid timestamp format")
     }
   }
 

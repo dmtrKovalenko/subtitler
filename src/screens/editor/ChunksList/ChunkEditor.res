@@ -26,7 +26,7 @@ let useEditorInputHandler = () => {
 
 module TimestampEditor = {
   @react.component
-  let make = (~ts: option<float>, ~onChange, ~readonly) => {
+  let make = (~ts: option<float>, ~allowEmpty, ~onChange, ~readonly) => {
     let inputRef = useMask({
       mask: "__:__,___",
       replacement: Js.Dict.fromArray([("_", RegExp.fromString("\\d"))]),
@@ -58,10 +58,16 @@ module TimestampEditor = {
       onKeyDown={useEditorInputHandler()}
       onChange={e => {
         let value = ReactEvent.Form.target(e)["value"]
-        switch Utils.Duration.parseMillisInputToSeconds(value) {
+        let value = value->String.trim === "" ? None : Some(value)
+
+        switch value->Option.map(Utils.Duration.parseMillisInputToSeconds) {
+        | Some(Error(_)) => setHasParseError(_ => true)
+        | None if allowEmpty =>
+          onChange(None)
+          setHasParseError(_ => false)
         | None => setHasParseError(_ => true)
-        | Some(value) =>
-          onChange(value)
+        | Some(Ok(value)) =>
+          onChange(Some(value))
           setHasParseError(_ => false)
         }
       }}
@@ -144,8 +150,10 @@ let make = React.memo((
     <div className="flex items-center gap-1">
       <TimestampEditor
         readonly
+        allowEmpty=false
         ts={Some(start)}
         onChange={seconds => {
+          let seconds = seconds->Utils.Option.unwrap
           onTimestampChange(index, (seconds, chunk.timestamp->snd))
           ctx.playerImmediateDispatch(NewFrame(seconds))
           ctx.playerImmediateDispatch(UpdateCurrentCue)
@@ -154,9 +162,10 @@ let make = React.memo((
       <Icons.ArrowRightIcon className="text-white size-10" />
       <TimestampEditor
         readonly
+        allowEmpty=true
         ts={Js.Nullable.toOption(end)}
         onChange={seconds => {
-          onTimestampChange(index, (chunk.timestamp->fst, Value(seconds)))
+          onTimestampChange(index, (chunk.timestamp->fst, Js.Nullable.fromOption(seconds)))
         }}
       />
     </div>
