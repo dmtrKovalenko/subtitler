@@ -8,6 +8,7 @@
     "res:clean": "rescript clean",
     "dev": "concurrently -r 'rescript -w'  'vite'",
     "build": "yarn res:build && vite build",
+    "vercel:build": "yarn build",
     "preview": "vite preview",
     "postinstall": "patch-package"
   },

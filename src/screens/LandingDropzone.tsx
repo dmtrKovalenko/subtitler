@@ -127,21 +127,21 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             rel="noopener noreferrer"
             href="https://github.com/dmtrKovalenko/subtitler"
           >
-            <GithubIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+            <GithubIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
           </a>
           <a
             target="_blank"
             rel="noopener noreferrer"
             href="https://github.com/dmtrKovalenko/subtitler"
           >
-            <TwitterIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+            <TwitterIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
           </a>
           <a
             target="_blank"
             rel="noopener noreferrer"
-            href="https://github.com/dmtrKovalenko/subtitler"
+            href="https://github.com/sponsors/dmtrKovalenko"
           >
-            <HeartIcon className="transition size-8 hover:scale-125 hover:text-orange-500" />
+            <HeartIcon className="transition size-7 hover:scale-125 hover:text-orange-500" />
           </a>
         </div>
       </div>
