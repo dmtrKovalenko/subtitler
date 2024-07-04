@@ -22,7 +22,7 @@ function a(prim) {
   return {};
 }
 
-console.log("Enjoy a happy subtitle making experience!");
+console.log("Happy subtitles making experience!");
 
 var make = React.memo(function (props) {
       var subtitlesManager = props.subtitlesManager;

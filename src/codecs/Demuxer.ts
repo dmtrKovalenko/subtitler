@@ -1,3 +1,4 @@
+/// <reference types="./mp4box.d.ts" />
 import MP4Box, {
   DataStream,
   ISOFile,
@@ -15,12 +16,15 @@ class MP4FileSink {
   #file: ISOFile;
   #offset = 0;
 
-  constructor(file: ISOFile, setStatus) {
+  constructor(
+    file: ISOFile,
+    setStatus: (status: string, message: string) => void,
+  ) {
     this.#file = file;
     this.#setStatus = setStatus;
   }
 
-  write(chunk) {
+  write(chunk: Uint8Array) {
     // MP4Box.js requires buffers to be ArrayBuffers, but we have a Uint8Array.
     const buffer = new ArrayBuffer(chunk.byteLength) as MP4ArrayBuffer;
     new Uint8Array(buffer).set(chunk);
@@ -50,8 +54,8 @@ export type Metadata = {
 // Demuxes the first video track of an MP4 file using MP4Box, calling
 // `onConfig()` and `onChunk()` with appropriate WebCodecs objects.
 export class MP4Demuxer {
-  #audioTrack: MP4AudioTrack;
-  #videoTrack: MP4VideoTrack;
+  #audioTrack: MP4AudioTrack | undefined;
+  #videoTrack: MP4VideoTrack | undefined;
   #onConfig: (
     videoConfig: VideoDecoderConfig,
     audioConfig: AudioDecoderConfig,
@@ -64,18 +68,37 @@ export class MP4Demuxer {
     duration: number,
     meta?: EncodedAudioChunkMetadata,
   ) => void;
-  #setStatus: (status: string) => void;
   #onMetadata: (medata: Metadata) => void;
   #file: ISOFile | null = null;
 
   constructor(
     file: File,
-    { onConfig, onRawAudioChunk, onVideoChunk, setStatus, onMetadata },
+    {
+      onConfig,
+      onRawAudioChunk,
+      onVideoChunk,
+      setStatus,
+      onMetadata,
+    }: {
+      onConfig: (
+        videoConfig: VideoDecoderConfig,
+        audioConfig: AudioDecoderConfig,
+      ) => void;
+      onVideoChunk: (chunk: EncodedVideoChunk) => void;
+      onRawAudioChunk: (
+        data: Uint8Array,
+        type: "key" | "delta",
+        timestamp: number,
+        duration: number,
+        meta?: EncodedAudioChunkMetadata,
+      ) => void;
+      setStatus: (status: string, message?: string) => void;
+      onMetadata: (metadata: Metadata) => void;
+    },
   ) {
     this.#onConfig = onConfig;
     this.#onVideoChunk = onVideoChunk;
     this.#onRawAudioChunk = onRawAudioChunk;
-    this.#setStatus = setStatus;
     this.#onMetadata = onMetadata;
 
     // Configure an MP4Box File for demuxing.
@@ -161,8 +184,8 @@ export class MP4Demuxer {
     (1e6 * value) / timescale;
 
   // Generate and emit an EncodedVideoChunk for each demuxed sample.
-  #onSamples(track_id: number, ref: unknown, samples: MP4Sample[]) {
-    if (track_id === this.#audioTrack.id) {
+  #onSamples(track_id: number, _: unknown, samples: MP4Sample[]) {
+    if (track_id === this.#audioTrack?.id) {
       for (const sample of samples) {
         this.#onRawAudioChunk(
           sample.data,
@@ -173,7 +196,7 @@ export class MP4Demuxer {
       }
     }
 
-    if (track_id === this.#videoTrack.id) {
+    if (track_id === this.#videoTrack?.id) {
       for (const sample of samples) {
         this.#onVideoChunk(
           new EncodedVideoChunk({

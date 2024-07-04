@@ -5,7 +5,7 @@ open ChunksList
 @genType
 let a = Js.Dict.empty
 
-Js.Console.log("Enjoy a happy subtitle making experience!")
+Js.Console.log("Happy subtitles making experience!")
 
 @genType.as("Editor") @react.component
 let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) => {

@@ -38,7 +38,9 @@ module AudioParam = {
   @send external cancelAndHoldAtTime: (t, ~cancelTime: float) => t = "cancelAndHoldAtTime"
 }
 
+@genType
 module AudioBuffer = {
+  @genType.import("webaudio") @genType.as("AudioBuffer")
   type t
 
   @get external getDuration: t => float = "duration"

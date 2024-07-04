@@ -32,7 +32,7 @@ let lookupCurrentCue = (~subtitles, ~timestamp) => {
   })
   ->(index => index < 0 ? None : Some(index))
   ->Option.map(currentIndex => {
-    let currentCue = subtitles->Belt.Array.getUnsafe(currentIndex)
+    let currentCue = subtitles->Array.getUnsafe(currentIndex)
 
     {
       currentIndex,

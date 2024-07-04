@@ -16,7 +16,7 @@ import type {
 } from "./codecs/render-worker";
 import clsx from "clsx";
 import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
-import { createLogger } from "./hooks/useAnalytics";
+import { log } from "./hooks/useAnalytics";
 
 type VideoFile = {
   name: string;
@@ -31,8 +31,6 @@ export type ProgressItem = {
   title: string;
   progress: number;
 };
-
-const log = createLogger();
 
 // Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
 export default function LolApp() {
@@ -62,6 +60,7 @@ export default function LolApp() {
     }
 
     let audioBuffer;
+    log("video_uploaded");
     try {
       const audioCtx = new AudioContext({
         sampleRate: Constants.SAMPLING_RATE,
@@ -100,8 +99,6 @@ export default function LolApp() {
         audioBuffer,
         audioCtx,
       });
-
-      log("video_uploaded");
     } catch (e) {
       failWith(
         new UserFacingError(

@@ -44,7 +44,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
         {...getRootProps({
           onClick: (e) => {
             if (
-              isFocusable(e.target) ||
+              isFocusable(e.target as HTMLElement) ||
               !e.currentTarget.contains(e.target as HTMLElement)
             ) {
               e.stopPropagation();

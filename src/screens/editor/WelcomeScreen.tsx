@@ -38,7 +38,7 @@ export function WelcomeScreen() {
       </p>
       <ul className="max-h-full p-4 min-w-2/3 grid @xl:grid-cols-2 gap-y-1 gap-x-8 overflow-auto rounded-lg bg-white/10 backdrop-blur-xl">
         {Object.keys(GROUPED_SHORTCUTS).map((action) => {
-          const shortcuts = GROUPED_SHORTCUTS[action];
+          const shortcuts = GROUPED_SHORTCUTS[action as action];
           return (
             <li className="flex items-center gap-2" key={action}>
               <dd className="text-sm whitespace-nowrap">

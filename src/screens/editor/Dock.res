@@ -6,6 +6,12 @@ open ChunksList
 open Player
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
+// didn't found a better way to interop this with gentype to intercept Promise ts type
+module Promise = {
+  let catch = Core__Promise.catch
+  let resolve = Core__Promise.resolve
+}
+
 @gentype
 let shortcuts = [
   {key: " ", modifier: NoModifier, action: PlayOrPause},

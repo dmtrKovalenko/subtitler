@@ -93,7 +93,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           rotateEnabled={false}
           flipEnabled={false}
           enabledAnchors={["middle-left", "middle-right"]}
-          boundBoxFunc={(oldBox, newBox) => {
+          boundBoxFunc={(_, newBox) => {
             newBox.width = Math.max(30, newBox.width);
             return newBox;
           }}

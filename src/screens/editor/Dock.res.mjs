@@ -23,6 +23,15 @@ import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/W
 
 var DocumentEvent = Webapi__Dom__EventTarget.Impl({});
 
+function resolve(prim) {
+  return Promise.resolve(prim);
+}
+
+var $$Promise$1 = {
+  $$catch: Core__Promise.$$catch,
+  resolve: resolve
+};
+
 var shortcuts = [
   {
     action: "PlayOrPause",
@@ -457,6 +466,7 @@ var make$3 = Dock;
 
 export {
   DocumentEvent ,
+  $$Promise$1 as $$Promise,
   shortcuts ,
   DockDivider ,
   DockSpace ,

@@ -1,4 +1,3 @@
-import React from "react";
 import * as RadixProgress from "@radix-ui/react-progress";
 
 type ProgressDemoProps = {
@@ -21,7 +20,9 @@ export function Progress({ progress, name }: ProgressDemoProps) {
         className="bg-white w-full h-full transition-transform duration-[660ms] ease-[cubic-bezier(0.65, 0, 0.35, 1)]"
         style={{ transform: `translateX(-${100 - progress}%)` }}
       />
-      <span className="absolute top-0.5 left-4 mix-blend-exclusion">{name}</span>
+      <span className="absolute top-0.5 left-4 mix-blend-exclusion">
+        {name}
+      </span>
       <span className="absolute right-4 top-0.5 mix-blend-exclusion">
         {progress.toFixed(0)}%
       </span>

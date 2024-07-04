@@ -31,6 +31,7 @@ type style = {
   blockSize: size,
 }
 
+@genType
 type changeStyleAction =
   | SetPosition(int, int)
   | SetFontFamily(string)

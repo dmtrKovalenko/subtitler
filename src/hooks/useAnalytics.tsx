@@ -1,15 +1,16 @@
-export function createLogger(): (
+export function log(
   label: string,
   options?: { props?: any; callback?: () => void },
-) => void {
+) {
   if (typeof window === "undefined") {
     return () => {};
   }
 
-  return (
+  const logFn =
     // @ts-expect-error analytics types
-    window.plausible || console.log
-  );
+    window.plausible || console.log;
+
+  logFn(label, options);
 }
 
 export function logException(
@@ -21,7 +22,7 @@ export function logException(
     return console.error(error, info);
   }
 
-  createLogger()("error", {
+  log("error", {
     props: {
       error,
       info,

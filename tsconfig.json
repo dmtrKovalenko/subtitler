@@ -13,6 +13,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "allowJs": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
@@ -23,6 +24,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
+    "./src/types.d.ts",
     "src/*",
     "@/*"
   ]
