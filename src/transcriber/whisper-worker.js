@@ -33,7 +33,7 @@ class PipelineFactory {
         // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
         revision: this.model.includes("whisper-medium")
           ? "no_attentions"
-          : "output_attentionss",
+          : "main",
       });
     }
 

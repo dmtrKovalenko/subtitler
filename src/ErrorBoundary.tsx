@@ -98,7 +98,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
           <p className="text-base font-semibold leading-8 text-white">
             oops we have a failure
           </p>
-          <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl">
+          <h1 className="text-5xl font-bold stroke text-shadow drop-shadow-xl tracking-tight text-white sm:text-7xl">
             {this.state.error instanceof UserFacingError
               ? this.state.error.message
               : "Unknown error"}

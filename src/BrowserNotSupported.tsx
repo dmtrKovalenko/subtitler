@@ -1,13 +1,25 @@
 import BrowserGif from "./assets/giphy.webp";
+import { logException } from "./hooks/useAnalytics";
 
 export function isBrowserSupported() {
-  return (
+  const canRunApp =
     // @ts-expect-error
     navigator.gpu &&
     window.VideoDecoder &&
     window.AudioContext &&
-    window.showSaveFilePicker
-  );
+    window.showSaveFilePicker;
+
+  if (!canRunApp) {
+    logException("browser_not_supported", {
+      // @ts-expect-error
+      gpu: !!navigator.gpu,
+      VideoDecoder: !!window.VideoDecoder,
+      AudioContext: !!window.AudioContext,
+      showSaveFilePicker: !!window.showSaveFilePicker,
+    });
+  }
+
+  return canRunApp;
 }
 
 export function BrowserNotSupported() {
