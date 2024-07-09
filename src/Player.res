@@ -75,6 +75,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
     let state = get()
     switch action {
     | AbortRender => {...state, playState: Paused}
+    // if we stopped for render we ignore any state change
     | _ if state.playState === StoppedForRender => state
     | Seek(ts) | NewFrame(ts) if ts >= Ctx.videoMeta.duration || ts < 0. => {
         ...state,
@@ -148,6 +149,7 @@ module MakePlayer = (Ctx: Types.Ctx) => {
     }
 
     switch action {
+    | _ if get().playState === StoppedForRender => ()
     | Play if get().playState !== Playing => startPlaying(get().ts)
     | Seek(currentTs) => {
         Ctx.dom.videoElement->Web.Video.setCurrentTime(currentTs)

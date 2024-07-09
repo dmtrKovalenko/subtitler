@@ -33,8 +33,9 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) =>
       ->Belt.Option.map(size =>
         <div
           style={size->UseEditorLayout.sizeToStyle}
-          className="@container col-span-2 py-2 h-full overflow-auto flex flex-col px-4 border-r border-zinc-800">
-          <div className="@2xl:hidden flex items-center flex-col mb-6 pt-1 gap-2">
+          className="@container col-span-2 pt-2 h-full flex flex-col border-r border-zinc-800">
+          <div
+            className="@2xl:hidden overflow-auto flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2">
             <Tabs
               defaultIndex=0
               tabs=[
@@ -51,7 +52,8 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) =>
               ]
             />
           </div>
-          <div className="hidden @2xl:flex pt-2 flex-1 max-h-full divide-x divide-zinc-700">
+          <div
+            className="hidden @2xl:flex overflow-auto px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700">
             <div
               className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
               <h2

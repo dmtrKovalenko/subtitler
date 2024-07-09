@@ -35,6 +35,7 @@ let clipOverTimeLineElement = (ctx, ~y, ~width, ~fill) => {
   ctx->Canvas2d.fillRect(~x, ~y, ~w=width, ~h=height)
 }
 
+let sceneRerenderCount = ref(0)
 let renderMainScene = (ctx, size, editorContext: EditorContext.editorContext) => {
   let aspectRatio =
     editorContext.videoMeta.width->Float.fromInt /. editorContext.videoMeta.height->Float.fromInt
@@ -47,34 +48,39 @@ let renderMainScene = (ctx, size, editorContext: EditorContext.editorContext) =>
   )
 
   let maxFramesInScene = size.maxSceneWidth->Float.toInt / width
-  let framesBreak = editorContext.videoMeta.duration->Float.toInt / maxFramesInScene
+  let framesBreak = editorContext.videoMeta.duration /. maxFramesInScene->float_of_int
 
-  let i = ref(0)
-  let rec seekAndRender = () => {
-    editorContext.dom.timelineVideoElement->Web.Video.setCurrentTime(
-      (i.contents * framesBreak)->float_of_int,
-    )
-    editorContext.dom.timelineVideoElement->Web.Video.onSeeked(_ => {
-      Web.Video.drawOnCanvas(
-        ctx,
-        editorContext.dom.timelineVideoElement,
-        ~dy=timeline_margin_y,
-        ~dx=timeline_margin_x / 2 + i.contents * width,
-        ~dirtyHeight=scene_height_size,
-        ~dirtyWidth=width,
+  let rec seekAndRenderAsync = (i, renderId) => {
+    if renderId === sceneRerenderCount.contents {
+      editorContext.dom.timelineVideoElement->Web.Video.setCurrentTime(
+        float_of_int(i) *. framesBreak,
       )
+      editorContext.dom.timelineVideoElement->Web.Video.onSeekedOnce(_ => {
+        Web.Video.drawOnCanvas(
+          ctx,
+          editorContext.dom.timelineVideoElement,
+          ~dy=timeline_margin_y,
+          ~dx=timeline_margin_x / 2 + i * width,
+          ~dirtyHeight=scene_height_size,
+          ~dirtyWidth=width,
+        )
 
-      if i.contents < maxFramesInScene {
-        i := i.contents + 1
-        seekAndRender()
-      }
-    })
+        if i < maxFramesInScene {
+          seekAndRenderAsync(i + 1, renderId)
+        }
+      })
+    }
   }
 
   if editorContext.dom.timelineVideoElement->Web.Video.readyState > 1 {
-    seekAndRender()
+    sceneRerenderCount := sceneRerenderCount.contents + 1
+    seekAndRenderAsync(0, sceneRerenderCount.contents)
   } else {
-    editorContext.dom.timelineVideoElement->Web.Video.onLoadedData(_ => seekAndRender())
+    editorContext.dom.timelineVideoElement->Web.Video.onLoadedDataOnce(_ => {
+      sceneRerenderCount := sceneRerenderCount.contents + 1
+
+      seekAndRenderAsync(0, sceneRerenderCount.contents)
+    })
   }
 }
 

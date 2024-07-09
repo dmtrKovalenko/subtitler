@@ -131,8 +131,8 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
 
   let editCurrentSubtitle = Hooks.useEvent(() => {
     setTimeout(() =>
-      Dom.document
-      ->Dom.Document.querySelector("#current-cue textarea")
+      ChunkEditor.globalCurrentTextAreaRef.current
+      ->Js.Nullable.toOption
       ->Option.flatMap(Dom.HtmlInputElement.ofElement)
       ->Option.forEach(Dom.HtmlInputElement.focus)
     , 0)->ignore

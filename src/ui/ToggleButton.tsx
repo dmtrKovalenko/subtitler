@@ -1,23 +1,8 @@
 import * as React from "react";
 import clsx from "clsx";
 
-type ToggleGroupHighlight = "neutral" | "accent-gradient";
-type ToggleSize = "base" | "small";
-
 interface ToggleGroupProps<T extends string | number | null>
   extends Omit<React.HTMLProps<HTMLDivElement>, "onChange" | "size" | "value"> {
-  /**
-   * The smaller size compacts the toggle by reducing padding.
-   *
-   * @default "base"
-   */
-  size?: ToggleSize;
-  /**
-   * The color to highlight selected state. Use `accent-gradient` when the control is the most important in the current context.
-   *
-   * @default "neutral"
-   */
-  highlight?: ToggleGroupHighlight;
   value: T;
   onChange: (value: T) => void;
   children: Array<React.ReactElement<ToggleButtonProps<T>>>;
@@ -28,37 +13,7 @@ const BASE_BUTTON_PADDING_Y_REM = 0.3;
 // this is 1px on each size coming from the divide-x style
 const BUTTON_DIVIDE_X_SIZE = 2;
 
-/**
- *
- * # Toggle Button Group or Segmented Control
- *
- * A segmented control is a linear set of two or more segments, each of which functions as a button.
- * Every item within toggle group has equal size and is highlighted by the internal inset panel that is
- * moving within the whole group overflowing currently selected choice.
- *
- * ## When to use?
- *
- * Use it when you have 2 or more choices that user might need to select in a linear fashion.
- * E.g. switching between modes of an input, selecting a filter, or displaying a toolbar.
- *
- * ## When not to use?
- *
- * For navigation use tabs instead.
- * For form inputs use radio buttons.
- *
- *
- * ## Accessibility
- * - Make sure that `aria-current` indicate the current selected item.
- * - In case `prefers-reduce-motion` animation is disabled
- *
- * ## Additional info
- *
- * - The children of the toggle group must always be an instance of a `ToggleButton` component.
- * - When you want to specifically highlight the tab group provide `highlight="accent-gradient"` prop
- * it will turn the selection surface highlighting to the accent gradient. Might be useful when the
- * segmened control is the primary action in the certain component.
- */
-export const ToggleGroup = <T extends ToggleSize | string | number | null>({
+export const ToggleGroup = <T extends string | number | null>({
   className,
   children,
   onChange,
@@ -184,7 +139,6 @@ export const ToggleGroup = <T extends ToggleSize | string | number | null>({
 
 interface ToggleButtonProps<T>
   extends Omit<React.HTMLProps<HTMLButtonElement>, "size" | "value"> {
-  size?: ToggleSize;
   value: T;
   selected?: boolean;
 }

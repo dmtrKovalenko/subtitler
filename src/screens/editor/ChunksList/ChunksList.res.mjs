@@ -140,7 +140,7 @@ var make = React.memo(function (props) {
                                     }, id !== undefined ? id.toString() : index.toString() + "-" + chunk.text);
                         })
                   ],
-                  className: "flex flex-1 min-h-0 flex-col gap-6"
+                  className: "flex flex-1 pb-4 min-h-0 flex-col gap-6"
                 });
     });
 

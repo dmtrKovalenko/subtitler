@@ -3,6 +3,6 @@
 /* eslint-disable */
 /* tslint:disable */
 
-import type { AudioBuffer as $$AudioBuffer_t } from "web";
+import type {AudioBuffer as $$AudioBuffer_t} from 'web';
 
 export type AudioBuffer_t = $$AudioBuffer_t;

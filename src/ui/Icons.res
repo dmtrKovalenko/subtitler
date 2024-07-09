@@ -155,3 +155,13 @@ module EditIcon = {
     ~style: ReactDOM.Style.t=?,
   ) => React.element = "PencilSquareIcon"
 }
+
+module AlertIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~title: string=?,
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ExclamationTriangleIcon"
+}

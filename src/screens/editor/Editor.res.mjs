@@ -65,7 +65,7 @@ var make = React.memo(function (props) {
                                                                   ],
                                                                   defaultIndex: 0
                                                                 }),
-                                                            className: "@2xl:hidden flex items-center flex-col mb-6 pt-1 gap-2"
+                                                            className: "@2xl:hidden overflow-auto flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2"
                                                           }),
                                                       JsxRuntime.jsxs("div", {
                                                             children: [
@@ -95,10 +95,10 @@ var make = React.memo(function (props) {
                                                                     className: "pl-6 flex-1 flex flex-col gap-y-4"
                                                                   })
                                                             ],
-                                                            className: "hidden @2xl:flex pt-2 flex-1 max-h-full divide-x divide-zinc-700"
+                                                            className: "hidden @2xl:flex overflow-auto px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700"
                                                           })
                                                     ],
-                                                    className: "@container col-span-2 py-2 h-full overflow-auto flex flex-col px-4 border-r border-zinc-800",
+                                                    className: "@container col-span-2 pt-2 h-full flex flex-col border-r border-zinc-800",
                                                     style: UseEditorLayout.sizeToStyle(size)
                                                   });
                                       })), null),

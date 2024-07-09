@@ -46,7 +46,7 @@ module Math = {
   @scope("Math") @val
   external minI: (int, int) => int = "min"
 
-  let divideWithReminder = (x, y) => {
+  let divideWithRemainder = (x, y) => {
     let reminder: float = %raw(`x % y`)
 
     (Js.Math.floor(x /. y), reminder)
@@ -122,8 +122,8 @@ module Duration = {
       : `0${n->Js.Float.toFixedWithPrecision(~digits=0)}`
 
   let formatSeconds = seconds => {
-    let (hours, reminder) = Math.divideWithReminder(seconds, 3600.)
-    let (minutes, seconds) = Math.divideWithReminder(reminder, 60.)
+    let (hours, reminder) = Math.divideWithRemainder(seconds, 3600.)
+    let (minutes, seconds) = Math.divideWithRemainder(reminder, 60.)
     let hours = Belt.Int.toFloat(hours)
     let minutes = Belt.Int.toFloat(minutes)
 
@@ -134,9 +134,10 @@ module Duration = {
     }
   }
 
-  let formatMiilis = timestamp => {
-    let (minutes, seconds) = Math.divideWithReminder(timestamp, 60.)
-    let millis = (seconds -. seconds->Js.Math.floor_float) *. 1000.
+  let formatMillis = timestamp => {
+    let (minutes, rawSeconds) = Math.divideWithRemainder(timestamp, 60.)
+    let seconds = rawSeconds->Js.Math.floor_float
+    let millis = (rawSeconds -. seconds) *. 1000.
 
     // outputs 00:00,000
     `${minutes->Int.toString->String.padStart(2, "0")}:${seconds
@@ -159,6 +160,7 @@ module Duration = {
     ) {
     | (Some(minutes), Some(seconds), Some(millis)) =>
       let totalSeconds = minutes *. 60. +. seconds +. millis /. 1000.
+      Js.log(totalSeconds)
       Ok(totalSeconds)
     | _ => Error("Invalid timestamp format")
     }

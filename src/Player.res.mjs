@@ -186,6 +186,9 @@ function MakePlayer(Ctx) {
     
   };
   var sideEffect = function (action, dispatch) {
+    if (get().playState === "StoppedForRender") {
+      return ;
+    }
     if (typeof action !== "object") {
       switch (action) {
         case "Play" :

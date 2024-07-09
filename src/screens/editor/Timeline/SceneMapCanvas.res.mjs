@@ -30,31 +30,36 @@ function clipOverTimeLineElement(ctx, y, width, fill) {
   ctx.fillRect(32, y, width, 120);
 }
 
+var sceneRerenderCount = {
+  contents: 0
+};
+
 function renderMainScene(ctx, size, editorContext) {
   var aspectRatio = editorContext.videoMeta.width / editorContext.videoMeta.height;
   var width = Math.floor(120 * aspectRatio);
   clipOverTimeLineElement(ctx, 48, size.maxSceneWidth, "#000");
   var maxFramesInScene = Caml_int32.div(size.maxSceneWidth | 0, width);
-  var framesBreak = Caml_int32.div(editorContext.videoMeta.duration | 0, maxFramesInScene);
-  var i = {
-    contents: 0
-  };
-  var seekAndRender = function () {
-    editorContext.dom.timelineVideoElement.currentTime = Math.imul(i.contents, framesBreak);
-    Web.Video.onSeeked(editorContext.dom.timelineVideoElement, (function () {
-            ctx.drawImage(editorContext.dom.timelineVideoElement, 32 + Math.imul(i.contents, width) | 0, 48, width, 120);
-            if (i.contents < maxFramesInScene) {
-              i.contents = i.contents + 1 | 0;
-              return seekAndRender();
-            }
-            
-          }));
+  var framesBreak = editorContext.videoMeta.duration / maxFramesInScene;
+  var seekAndRenderAsync = function (i, renderId) {
+    if (renderId === sceneRerenderCount.contents) {
+      editorContext.dom.timelineVideoElement.currentTime = i * framesBreak;
+      return Web.Video.onSeekedOnce(editorContext.dom.timelineVideoElement, (function () {
+                    ctx.drawImage(editorContext.dom.timelineVideoElement, 32 + Math.imul(i, width) | 0, 48, width, 120);
+                    if (i < maxFramesInScene) {
+                      return seekAndRenderAsync(i + 1 | 0, renderId);
+                    }
+                    
+                  }));
+    }
+    
   };
   if (editorContext.dom.timelineVideoElement.readyState > 1) {
-    return seekAndRender();
+    sceneRerenderCount.contents = sceneRerenderCount.contents + 1 | 0;
+    return seekAndRenderAsync(0, sceneRerenderCount.contents);
   } else {
-    return Web.Video.onLoadedData(editorContext.dom.timelineVideoElement, (function () {
-                  seekAndRender();
+    return Web.Video.onLoadedDataOnce(editorContext.dom.timelineVideoElement, (function () {
+                  sceneRerenderCount.contents = sceneRerenderCount.contents + 1 | 0;
+                  seekAndRenderAsync(0, sceneRerenderCount.contents);
                 }));
   }
 }
@@ -151,6 +156,7 @@ export {
   Canvas2d ,
   renderRoundedRect ,
   clipOverTimeLineElement ,
+  sceneRerenderCount ,
   renderMainScene ,
   renderAudioWaveForm ,
   renderAudio ,

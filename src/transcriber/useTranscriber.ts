@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { serdeString, useStickyState } from "../hooks/useStickyState.gen";
 import WhisperWorker from "./whisper-worker?worker";
 import Constants from "./Constants";
 import { ProgressItem } from "../LolApp";
@@ -44,8 +45,6 @@ export interface Transcriber {
   output?: TranscriberData;
   model: string;
   setModel: (model: string) => void;
-  multilingual: boolean;
-  setMultilingual: (model: boolean) => void;
   quantized: boolean;
   setQuantized: (model: boolean) => void;
   language?: string;
@@ -143,14 +142,23 @@ export function useTranscriber(
     }
   });
 
-  const [model, setModel] = useState<string>(Constants.DEFAULT_MODEL);
   const [quantized, setQuantized] = useState<boolean>(
     Constants.DEFAULT_QUANTIZED,
   );
-  const [multilingual, setMultilingual] = useState<boolean>(
-    Constants.DEFAULT_MULTILINGUAL,
+
+  const [model, setModel] = useStickyState(
+    "subtitler:model",
+    0,
+    Constants.DEFAULT_MODEL,
+    serdeString,
   );
-  const [language, setLanguage] = useState<string>(Constants.DEFAULT_LANGUAGE);
+
+  const [language, setLanguage] = useStickyState(
+    "subtitler:language",
+    0,
+    Constants.DEFAULT_LANGUAGE,
+    serdeString,
+  );
 
   const onInputChange = useCallback(() => {
     setTranscript(undefined);
@@ -181,14 +189,14 @@ export function useTranscriber(
         worker.postMessage({
           audio,
           model,
-          multilingual,
+          multilingual: true,
           quantized,
           subtask: "transcribe",
           language,
         });
       }
     },
-    [worker, model, multilingual, quantized, language],
+    [worker, model, quantized, language],
   );
 
   const transcriber = useMemo(() => {
@@ -200,8 +208,6 @@ export function useTranscriber(
       output: transcript,
       model,
       setModel,
-      multilingual,
-      setMultilingual,
       quantized,
       setQuantized,
       language,
@@ -213,7 +219,6 @@ export function useTranscriber(
     postRequest,
     transcript,
     model,
-    multilingual,
     quantized,
     language,
   ]);

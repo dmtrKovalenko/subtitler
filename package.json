@@ -7,8 +7,9 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "dev": "concurrently -r 'rescript -w'  'vite'",
+    "test": "retest tests/*.mjs",
     "build": "yarn res:build && vite build",
-    "vercel:build": "yarn tsc && yarn build",
+    "vercel:build": "yarn res:clean && yarn res:build && tsc && vite build",
     "preview": "vite preview",
     "postinstall": "patch-package"
   },
@@ -43,6 +44,7 @@
     "rescript": "11.1.1",
     "rescript-classnames": "^7.0.1",
     "rescript-debounce-react": "^2.0.1",
+    "rescript-test": "^7.0.1",
     "rescript-webapi": "^0.9.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.4.5"

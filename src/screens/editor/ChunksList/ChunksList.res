@@ -68,7 +68,7 @@ let make = React.memo((~subtitlesManager) => {
   let ctx = EditorContext.useEditorContext()
   let (player, _) = ctx.usePlayer()
 
-  <div className="flex flex-1 min-h-0 flex-col gap-6">
+  <div className="flex flex-1 pb-4 min-h-0 flex-col gap-6">
     {switch subtitlesManager.transcriptionState {
     | SubtitlesNotEdited({size}) =>
       <div className="flex flex-col w-full">

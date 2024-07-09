@@ -1,5 +1,6 @@
 @react.component @module("react-fontpicker-ts-lite")
 external make: (
+  ~inputId: string=?,
   ~autoLoad: bool,
   ~defaultValue: string,
   ~loading: React.element=?,
