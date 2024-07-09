@@ -70,9 +70,29 @@ module Video = {
     ->Webapi.Dom.EventTarget.addEventListener("seeked", _ => cb())
   }
 
+  let onSeekedOnce = (video, cb) => {
+    video
+    ->Webapi.Dom.Element.asEventTarget
+    ->Webapi.Dom.EventTarget.addEventListenerWithOptions(
+      "seeked",
+      _ => cb(),
+      {"passive": true, "once": true, "capture": false},
+    )
+  }
+
   let onLoadedData = (video, cb) => {
     video
     ->Webapi.Dom.Element.asEventTarget
     ->Webapi.Dom.EventTarget.addEventListener("loadeddata", _ => cb())
+  }
+
+  let onLoadedDataOnce = (video, cb) => {
+    video
+    ->Webapi.Dom.Element.asEventTarget
+    ->Webapi.Dom.EventTarget.addEventListenerWithOptions(
+      "loadeddata",
+      _ => cb(),
+      {"passive": true, "once": true, "capture": false},
+    )
   }
 }

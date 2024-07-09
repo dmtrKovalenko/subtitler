@@ -51,15 +51,37 @@ function onSeeked(video, cb) {
         }));
 }
 
+function onSeekedOnce(video, cb) {
+  video.addEventListener("seeked", (function (param) {
+          cb();
+        }), {
+        passive: true,
+        once: true,
+        capture: false
+      });
+}
+
 function onLoadedData(video, cb) {
   video.addEventListener("loadeddata", (function (param) {
           cb();
         }));
 }
 
+function onLoadedDataOnce(video, cb) {
+  video.addEventListener("loadeddata", (function (param) {
+          cb();
+        }), {
+        passive: true,
+        once: true,
+        capture: false
+      });
+}
+
 var Video = {
   onSeeked: onSeeked,
-  onLoadedData: onLoadedData
+  onSeekedOnce: onSeekedOnce,
+  onLoadedData: onLoadedData,
+  onLoadedDataOnce: onLoadedDataOnce
 };
 
 export {

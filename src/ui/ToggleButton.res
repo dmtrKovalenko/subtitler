@@ -17,6 +17,7 @@ module Button = {
 module Group = {
   @react.component @module("./ToggleButton")
   external make: (
+    ~id: string=?,
     ~className: string=?,
     ~children: React.element,
     ~onChange: 'value => unit,

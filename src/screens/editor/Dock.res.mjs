@@ -11,6 +11,7 @@ import * as Spinner from "../../ui/Spinner.res.mjs";
 import * as Shortcut from "./Shortcut.res.mjs";
 import * as Subtitles from "./Subtitles.res.mjs";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
+import * as ChunkEditor from "./ChunksList/ChunkEditor.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as Core__Promise from "@rescript/core/src/Core__Promise.res.mjs";
 import * as EditorContext from "./EditorContext.res.mjs";
@@ -264,7 +265,7 @@ function Dock(props) {
       });
   var editCurrentSubtitle = Hooks.useEvent(function () {
         setTimeout((function () {
-                Core__Option.forEach(Core__Option.flatMap(Caml_option.nullable_to_opt(document.querySelector("#current-cue textarea")), Webapi__Dom__HtmlInputElement.ofElement), (function (prim) {
+                Core__Option.forEach(Core__Option.flatMap(Caml_option.nullable_to_opt(ChunkEditor.globalCurrentTextAreaRef.current), Webapi__Dom__HtmlInputElement.ofElement), (function (prim) {
                         prim.focus();
                       }));
               }), 0);

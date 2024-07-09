@@ -33,7 +33,7 @@ export function WelcomeScreen() {
       <h2 className="text-center text-2xl font-medium">
         Welcome to the editor!
       </h2>
-      <p className="mb-4 text-sm text-gray-300">
+      <p className="mb-4 text-center text-balance text-sm text-gray-300">
         Here are some keyboard shortcuts that might help:
       </p>
       <ul className="max-h-full p-4 min-w-2/3 grid @xl:grid-cols-2 gap-y-1 gap-x-8 overflow-auto rounded-lg bg-white/10 backdrop-blur-xl">

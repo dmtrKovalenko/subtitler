@@ -58,7 +58,10 @@ function $$parseInt(value) {
   }
 }
 
+var adornmentClassName = "font-mono rounded-md  m-1 bg-zinc-500 px-3 inset-y-0";
+
 var make = Utils.neverRerender(function (props) {
+      var id = React.useId();
       var editorContext = EditorContext.useEditorContext();
       var match = editorContext.useStyle();
       var dispatch = match[1];
@@ -74,6 +77,7 @@ var make = Utils.neverRerender(function (props) {
                                   className: "w-full",
                                   labelHidden: true,
                                   adornment: "X",
+                                  adornmentClassName: adornmentClassName,
                                   onChange: (function (value) {
                                       Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                                   return {
@@ -91,6 +95,7 @@ var make = Utils.neverRerender(function (props) {
                                   className: "w-full",
                                   labelHidden: true,
                                   adornment: "Y",
+                                  adornmentClassName: adornmentClassName,
                                   onChange: (function (value) {
                                       Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                                   return {
@@ -107,6 +112,7 @@ var make = Utils.neverRerender(function (props) {
                                   className: "w-full",
                                   labelHidden: true,
                                   adornment: "W",
+                                  adornmentClassName: adornmentClassName,
                                   onChange: (function (value) {
                                       Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                                   return {
@@ -122,6 +128,7 @@ var make = Utils.neverRerender(function (props) {
                                   className: "w-full",
                                   labelHidden: true,
                                   adornment: "H",
+                                  adornmentClassName: adornmentClassName,
                                   onChange: (function (value) {
                                       Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
                                                   return {
@@ -140,10 +147,12 @@ var make = Utils.neverRerender(function (props) {
                                   className: "col-span-3",
                                   children: [
                                     JsxRuntime.jsx(Input.Label.make, {
+                                          forId: "font-picker" + id,
                                           children: "Font",
                                           className: "whitespace-nowrap"
                                         }),
                                     JsxRuntime.jsx(ReactFontpickerTsLite, {
+                                          inputId: "font-picker" + id,
                                           autoLoad: true,
                                           defaultValue: "Inter",
                                           loading: Caml_option.some(JsxRuntime.jsx("div", {
@@ -242,6 +251,7 @@ var make = Utils.neverRerender(function (props) {
                                   className: "col-span-2",
                                   children: [
                                     JsxRuntime.jsx(Input.Label.make, {
+                                          forId: "",
                                           children: "Text align",
                                           className: "whitespace-nowrap"
                                         }),
@@ -288,6 +298,7 @@ export {
   font_weight_options ,
   formatFontWeight ,
   $$parseInt ,
+  adornmentClassName ,
   make ,
 }
 /* make Not a pure module */

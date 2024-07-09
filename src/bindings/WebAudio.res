@@ -40,7 +40,7 @@ module AudioParam = {
 
 @genType
 module AudioBuffer = {
-  @genType.import("webaudio") @genType.as("AudioBuffer")
+  @genType.import("web") @genType.as("AudioBuffer")
   type t
 
   @get external getDuration: t => float = "duration"

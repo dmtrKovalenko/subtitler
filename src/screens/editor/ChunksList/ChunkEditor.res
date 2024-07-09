@@ -26,14 +26,14 @@ let useEditorInputHandler = () => {
 
 module TimestampEditor = {
   @react.component
-  let make = (~ts: option<float>, ~allowEmpty, ~onChange, ~readonly) => {
+  let make = (~ts: option<float>, ~label, ~allowEmpty, ~onChange, ~readonly) => {
     let inputRef = useMask({
       mask: "__:__,___",
       replacement: Js.Dict.fromArray([("_", RegExp.fromString("\\d"))]),
     })
 
-    let (hasParseError, setHasParseError) = React.useState(_ => false)
-    let parsedValue = ts->Option.map(Utils.Duration.formatMiilis)->Option.getOr("")
+    let (parseError, setParseError) = React.useState(_ => None)
+    let parsedValue = ts->Option.map(Utils.Duration.formatMillis)->Option.getOr("")
 
     React.useEffect(() => {
       inputRef.current
@@ -44,7 +44,7 @@ module TimestampEditor = {
         ->Webapi.Dom.HtmlInputElement.ofElement
         ->Option.forEach(
           input => {
-            input->Webapi.Dom.HtmlInputElement.setValue(Utils.Duration.formatMiilis(timestamp))
+            input->Webapi.Dom.HtmlInputElement.setValue(Utils.Duration.formatMillis(timestamp))
           },
         )
       })
@@ -52,34 +52,48 @@ module TimestampEditor = {
       None
     }, [ts])
 
-    <input
+    let adornment = React.useMemo1(() => {
+      parseError->Option.map(message =>
+        <span title=message>
+          <Icons.AlertIcon className="text-red-500 size-6" />
+        </span>
+      )
+    }, [parseError])
+
+    <Input
+      label
+      labelHidden=true
+      ?adornment
+      adornmentPosition=Right
       readOnly=readonly
-      ref={ReactDOM.Ref.domRef(inputRef)}
+      inputRef={ReactDOM.Ref.domRef(inputRef)}
       onKeyDown={useEditorInputHandler()}
-      onChange={e => {
-        let value = ReactEvent.Form.target(e)["value"]
+      onChange={value => {
         let value = value->String.trim === "" ? None : Some(value)
 
         switch value->Option.map(Utils.Duration.parseMillisInputToSeconds) {
-        | Some(Error(_)) => setHasParseError(_ => true)
+        | Some(Error(message)) => setParseError(_ => Some(message))
         | None if allowEmpty =>
           onChange(None)
-          setHasParseError(_ => false)
-        | None => setHasParseError(_ => true)
+          setParseError(_ => None)
+        | None => setParseError(_ => Some("Timestamp is required"))
         | Some(Ok(value)) =>
           onChange(Some(value))
-          setHasParseError(_ => false)
+          setParseError(_ => None)
         }
       }}
       defaultValue={parsedValue}
       placeholder="till the next cue"
       className={Cx.cx([
-        "block w-full rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",
-        hasParseError ? "ring-red-500 ring-2 focus:ring-0" : "",
+        "w-full ",
+        parseError->Option.isSome ? "ring-red-500 rounded-lg ring-2 focus:ring-0" : "",
       ])}
     />
   }
 }
+
+// globally exported and used as a singleton ref to the current textarea cue input
+let globalCurrentTextAreaRef: React.ref<Js.Nullable.t<Dom.element>> = React.createRef()
 
 @react.component
 let make = React.memo((
@@ -95,11 +109,10 @@ let make = React.memo((
   let ctx = EditorContext.useEditorContext()
 
   let ref = React.useRef(null)
-  let textAreaRef = React.useRef(null)
-  let previousCurrentRef = React.useRef(current)
+  let previousWasCurrentRef = React.useRef(current)
 
   React.useEffect1(() => {
-    if current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement() {
+    if current && !previousWasCurrentRef.current && !Web.isFocusingInteractiveElement() {
       ref.current
       ->Js.Nullable.toOption
       ->Option.forEach(
@@ -111,7 +124,7 @@ let make = React.memo((
       )
     }
 
-    previousCurrentRef.current = current
+    previousWasCurrentRef.current = current
     None
   }, [current])
 
@@ -123,7 +136,6 @@ let make = React.memo((
   }, [start])
 
   <div
-    id={current ? "current-cue" : ""}
     ref={ReactDOM.Ref.domRef(ref)}
     onFocus=seekToThisCue
     className={Cx.cx([
@@ -132,6 +144,7 @@ let make = React.memo((
     ])}>
     <div className="flex items-center gap-1">
       <TimestampEditor
+        label={"Start time of cue " ++ index->Int.toString}
         readonly
         allowEmpty=false
         ts={Some(start)}
@@ -144,6 +157,7 @@ let make = React.memo((
       />
       <Icons.ArrowRightIcon className="text-white size-10" />
       <TimestampEditor
+        label={"Start time of cue " ++ index->Int.toString}
         readonly
         allowEmpty=true
         ts={Js.Nullable.toOption(end)}
@@ -153,10 +167,10 @@ let make = React.memo((
       />
     </div>
     <textarea
-      rows={chunk.text === "" ? 2 : 3}
+      ref={ReactDOM.Ref.callbackDomRef(el => globalCurrentTextAreaRef.current = el)}
       readOnly=readonly
-      ref={ReactDOM.Ref.domRef(textAreaRef)}
       value={chunk.text}
+      rows={chunk.text === "" ? 2 : 3}
       onChange={e => onTextChange(index, ReactEvent.Form.target(e)["value"])}
       onKeyDown={useEditorInputHandler()}
       className={Cx.cx([

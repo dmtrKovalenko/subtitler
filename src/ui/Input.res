@@ -6,46 +6,76 @@ module Field = {
 module Label = {
   module HeadlessLabel = {
     @react.component @module("@headlessui/react")
-    external make: (~className: string=?, ~children: React.element) => React.element = "Label"
+    external make: (
+      @as("htmlFor") ~forId: string=?,
+      ~className: string=?,
+      ~children: React.element,
+    ) => React.element = "Label"
   }
 
   @react.component
-  let make = (~children: React.element, ~className: option<string>=?) => {
+  let make = (~forId=?, ~children: React.element, ~className: option<string>=?) => {
     <HeadlessLabel
+      ?forId
       className={Cx.cx(["text-sm/6 ml-1.5 font-medium text-white", className->Option.getOr("")])}>
       {children}
     </HeadlessLabel>
   }
 }
 
+type position = Left | Right
+
 @react.component
 let make = (
+  ~defaultValue=?,
+  ~inputRef=?,
+  ~placeholder=?,
+  ~onKeyDown=?,
+  ~readOnly=?,
   ~label,
   ~value: option<string>=?,
   ~type_: option<string>=?,
   ~className=?,
   ~labelHidden=?,
-  ~adornment=?,
+  ~adornment: option<React.element>=?,
+  ~adornmentPosition=?,
+  ~adornmentClassName=?,
   ~onChange=?,
   ~min=?,
   ~max=?,
 ) => {
+  let ref = inputRef
+  let id = React.useId()
+
   <Field className={className->Option.getOr("")}>
-    <Label className={Cx.cx([labelHidden->Option.getOr(false) ? "sr-only" : ""])}>
+    <Label forId={id} className={Cx.cx([labelHidden->Option.getOr(false) ? "sr-only" : ""])}>
       {React.string(label)}
     </Label>
     <div className="relative rounded-lg flex">
       {adornment
       ->Option.map(adornment => {
         <div
-          className="pointer-events-none font-mono rounded-md absolute m-1 bg-zinc-500 px-3 inset-y-0 left-0 flex justify-center items-center">
+          className={Cx.cx([
+            adornmentClassName->Option.getOr(""),
+            "absolute m-1 px-2 inset-y-0 flex justify-center items-center",
+            switch adornmentPosition {
+            | Some(Right) => "right-0"
+            | _ => "left-0"
+            },
+          ])}>
           {adornment}
         </div>
       })
       ->Option.getOr(React.null)}
       <input
-        min={min->Option.getOr("")}
-        max={max->Option.getOr("")}
+        id
+        ?ref
+        ?onKeyDown
+        ?defaultValue
+        ?placeholder
+        ?min
+        ?max
+        readOnly={readOnly->Option.getOr(false)}
         type_={type_->Option.getOr("text")}
         value={value->Option.getOr(%raw("undefined"))}
         onChange={(e: JsxEvent.Form.t) => {
@@ -53,7 +83,11 @@ let make = (
         }}
         className={Cx.cx([
           "block w-full rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",
-          Option.isSome(adornment) ? "pl-12" : "",
+          switch (adornment, adornmentPosition) {
+          | (Some(_), Some(Right)) => "pr-12"
+          | (Some(_), _) => "pl-12"
+          | _ => ""
+          },
         ])}
       />
     </div>

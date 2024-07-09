@@ -51,7 +51,7 @@ function divideAsFloat(a, b) {
   return a / b;
 }
 
-function divideWithReminder(x, y) {
+function divideWithRemainder(x, y) {
   var reminder = (x % y);
   return [
           Js_math.floor(x / y),
@@ -75,7 +75,7 @@ var $$Math = {
   divideFloat: divideFloat,
   divideInt: divideInt,
   divideAsFloat: divideAsFloat,
-  divideWithReminder: divideWithReminder,
+  divideWithRemainder: divideWithRemainder,
   minMax: minMax
 };
 
@@ -189,9 +189,9 @@ function leftPad(n) {
 }
 
 function formatSeconds(seconds) {
-  var match = divideWithReminder(seconds, 3600);
+  var match = divideWithRemainder(seconds, 3600);
   var hours = match[0];
-  var match$1 = divideWithReminder(match[1], 60);
+  var match$1 = divideWithRemainder(match[1], 60);
   var seconds$1 = match$1[1];
   var minutes = match$1[0];
   if (hours > 1.0) {
@@ -201,10 +201,11 @@ function formatSeconds(seconds) {
   }
 }
 
-function formatMiilis(timestamp) {
-  var match = divideWithReminder(timestamp, 60);
-  var seconds = match[1];
-  var millis = (seconds - Math.floor(seconds)) * 1000;
+function formatMillis(timestamp) {
+  var match = divideWithRemainder(timestamp, 60);
+  var rawSeconds = match[1];
+  var seconds = Math.floor(rawSeconds);
+  var millis = (rawSeconds - seconds) * 1000;
   return match[0].toString().padStart(2, "0") + ":" + seconds.toFixed(0).padStart(2, "0") + "," + millis.toFixed(0).padStart(3, "0");
 }
 
@@ -234,6 +235,7 @@ function parseMillisInputToSecondsTimestampString(timestamp) {
           };
   }
   var totalSeconds = match * 60 + match$1 + match$2 / 1000;
+  console.log(totalSeconds);
   return {
           TAG: "Ok",
           _0: totalSeconds
@@ -258,7 +260,7 @@ function formatFrame(frame, fps) {
 var Duration = {
   leftPad: leftPad,
   formatSeconds: formatSeconds,
-  formatMiilis: formatMiilis,
+  formatMillis: formatMillis,
   parseMillisInputToSecondsTimestampString: parseMillisInputToSecondsTimestampString,
   parseMillisInputToSeconds: parseMillisInputToSeconds,
   formatFrame: formatFrame

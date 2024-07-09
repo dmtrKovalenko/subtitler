@@ -4,7 +4,8 @@
     {
       "dir": "src",
       "subdirs": true
-    }
+    },
+    { "dir": "tests", "subdirs": true, "type": "dev" }
   ],
   "package-specs": [
     {
@@ -18,7 +19,8 @@
     "@rescript/react",
     "rescript-classnames",
     "rescript-webapi",
-    "rescript-debounce-react"
+    "rescript-debounce-react",
+    "rescript-test"
   ],
   "bsc-flags": ["-open RescriptCore"],
   "jsx": {

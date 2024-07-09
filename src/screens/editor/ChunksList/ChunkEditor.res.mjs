@@ -3,6 +3,7 @@
 import * as Cx from "rescript-classnames/src/Cx.res.mjs";
 import * as Web from "../../../bindings/Web.res.mjs";
 import * as Hooks from "../../../hooks/Hooks.res.mjs";
+import * as Input from "../../../ui/Input.res.mjs";
 import * as Utils from "../../../Utils.res.mjs";
 import * as React from "react";
 import * as Js_dict from "rescript/lib/es6/js_dict.js";
@@ -46,52 +47,67 @@ function ChunkEditor$TimestampEditor(props) {
               ]])
       });
   var match = React.useState(function () {
-        return false;
+        
       });
-  var setHasParseError = match[1];
-  var parsedValue = Core__Option.getOr(Core__Option.map(ts, Utils.Duration.formatMiilis), "");
+  var setParseError = match[1];
+  var parseError = match[0];
+  var parsedValue = Core__Option.getOr(Core__Option.map(ts, Utils.Duration.formatMillis), "");
   React.useEffect((function () {
           Core__Option.forEach(Utils.$$Option.zip(Caml_option.nullable_to_opt(inputRef.current), ts), (function (param) {
                   var timestamp = param[1];
                   Core__Option.forEach(Webapi__Dom__HtmlInputElement.ofElement(param[0]), (function (input) {
-                          input.value = Utils.Duration.formatMiilis(timestamp);
+                          input.value = Utils.Duration.formatMillis(timestamp);
                         }));
                 }));
         }), [ts]);
-  return JsxRuntime.jsx("input", {
-              ref: Caml_option.some(inputRef),
+  var adornment = React.useMemo((function () {
+          return Core__Option.map(parseError, (function (message) {
+                        return JsxRuntime.jsx("span", {
+                                    children: JsxRuntime.jsx(Outline.ExclamationTriangleIcon, {
+                                          className: "text-red-500 size-6"
+                                        }),
+                                    title: message
+                                  });
+                      }));
+        }), [parseError]);
+  return JsxRuntime.jsx(Input.make, {
               defaultValue: parsedValue,
-              className: Cx.cx([
-                    "block w-full rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",
-                    match[0] ? "ring-red-500 ring-2 focus:ring-0" : ""
-                  ]),
+              inputRef: Caml_option.some(inputRef),
               placeholder: "till the next cue",
-              readOnly: props.readonly,
               onKeyDown: useEditorInputHandler(),
-              onChange: (function (e) {
-                  var value = e.target.value;
-                  var value$1 = value.trim() === "" ? undefined : Caml_option.some(value);
+              readOnly: props.readonly,
+              label: props.label,
+              className: Cx.cx([
+                    "w-full ",
+                    Core__Option.isSome(parseError) ? "ring-red-500 rounded-lg ring-2 focus:ring-0" : ""
+                  ]),
+              labelHidden: true,
+              adornment: adornment,
+              adornmentPosition: "Right",
+              onChange: (function (value) {
+                  var value$1 = value.trim() === "" ? undefined : value;
                   var match = Core__Option.map(value$1, Utils.Duration.parseMillisInputToSeconds);
                   if (match === undefined) {
                     if (allowEmpty) {
                       onChange(undefined);
-                      return setHasParseError(function (param) {
-                                  return false;
+                      return setParseError(function (param) {
+                                  
                                 });
                     } else {
-                      return setHasParseError(function (param) {
-                                  return true;
+                      return setParseError(function (param) {
+                                  return "Timestamp is required";
                                 });
                     }
                   }
-                  if (match.TAG !== "Ok") {
-                    return setHasParseError(function (param) {
-                                return true;
+                  if (match.TAG === "Ok") {
+                    onChange(match._0);
+                    return setParseError(function (param) {
+                                
                               });
                   }
-                  onChange(match._0);
-                  setHasParseError(function (param) {
-                        return false;
+                  var message = match._0;
+                  setParseError(function (param) {
+                        return message;
                       });
                 })
             });
@@ -100,6 +116,8 @@ function ChunkEditor$TimestampEditor(props) {
 var TimestampEditor = {
   make: ChunkEditor$TimestampEditor
 };
+
+var globalCurrentTextAreaRef = React.createRef();
 
 var make = React.memo(function (props) {
       var onTextChange = props.onTextChange;
@@ -113,10 +131,9 @@ var make = React.memo(function (props) {
       var start = match[0];
       var ctx = EditorContext.useEditorContext();
       var ref = React.useRef(null);
-      var textAreaRef = React.useRef(null);
-      var previousCurrentRef = React.useRef(current);
+      var previousWasCurrentRef = React.useRef(current);
       React.useEffect((function () {
-              if (current && !previousCurrentRef.current && !Web.isFocusingInteractiveElement()) {
+              if (current && !previousWasCurrentRef.current && !Web.isFocusingInteractiveElement()) {
                 Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
                         el.scrollIntoView({
                               behavior: "smooth",
@@ -124,7 +141,7 @@ var make = React.memo(function (props) {
                             });
                       }));
               }
-              previousCurrentRef.current = current;
+              previousWasCurrentRef.current = current;
             }), [current]);
       var seekToThisCue = React.useCallback((function (param) {
               if (!readonly) {
@@ -142,6 +159,7 @@ var make = React.memo(function (props) {
                           children: [
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: start,
+                                  label: "Start time of cue " + index.toString(),
                                   allowEmpty: false,
                                   onChange: (function (seconds) {
                                       var seconds$1 = Utils.$$Option.unwrap(seconds);
@@ -162,6 +180,7 @@ var make = React.memo(function (props) {
                                 }),
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: Caml_option.nullable_to_opt(match[1]),
+                                  label: "Start time of cue " + index.toString(),
                                   allowEmpty: true,
                                   onChange: (function (seconds) {
                                       onTimestampChange(index, [
@@ -175,7 +194,9 @@ var make = React.memo(function (props) {
                           className: "flex items-center gap-1"
                         }),
                     JsxRuntime.jsx("textarea", {
-                          ref: Caml_option.some(textAreaRef),
+                          ref: Caml_option.some(function (el) {
+                                globalCurrentTextAreaRef.current = el;
+                              }),
                           className: Cx.cx([
                                 "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                                 "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
@@ -215,7 +236,6 @@ var make = React.memo(function (props) {
                         "gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
                         current ? "!border-zinc-500" : ""
                       ]),
-                  id: current ? "current-cue" : "",
                   onFocus: seekToThisCue
                 });
     });
@@ -223,6 +243,7 @@ var make = React.memo(function (props) {
 export {
   useEditorInputHandler ,
   TimestampEditor ,
+  globalCurrentTextAreaRef ,
   make ,
 }
-/* make Not a pure module */
+/* globalCurrentTextAreaRef Not a pure module */

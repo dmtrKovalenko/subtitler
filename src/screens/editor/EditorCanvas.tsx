@@ -4,6 +4,7 @@ import { subtitleCue } from "./Subtitles.gen";
 import { useEditorContext } from "./EditorContext.gen";
 import type Konva from "konva";
 import { WelcomeScreen } from "./WelcomeScreen";
+import clsx from "clsx";
 
 type EditorCanvasProps = {
   width: number;
@@ -52,17 +53,21 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const currentSubtitle = player.currentPlayingCue
     ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
     : "";
-  //
-  //if (player.playState === "StoppedForRender") {
-  //  return null;
-  //}
-  //
+
   if (player.playState === "Idle") {
     return <WelcomeScreen />;
   }
 
   return (
-    <Stage width={width} height={height} className={className} style={style}>
+    <Stage
+      className={clsx(
+        className,
+        player.playState === "StoppedForRender" && "hidden",
+      )}
+      width={width}
+      height={height}
+      style={style}
+    >
       <Layer>
         <Text
           ref={textRef}

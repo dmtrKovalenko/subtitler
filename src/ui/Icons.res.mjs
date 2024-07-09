@@ -53,6 +53,8 @@ var RenderIcon = {};
 
 var EditIcon = {};
 
+var AlertIcon = {};
+
 export {
   MusicalNotesIcon ,
   FontIcon ,
@@ -71,5 +73,6 @@ export {
   BarsCenterRightIcon ,
   RenderIcon ,
   EditIcon ,
+  AlertIcon ,
 }
 /* react/jsx-runtime Not a pure module */

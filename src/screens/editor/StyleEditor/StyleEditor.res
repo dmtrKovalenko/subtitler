@@ -30,8 +30,10 @@ let parseInt = value =>
     Belt.Int.fromString(value)
   }
 
+let adornmentClassName = "font-mono rounded-md  m-1 bg-zinc-500 px-3 inset-y-0"
 @react.component
 let make = Utils.neverRerender(() => {
+  let id = React.useId()
   let editorContext = EditorContext.useEditorContext()
   let (style, dispatch) = editorContext.useStyle()
   let fontInProgressRef = React.useRef(None)
@@ -42,6 +44,7 @@ let make = Utils.neverRerender(() => {
       <Input
         labelHidden=true
         label="Y coordinate"
+        adornmentClassName
         className="w-full"
         min="0"
         adornment={"X"->React.string}
@@ -57,6 +60,7 @@ let make = Utils.neverRerender(() => {
         label="X coordinate"
         className="w-full"
         adornment={"Y"->React.string}
+        adornmentClassName
         value={style.y->Belt.Int.toString}
         onChange={value =>
           value
@@ -69,6 +73,7 @@ let make = Utils.neverRerender(() => {
         label="Width"
         className="w-full"
         adornment={"W"->React.string}
+        adornmentClassName
         value={style.blockSize.width->Belt.Int.toString}
         onChange={value =>
           value
@@ -81,6 +86,7 @@ let make = Utils.neverRerender(() => {
         label="Height"
         className="w-full"
         adornment={"H"->React.string}
+        adornmentClassName
         value={style.blockSize.height->Belt.Int.toString}
         onChange={value =>
           value
@@ -92,8 +98,11 @@ let make = Utils.neverRerender(() => {
     <div
       className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full">
       <Input.Field className="col-span-3">
-        <Input.Label className="whitespace-nowrap"> {React.string("Font")} </Input.Label>
+        <Input.Label forId={"font-picker" ++ id} className="whitespace-nowrap">
+          {React.string("Font")}
+        </Input.Label>
         <ReactFontPicker
+          inputId={"font-picker" ++ id}
           loadAllVariants=true
           autoLoad=true
           loading={<div className="py-0.5 pl-3 font-light text-white text-base">
@@ -153,7 +162,9 @@ let make = Utils.neverRerender(() => {
           ->Option.forEach(dispatch)}
       />
       <Input.Field className="col-span-2">
-        <Input.Label className="whitespace-nowrap"> {React.string("Text align")} </Input.Label>
+        <Input.Label forId={""} className="whitespace-nowrap">
+          {React.string("Text align")}
+        </Input.Label>
         <ToggleButton.Group value={style.align} onChange={value => dispatch(Style.SetAlign(value))}>
           <ToggleButton.Button value={Style.Left}>
             <Icons.BarsCenterLeftIcon className="size-4" />
