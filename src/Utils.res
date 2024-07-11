@@ -160,7 +160,6 @@ module Duration = {
     ) {
     | (Some(minutes), Some(seconds), Some(millis)) =>
       let totalSeconds = minutes *. 60. +. seconds +. millis /. 1000.
-      Js.log(totalSeconds)
       Ok(totalSeconds)
     | _ => Error("Invalid timestamp format")
     }

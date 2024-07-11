@@ -128,6 +128,16 @@ var shortcuts = [
     action: "SeekToEnd",
     key: "ArrowRight",
     modifier: "Meta"
+  },
+  {
+    action: "IncreaseVolume",
+    key: "ArrowUp",
+    modifier: "Meta"
+  },
+  {
+    action: "DecreaseVolume",
+    key: "ArrowDown",
+    modifier: "Meta"
   }
 ];
 
@@ -265,7 +275,9 @@ function Dock(props) {
       });
   var editCurrentSubtitle = Hooks.useEvent(function () {
         setTimeout((function () {
-                Core__Option.forEach(Core__Option.flatMap(Caml_option.nullable_to_opt(ChunkEditor.globalCurrentTextAreaRef.current), Webapi__Dom__HtmlInputElement.ofElement), (function (prim) {
+                Core__Option.forEach(Core__Option.flatMap(Core__Option.flatMap(ChunkEditor.globalCurrentCueTextAreaRef.contents, (function (el) {
+                                return Caml_option.nullable_to_opt(el.current);
+                              })), Webapi__Dom__HtmlInputElement.ofElement), (function (prim) {
                         prim.focus();
                       }));
               }), 0);
