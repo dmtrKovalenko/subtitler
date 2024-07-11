@@ -117,7 +117,9 @@ var TimestampEditor = {
   make: ChunkEditor$TimestampEditor
 };
 
-var globalCurrentTextAreaRef = React.createRef();
+var globalCurrentCueTextAreaRef = {
+  contents: undefined
+};
 
 var make = React.memo(function (props) {
       var onTextChange = props.onTextChange;
@@ -131,15 +133,20 @@ var make = React.memo(function (props) {
       var start = match[0];
       var ctx = EditorContext.useEditorContext();
       var ref = React.useRef(null);
+      var textAreaRef = React.useRef(null);
       var previousWasCurrentRef = React.useRef(current);
       React.useEffect((function () {
-              if (current && !previousWasCurrentRef.current && !Web.isFocusingInteractiveElement()) {
-                Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
-                        el.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start"
-                            });
-                      }));
+              if (current && !previousWasCurrentRef.current) {
+                globalCurrentCueTextAreaRef.contents = textAreaRef;
+                if (!Web.isFocusingInteractiveElement()) {
+                  Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
+                          el.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                              });
+                        }));
+                }
+                
               }
               previousWasCurrentRef.current = current;
             }), [current]);
@@ -194,9 +201,7 @@ var make = React.memo(function (props) {
                           className: "flex items-center gap-1"
                         }),
                     JsxRuntime.jsx("textarea", {
-                          ref: Caml_option.some(function (el) {
-                                globalCurrentTextAreaRef.current = el;
-                              }),
+                          ref: Caml_option.some(textAreaRef),
                           className: Cx.cx([
                                 "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                                 "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
@@ -243,7 +248,7 @@ var make = React.memo(function (props) {
 export {
   useEditorInputHandler ,
   TimestampEditor ,
-  globalCurrentTextAreaRef ,
+  globalCurrentCueTextAreaRef ,
   make ,
 }
-/* globalCurrentTextAreaRef Not a pure module */
+/* make Not a pure module */

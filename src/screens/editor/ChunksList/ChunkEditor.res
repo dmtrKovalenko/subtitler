@@ -92,8 +92,9 @@ module TimestampEditor = {
   }
 }
 
-// globally exported and used as a singleton ref to the current textarea cue input
-let globalCurrentTextAreaRef: React.ref<Js.Nullable.t<Dom.element>> = React.createRef()
+// globally exported and used as a singleton ref to the current (or last if nothing playerd)
+// textarea cue input dom element
+let globalCurrentCueTextAreaRef = ref(None)
 
 @react.component
 let make = React.memo((
@@ -109,19 +110,24 @@ let make = React.memo((
   let ctx = EditorContext.useEditorContext()
 
   let ref = React.useRef(null)
+  let textAreaRef = React.useRef(null)
   let previousWasCurrentRef = React.useRef(current)
 
   React.useEffect1(() => {
-    if current && !previousWasCurrentRef.current && !Web.isFocusingInteractiveElement() {
-      ref.current
-      ->Js.Nullable.toOption
-      ->Option.forEach(
-        el =>
-          el->Webapi.Dom.Element.scrollIntoViewWithOptions({
-            "behavior": "smooth",
-            "block": "start",
-          }),
-      )
+    if current && !previousWasCurrentRef.current {
+      globalCurrentCueTextAreaRef := Some(textAreaRef)
+
+      if !Web.isFocusingInteractiveElement() {
+        ref.current
+        ->Js.Nullable.toOption
+        ->Option.forEach(
+          el =>
+            el->Webapi.Dom.Element.scrollIntoViewWithOptions({
+              "behavior": "smooth",
+              "block": "start",
+            }),
+        )
+      }
     }
 
     previousWasCurrentRef.current = current
@@ -167,7 +173,7 @@ let make = React.memo((
       />
     </div>
     <textarea
-      ref={ReactDOM.Ref.callbackDomRef(el => globalCurrentTextAreaRef.current = el)}
+      ref={ReactDOM.Ref.domRef(textAreaRef)}
       readOnly=readonly
       value={chunk.text}
       rows={chunk.text === "" ? 2 : 3}

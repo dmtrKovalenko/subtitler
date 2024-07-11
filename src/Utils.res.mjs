@@ -235,7 +235,6 @@ function parseMillisInputToSecondsTimestampString(timestamp) {
           };
   }
   var totalSeconds = match * 60 + match$1 + match$2 / 1000;
-  console.log(totalSeconds);
   return {
           TAG: "Ok",
           _0: totalSeconds

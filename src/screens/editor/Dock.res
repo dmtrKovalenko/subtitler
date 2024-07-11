@@ -33,6 +33,8 @@ let shortcuts = [
   {key: "ArrowLeft", modifier: Meta, action: SeekToStart},
   {key: "End", modifier: NoModifier, action: SeekToEnd},
   {key: "ArrowRight", modifier: Meta, action: SeekToEnd},
+  {key: "ArrowUp", modifier: Meta, action: IncreaseVolume},
+  {key: "ArrowDown", modifier: Meta, action: DecreaseVolume},
 ]
 
 module DockDivider = {
@@ -131,8 +133,8 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
 
   let editCurrentSubtitle = Hooks.useEvent(() => {
     setTimeout(() =>
-      ChunkEditor.globalCurrentTextAreaRef.current
-      ->Js.Nullable.toOption
+      ChunkEditor.globalCurrentCueTextAreaRef.contents
+      ->Option.flatMap(el => Js.Nullable.toOption(el.current))
       ->Option.flatMap(Dom.HtmlInputElement.ofElement)
       ->Option.forEach(Dom.HtmlInputElement.focus)
     , 0)->ignore
