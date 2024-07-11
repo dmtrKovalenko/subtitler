@@ -1,0 +1,41 @@
+name: Build and Type Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: "yarn.lock"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build rescript
+        run: |
+          yarn rescript clean
+          yarn rescript build
+
+      - name: Build typescript
+        run: yarn tsc
+
+      - name: Verify formatting
+        run: yarn rescript format -all -check
+
+      - name: Tests
+        run: yarn test
