@@ -2,7 +2,17 @@ import * as React from "react";
 import { shortcuts } from "./Dock.gen";
 import { formatAction, shortcut, action } from "./Shortcut.gen";
 
-const GROUPED_SHORTCUTS = Object.groupBy(shortcuts, (s) => s.action);
+const GROUPED_SHORTCUTS = shortcuts.reduce(
+  (result, currentValue) => {
+    const groupKey = currentValue.action;
+    if (!result[groupKey]) {
+      result[groupKey] = [];
+    }
+    result[groupKey].push(currentValue);
+    return result;
+  },
+  {} as { [key: string]: shortcut<action>[] },
+);
 
 function formatKey(key: string) {
   switch (key) {

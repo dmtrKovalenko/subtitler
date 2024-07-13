@@ -1,0 +1,12 @@
+githubRepoOwner: dmtrKovalenko
+githubRepoName: subtitler
+githubHost: github.com
+githubRemote: origin
+githubBranch: fix-current-textarea
+requireChecks: true
+requireApproval: true
+mergeMethod: rebase
+mergeQueue: false
+forceFetchTags: false
+showPrTitlesInStack: false
+branchPushIndividually: false
