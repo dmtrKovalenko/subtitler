@@ -6,6 +6,7 @@ import { Combobox } from "../ui/Combobox";
 import { ALL_LANGUAGES, LANGUAGE_NAME_MAP } from "./languages";
 import { SubtitlesStrikethrough } from "../ui/SubtitlesStrikethrough";
 import { isFocusable } from "../bindings/Web.gen";
+import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
 type LandingDropzoneProps = {
   language: string;
@@ -148,6 +149,39 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             >
               Let's go!
             </button>
+          </div>
+          <div
+            aria-hidden
+            className="rounded-xl max-w-2xl mt-8 bg-yellow-50 p-4"
+          >
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon
+                  aria-hidden="true"
+                  className="size-6 text-yellow-400"
+                />
+              </div>
+              <div className="ml-3">
+                <h3 className="font-medium text-yellow-800">
+                  Large file attention
+                </h3>
+                <div className="mt-1 text-sm text-yellow-700">
+                  <p>
+                    Your browser does not support{" "}
+                    <a
+                      target="_blank"
+                      rel="noopener noreferer"
+                      href="https://caniuse.com/mdn-api_window_showsavefilepicker"
+                      className="font-bold underline"
+                    >
+                      file system access
+                    </a>{" "}
+                    , so we do not recommend uploading large videos longer than
+                    10 minutes as your browser may not be able to save them.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="mt-auto flex gap-6">

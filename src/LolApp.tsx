@@ -12,6 +12,7 @@ import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
 import { Transition } from "@headlessui/react";
 import type {
   RenderMessage,
+  Target,
   RenderProgressMessage,
 } from "./codecs/render-worker";
 import clsx from "clsx";
@@ -31,6 +32,51 @@ export type ProgressItem = {
   title: string;
   progress: number;
 };
+
+async function createTarget(file: File): Promise<Target> {
+  const suggestedName = `transcribed_${file.name}`;
+
+  if ("showSaveFilePicker" in window) {
+    let fileHandle = await window.showSaveFilePicker({
+      suggestedName,
+      types: [
+        {
+          description: "Video File",
+          accept: { "video/mp4": [".mp4"] },
+        },
+      ],
+    });
+
+    let stream = await fileHandle.createWritable();
+
+    return {
+      type: "filesystem",
+      stream,
+    };
+  }
+
+  return {
+    type: "arraybuffer",
+    arrayBuffer: null,
+    fileName: suggestedName,
+  };
+}
+
+async function saveTarget(target: Target) {
+  if (target.type === "filesystem") {
+    await target.stream.close();
+  }
+
+  if (target.type === "arraybuffer") {
+    const blob = new Blob([target.arrayBuffer!], { type: "video/mp4" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = target.fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
 
 // Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
 export default function LolApp() {
@@ -126,16 +172,6 @@ export default function LolApp() {
         return;
       }
 
-      let fileHandle = await window.showSaveFilePicker({
-        suggestedName: `transcribed_${file.name}`,
-        types: [
-          {
-            description: "Video File",
-            accept: { "video/mp4": [".mp4"] },
-          },
-        ],
-      });
-
       const offscreenCanvas =
         rendererPreviewCanvasRef.current?.transferControlToOffscreen();
       if (!offscreenCanvas) {
@@ -161,7 +197,7 @@ export default function LolApp() {
           type: "render",
           style,
           dataUri: file.file,
-          fileHandle,
+          target: await createTarget(file.file),
           canvas: offscreenCanvas,
           cues: subtitlesManager.activeSubtitles,
         } as RenderMessage,
@@ -178,15 +214,25 @@ export default function LolApp() {
           }
           if (e.data.type === "done") {
             log("video_rendered");
-            import("js-confetti").then(({ default: JsConfetti }) => {
-              new JsConfetti().addConfetti();
+
+            saveTarget(e.data.target).catch((e) => {
+              failWith(
+                new UserFacingError(
+                  "Failed to save rendered video file",
+                  e as Error,
+                ),
+              );
             });
+
             document.title = `✅ Subtitles rendered!`;
             setRenderState("done");
             setProgressItems([]);
             worker.terminate();
-          }
 
+            import("js-confetti").then(({ default: JsConfetti }) => {
+              new JsConfetti().addConfetti();
+            });
+          }
           if (
             e.data.type === "renderprogress" ||
             e.data.type === "encodeprogress"
@@ -251,7 +297,7 @@ export default function LolApp() {
     },
     [file],
   );
-  //
+
   //const fakeState = useChunksState(
   //  [
   //    {
