@@ -9,10 +9,15 @@ const rootElement = document.querySelector("#root");
 
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
+  const browserFeatures = isBrowserSupported();
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        {isBrowserSupported() ? <LolApp /> : <BrowserNotSupported />}
+        {browserFeatures === true ? (
+          <LolApp />
+        ) : (
+          <BrowserNotSupported features={browserFeatures} />
+        )}
       </ErrorBoundary>
     </React.StrictMode>,
   );
