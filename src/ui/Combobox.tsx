@@ -67,7 +67,7 @@ export function Combobox<TValue extends string | number>({
             to: "bottom",
             gap: "0.25rem",
           }}
-          className="z-10 w-[var(--input-width)] rounded-xl border border-white/5 bg-white/5 p-1 empty:hidden backdrop-blur-xl"
+          className="z-10 w-[var(--input-width)] rounded-xl border border-white/5 bg-white/5 p-1 empty:hidden backdrop-blur-2xl"
         >
           {filteredOptions.map((value) => (
             <ComboboxOption

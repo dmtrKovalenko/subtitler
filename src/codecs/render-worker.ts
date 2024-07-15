@@ -1,6 +1,10 @@
 import { TranscriberData } from "../transcriber/useTranscriber";
 import { MP4Demuxer, Metadata } from "./Demuxer";
-import { Muxer, FileSystemWritableFileStreamTarget } from "mp4-muxer";
+import {
+  Muxer,
+  FileSystemWritableFileStreamTarget,
+  ArrayBufferTarget,
+} from "mp4-muxer";
 import {
   RendererContext,
   createCtx,
@@ -47,6 +51,7 @@ export type RenderProgressMessage =
     }
   | {
       type: "done";
+      target: Target;
     }
   | {
       type: "error";
@@ -57,21 +62,40 @@ export type RenderProgressMessage =
 const postMessage = (message: RenderProgressMessage) =>
   self.postMessage(message);
 
+export type Target =
+  | {
+      type: "filesystem";
+      stream: FileSystemWritableFileStream;
+    }
+  | {
+      type: "arraybuffer";
+      fileName: string;
+      arrayBuffer: ArrayBuffer | null;
+    };
+
+function createMuxerTarget(target: Target) {
+  if (target.type === "filesystem") {
+    return new FileSystemWritableFileStreamTarget(target.stream);
+  } else {
+    return new ArrayBufferTarget();
+  }
+}
+
 class EncoderMuxer {
   videoMetadataRef: { current: Metadata | null };
   encoder: VideoEncoder | undefined;
   #muxer: Muxer<FileSystemWritableFileStreamTarget> | undefined;
 
-  #fileStream: FileSystemWritableFileStream;
+  #target: Target;
   #onEncodeQueueEmptied: () => void;
 
   constructor(
     metadataRef: { current: Metadata | null },
-    fileHandle: FileSystemWritableFileStream,
+    target: Target,
     onEncodeQueueDevastation: () => void,
   ) {
     this.videoMetadataRef = metadataRef;
-    this.#fileStream = fileHandle;
+    this.#target = target;
     this.#onEncodeQueueEmptied = onEncodeQueueDevastation;
   }
 
@@ -82,7 +106,7 @@ class EncoderMuxer {
     }
 
     this.#muxer = new Muxer({
-      target: new FileSystemWritableFileStreamTarget(this.#fileStream),
+      target: createMuxerTarget(this.#target),
       video: {
         codec: webcodecsCodecToMuxer(videoConfig.codec),
         width: videoConfig.codedWidth,
@@ -96,7 +120,7 @@ class EncoderMuxer {
         sampleRate: audioConfig.sampleRate,
       },
       firstTimestampBehavior: "offset",
-      fastStart: false,
+      fastStart: this.#target.type === "filesystem" ? "in-memory" : false,
     });
 
     this.encoder = new VideoEncoder({
@@ -145,10 +169,20 @@ class EncoderMuxer {
     try {
       await this.encoder?.flush();
       this.#muxer?.finalize();
-      await this.#fileStream.close();
+
+      if (this.#muxer?.target instanceof ArrayBufferTarget) {
+        if (this.#target.type !== "arraybuffer") {
+          throw new Error(
+            "Muxer target is set to array buffer but the outer target expects something else.",
+          );
+        }
+
+        this.#target.arrayBuffer = this.#muxer?.target.buffer;
+      }
 
       postMessage({
         type: "done",
+        target: this.#target,
       });
     } catch (e) {
       postMessage({
@@ -164,7 +198,7 @@ export type RenderMessage = {
   type: "render";
   dataUri: File;
   canvas: OffscreenCanvas;
-  fileHandle: FileSystemFileHandle;
+  target: Target;
   cues: TranscriberData["chunks"];
   style: style;
 };
@@ -172,7 +206,7 @@ export type RenderMessage = {
 export async function render({
   dataUri,
   canvas,
-  fileHandle,
+  target,
   cues,
   style,
 }: RenderMessage) {
@@ -202,8 +236,7 @@ export async function render({
     }
   }
 
-  const fileStream = await fileHandle.createWritable();
-  let encoderMuxer = new EncoderMuxer(metadataRef, fileStream, () => {
+  let encoderMuxer = new EncoderMuxer(metadataRef, target, () => {
     if (chunks.length === 0) {
       encoderMuxer.flush();
     } else {

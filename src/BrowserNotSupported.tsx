@@ -4,10 +4,7 @@ import { logException } from "./hooks/useAnalytics";
 export function isBrowserSupported() {
   const canRunApp =
     // @ts-expect-error
-    navigator.gpu &&
-    window.VideoDecoder &&
-    window.AudioContext &&
-    window.showSaveFilePicker;
+    navigator.gpu && window.VideoDecoder && window.AudioContext;
 
   if (!canRunApp) {
     logException("browser_not_supported", {
