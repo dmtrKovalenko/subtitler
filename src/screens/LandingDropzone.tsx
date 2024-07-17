@@ -100,7 +100,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
 
         <div className="container flex-1 flex flex-col items-center justify-center">
           <h1 className="text-2xl text-center font-bold tracking-tight sm:text-6xl">
-            Free on-device AI{" "}
+            Free no-signup <span className="sr-only">automatic</span> AI{" "}
             <SubtitlesStrikethrough>captions</SubtitlesStrikethrough> generator
           </h1>
           <p className="mx-16 text-center text-balance mt-4 text-gray-400 text-xl">
