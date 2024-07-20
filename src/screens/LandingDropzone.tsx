@@ -31,13 +31,19 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
   model,
   setModel,
 }) => {
-  const { isDragReject, fileRejections, getRootProps, isDragActive, open } =
-    useDropzone({
-      onDrop,
-      accept: {
-        "video/mp4": [".mp4"],
-      },
-    });
+  const {
+    isDragReject,
+    fileRejections,
+    getRootProps,
+    isDragActive,
+    getInputProps,
+    open,
+  } = useDropzone({
+    onDrop,
+    accept: {
+      "video/mp4": [".mp4"],
+    },
+  });
 
   return (
     <div className="p-4 flex flex-col w-screen h-screen">
@@ -61,6 +67,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           },
         )}
       >
+        <input {...getInputProps()} />
         <svg
           className="absolute inset-0 -z-10 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
           aria-hidden="true"
@@ -97,7 +104,6 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             </p>
           </div>
         )}
-
         <div className="container flex-1 flex flex-col items-center justify-center">
           <h1 className="text-2xl text-center font-bold tracking-tight sm:text-6xl">
             Free no-signup <span className="sr-only">automatic</span> AI{" "}
@@ -153,13 +159,13 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           {!window.showSaveFilePicker && (
             <div
               aria-hidden
-              className="rounded-xl max-w-2xl mt-8 bg-yellow-50 p-4"
+              className="rounded-xl max-w-2xl mt-8 bg-amber-100 p-4"
             >
               <div className="flex">
                 <div className="flex-shrink-0">
                   <ExclamationTriangleIcon
                     aria-hidden="true"
-                    className="size-6 text-yellow-400"
+                    className="size-6 text-amber-500"
                   />
                 </div>
                 <div className="ml-3">
