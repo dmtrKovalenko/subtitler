@@ -67,7 +67,7 @@ export function Combobox<TValue extends string | number>({
             to: "bottom",
             gap: "0.25rem",
           }}
-          className="z-10 w-[var(--input-width)] rounded-xl border border-white/5 bg-white/5 p-1 empty:hidden backdrop-blur-2xl"
+          className="z-10 w-[var(--input-width)] rounded-xl border border-white/5 bg-white/5 p-1 empty:hidden backdrop-blur-3xl"
         >
           {filteredOptions.map((value) => (
             <ComboboxOption
@@ -76,7 +76,7 @@ export function Combobox<TValue extends string | number>({
               className="group flex cursor-default items-center gap-2 rounded-lg py-1.5 px-3 select-none data-[focus]:bg-white/10"
             >
               <CheckIcon className="invisible size-4 fill-white group-data-[selected]:visible" />
-              <div className="text-sm/6 text-white capitalize">
+              <div className="text-sm/6 text-white font-medium capitalize">
                 {formatValue(value)}
               </div>
             </ComboboxOption>
