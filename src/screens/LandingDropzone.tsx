@@ -110,10 +110,11 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             <SubtitlesStrikethrough>captions</SubtitlesStrikethrough> generator
           </h1>
           <p className="mx-16 text-center text-balance mt-4 text-gray-400 text-xl">
-            Start right now by dragging your video file anywhere. Rest assured
-            that we perform all the text-to-speech processing and video
-            rendering right in your browser, and{" "}
-            <strong>do not send anything</strong> to the server.
+            Upload a video for automatic transcription or translation and get
+            your subtitles rendered back into the video file in just a few
+            clicks — completely free with no signup required. Everything on this
+            website is done entirely in your browser, ensuring that{" "}
+            <strong>nothing is sent to the server</strong>.
           </p>
           <div className="mt-8 flex gap-6 justify-between mx-auto max-w-[34rem]">
             <Combobox
