@@ -12,9 +12,13 @@ type FeaturesSupport = {
 };
 
 export function isBrowserSupported(): true | FeaturesSupport {
-  const canRunApp =
-    // @ts-expect-error
-    Boolean(navigator.gpu && window.VideoDecoder && window.AudioContext);
+  if (
+    /bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent)
+  ) {
+    return true;
+  }
+
+  const canRunApp = Boolean(window.VideoDecoder && window.AudioContext);
 
   if (!canRunApp) {
     logException("browser_not_supported", {
