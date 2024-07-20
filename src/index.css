@@ -54,6 +54,13 @@
       @apply bg-transparent text-white text-sm/6 bg-blend-difference p-1 rounded-lg;
     }
   }
+
+  .font-preview-virgil {
+    &::before {
+      @apply font-virgin text-white relative left-2 text-lg;
+      content: "Virgil";
+    }
+  }
 }
 
 @media (min-width: 2540px) {

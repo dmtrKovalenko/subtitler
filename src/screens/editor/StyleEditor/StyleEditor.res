@@ -1,15 +1,3 @@
-let font_weight_options = [
-  Style.Thin,
-  Style.ExtraLight,
-  Style.Light,
-  Style.Regular,
-  Style.Medium,
-  Style.SemiBold,
-  Style.Bold,
-  Style.ExtraBold,
-  Style.Black,
-]
-
 let formatFontWeight = weight =>
   switch weight {
   | Style.Thin => "Thin"
@@ -36,7 +24,6 @@ let make = Utils.neverRerender(() => {
   let id = React.useId()
   let editorContext = EditorContext.useEditorContext()
   let (style, dispatch) = editorContext.useStyle()
-  let fontInProgressRef = React.useRef(None)
 
   <div className="flex flex-col gap-6">
     <div
@@ -103,19 +90,12 @@ let make = Utils.neverRerender(() => {
         </Input.Label>
         <ReactFontPicker
           inputId={"font-picker" ++ id}
-          loadAllVariants=true
-          autoLoad=true
-          loading={<div className="py-0.5 pl-3 font-light text-white text-base">
-            {React.string("Inter")}
-          </div>}
-          defaultValue="Inter"
-          value={val => fontInProgressRef.current = Some(val)}
-          fontsLoaded={_ => {
-            fontInProgressRef.current->Option.forEach(font => {
-              dispatch(Style.SetFontFamily(font))
-              fontInProgressRef.current = None
-            })
-          }}
+          onFontVariantInfo={Hooks.useEvent(variants => {
+            dispatch(Array.length(variants) > 0 ? SetFontVariants(variants) : ResetFontVariants)
+          })}
+          onFontLoad={Hooks.useEvent(val => {
+            dispatch(SetFontFamily(val))
+          })}
         />
       </Input.Field>
       <div className="flex gap-2 col-span-3">
@@ -139,7 +119,7 @@ let make = Utils.neverRerender(() => {
         <Combobox
           selected={style.fontWeight}
           setSelected={value => value->Option.forEach(value => dispatch(SetFontWeight(value)))}
-          options={font_weight_options}
+          options={style.fontVariants}
           formatValue={formatFontWeight}
           filter={value => item =>
             item

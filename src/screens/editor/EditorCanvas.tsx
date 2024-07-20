@@ -54,6 +54,20 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
     : "";
 
+  React.useEffect(() => {
+    document.fonts
+      .load(
+        `${subtitleStyle.fontSizePx}px ${subtitleStyle.fontFamily}`,
+        currentSubtitle,
+      )
+      .then(() => {
+        textRef.current?.fontFamily(subtitleStyle.fontFamily);
+        textRef.current?.fontStyle(subtitleStyle.fontWeight.toString());
+        textRef.current?.draw();
+        textRef.current?.getLayer()?.batchDraw();
+      });
+  }, [subtitleStyle.fontFamily, subtitleStyle.fontWeight]);
+
   if (player.playState === "Idle") {
     return <WelcomeScreen />;
   }
@@ -84,7 +98,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           onTransform={handleResize}
           align={subtitleStyle.align.toLowerCase()}
           verticalAlign="middle"
-          fontFamily={subtitleStyle.fontFamily}
+          fontFamily={`"${subtitleStyle.fontFamily}"`}
           onDragEnd={(e) => {
             styleDispatch({
               TAG: "SetPosition",

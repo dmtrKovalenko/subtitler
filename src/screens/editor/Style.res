@@ -13,6 +13,8 @@ type fontWeight =
   | @as(800) ExtraBold
   | @as(900) Black
 
+let all_font_weights = [Thin, ExtraLight, Light, Regular, Medium, SemiBold, Bold, ExtraBold, Black]
+
 type size = {
   width: int,
   height: int,
@@ -29,6 +31,7 @@ type style = {
   strokeColor: option<string>,
   align: align,
   blockSize: size,
+  fontVariants: array<fontWeight>,
 }
 
 @genType
@@ -43,6 +46,8 @@ type changeStyleAction =
   | SetBlockHeight(int)
   | SetAlign(align)
   | Resize(size)
+  | SetFontVariants(array<fontWeight>)
+  | ResetFontVariants
 
 module type StyleObservable = UseObservable.Observable
   with type t = style
@@ -75,6 +80,7 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     strokeColor: None,
     blockSize: {width, height: fontSizePx},
     align: Center,
+    fontVariants: all_font_weights,
   }
 
   let reducer = (state, action) =>
@@ -95,5 +101,14 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
       }
     | SetAlign(align) => {...state, align}
     | Resize(size) => {...state, blockSize: size}
+    | SetFontVariants(variants) if !Array.includes(variants, state.fontWeight) => {
+        ...state,
+        fontWeight: Array.includes(variants, Regular)
+          ? Regular
+          : variants[0]->Option.getOr(Regular),
+        fontVariants: variants,
+      }
+    | SetFontVariants(fontVariants) => {...state, fontVariants}
+    | ResetFontVariants => {...state, fontVariants: all_font_weights}
     }
 })

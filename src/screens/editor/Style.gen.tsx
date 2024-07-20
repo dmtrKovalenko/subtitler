@@ -18,11 +18,13 @@ export type style = {
   readonly color: string; 
   readonly strokeColor: (undefined | string); 
   readonly align: align; 
-  readonly blockSize: size
+  readonly blockSize: size; 
+  readonly fontVariants: fontWeight[]
 };
 
 export type changeStyleAction = 
-    { TAG: "SetPosition"; _0: number; _1: number }
+    "ResetFontVariants"
+  | { TAG: "SetPosition"; _0: number; _1: number }
   | { TAG: "SetFontFamily"; _0: string }
   | { TAG: "SetFontWeight"; _0: fontWeight }
   | { TAG: "SetFontSizePx"; _0: number }
@@ -31,4 +33,5 @@ export type changeStyleAction =
   | { TAG: "SetBlockWidth"; _0: number }
   | { TAG: "SetBlockHeight"; _0: number }
   | { TAG: "SetAlign"; _0: align }
-  | { TAG: "Resize"; _0: size };
+  | { TAG: "Resize"; _0: size }
+  | { TAG: "SetFontVariants"; _0: fontWeight[] };
