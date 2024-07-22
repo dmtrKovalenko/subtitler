@@ -64,21 +64,52 @@ const postMessage = (message: RenderProgressMessage) =>
 
 export type Target =
   | {
-      type: "filesystem";
-      stream: FileSystemWritableFileStream;
+      type: "filehandle";
+      handle: FileSystemFileHandle;
+    }
+  | {
+      type: "filestream";
+      stream: FileSystemWritableFileStream | null;
     }
   | {
       type: "arraybuffer";
       fileName: string;
-      arrayBuffer: ArrayBuffer | null;
+    }
+  | {
+      type: "populated_arraybuffer";
+      fileName: string;
+      arrayBuffer: ArrayBuffer;
     };
 
 function createMuxerTarget(target: Target) {
-  if (target.type === "filesystem") {
-    return new FileSystemWritableFileStreamTarget(target.stream);
-  } else {
-    return new ArrayBufferTarget();
+  switch (target.type) {
+    case "filestream":
+      if (!target.stream) {
+        throw new Error("Filestream target is not initialized");
+      }
+      return new FileSystemWritableFileStreamTarget(target.stream);
+    case "arraybuffer":
+      return new ArrayBufferTarget();
+    case "filehandle":
+      throw new Error(
+        "At this point filehandle should be already resolved to filestream",
+      );
+    case "populated_arraybuffer":
+      throw new Error(
+        "populated_arraybuffer can be used only as output when flushing is done",
+      );
   }
+}
+
+async function prepareOffscreenTargetForWriting(target: Target) {
+  if (target.type === "filehandle") {
+    target = {
+      type: "filestream",
+      stream: await target.handle.createWritable(),
+    };
+  }
+
+  return target;
 }
 
 class EncoderMuxer {
@@ -120,7 +151,7 @@ class EncoderMuxer {
         sampleRate: audioConfig.sampleRate,
       },
       firstTimestampBehavior: "offset",
-      fastStart: this.#target.type === "filesystem" ? "in-memory" : false,
+      fastStart: this.#target.type === "arraybuffer" ? "in-memory" : false,
     });
 
     this.encoder = new VideoEncoder({
@@ -170,19 +201,35 @@ class EncoderMuxer {
       await this.encoder?.flush();
       this.#muxer?.finalize();
 
-      if (this.#muxer?.target instanceof ArrayBufferTarget) {
-        if (this.#target.type !== "arraybuffer") {
+      let populatedTarget = this.#target;
+      switch (this.#target.type) {
+        case "filestream":
+          await this.#target.stream?.close();
+          this.#target.stream = null;
+          break;
+        case "filehandle":
           throw new Error(
-            "Muxer target is set to array buffer but the outer target expects something else.",
+            "Found filehnadle target when the muxer is fanlized. Only accepting filestream target at this point",
           );
-        }
-
-        this.#target.arrayBuffer = this.#muxer?.target.buffer;
+        // @ts-expect-error yes we want to fall through
+        case "arraybuffer":
+          if (this.#muxer?.target instanceof ArrayBufferTarget) {
+            populatedTarget = {
+              type: "populated_arraybuffer",
+              fileName: this.#target.fileName,
+              arrayBuffer: this.#muxer?.target.buffer,
+            };
+            break;
+          }
+        default:
+          throw new Error(
+            "Can not write the muxed data to the target. Found unsupported combination of muxer target and target when flushing.",
+          );
       }
 
       postMessage({
         type: "done",
-        target: this.#target,
+        target: populatedTarget,
       });
     } catch (e) {
       postMessage({
@@ -210,6 +257,7 @@ export async function render({
   cues,
   style,
 }: RenderMessage) {
+  console.log("FROM RENDER WORKER");
   let metadataRef: { current: Metadata | null } = {
     current: null,
   };
@@ -236,13 +284,17 @@ export async function render({
     }
   }
 
-  let encoderMuxer = new EncoderMuxer(metadataRef, target, () => {
-    if (chunks.length === 0) {
-      encoderMuxer.flush();
-    } else {
-      supplyChunks(QUEUE_SIZE);
-    }
-  });
+  let encoderMuxer = new EncoderMuxer(
+    metadataRef,
+    await prepareOffscreenTargetForWriting(target),
+    () => {
+      if (chunks.length === 0) {
+        encoderMuxer.flush();
+      } else {
+        supplyChunks(QUEUE_SIZE);
+      }
+    },
+  );
 
   const decoder = new VideoDecoder({
     output(frame: VideoFrame) {

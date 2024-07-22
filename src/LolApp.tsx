@@ -47,27 +47,20 @@ async function createTarget(file: File): Promise<Target> {
       ],
     });
 
-    let stream = await fileHandle.createWritable();
-
     return {
-      type: "filesystem",
-      stream,
+      type: "filehandle",
+      handle: fileHandle,
     };
   }
 
   return {
     type: "arraybuffer",
-    arrayBuffer: null,
     fileName: suggestedName,
   };
 }
 
 async function saveTarget(target: Target) {
-  if (target.type === "filesystem") {
-    await target.stream.close();
-  }
-
-  if (target.type === "arraybuffer") {
+  if (target.type === "populated_arraybuffer") {
     const blob = new Blob([target.arrayBuffer!], { type: "video/mp4" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -169,15 +162,16 @@ export default function LolApp() {
 
       const worker = new RenderWorker();
       if (!file || !rendererPreviewCanvasRef.current) {
-        return;
+        return Promise.reject();
       }
 
       const offscreenCanvas =
         rendererPreviewCanvasRef.current?.transferControlToOffscreen();
       if (!offscreenCanvas) {
-        return;
+        return Promise.reject();
       }
 
+      const target = await createTarget(file.file);
       setRenderState("rendering");
       setProgressItems([
         {
@@ -196,8 +190,8 @@ export default function LolApp() {
         {
           type: "render",
           style,
+          target,
           dataUri: file.file,
-          target: await createTarget(file.file),
           canvas: offscreenCanvas,
           cues: subtitlesManager.activeSubtitles,
         } as RenderMessage,
