@@ -7,22 +7,15 @@ import { ALL_LANGUAGES, LANGUAGE_NAME_MAP } from "./languages";
 import { SubtitlesStrikethrough } from "../ui/SubtitlesStrikethrough";
 import { isFocusable } from "../bindings/Web.gen";
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import { ALL_MODELS, MODELS, Model } from "../transcriber/Constants";
 
 type LandingDropzoneProps = {
   language: string;
   setLanguage: (language: string) => void;
   onDrop: (acceptedFiles: File[]) => void;
-  model: string;
-  setModel: (model: string) => void;
+  model: Model;
+  setModel: (model: Model) => void;
 };
-
-const MODELS: Record<string, string> = {
-  "whisper-tiny": "Tiny (152 Mb)",
-  "whisper-base": "Base (291 Mb)",
-  //"whisper-small": "Medium (586 Mb)",
-};
-
-const ALL_MODELS = Object.keys(MODELS);
 
 export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
   onDrop,
@@ -144,7 +137,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
                 }
               }}
               filter={(query: string) => (option: string) => {
-                const name = MODELS[option];
+                const name = MODELS[option as Model];
                 return name.toLowerCase().includes(query.toLowerCase());
               }}
               getId={(lang) => lang}

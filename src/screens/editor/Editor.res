@@ -103,6 +103,7 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) =>
           className="origin-top-left absolute left-0 top-0"
         />
         <EditorCanvas
+          transcriptionInProgress
           subtitles=subtitlesManager.activeSubtitles
           width=ctx.videoMeta.width
           height=ctx.videoMeta.height

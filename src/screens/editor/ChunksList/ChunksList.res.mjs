@@ -9,7 +9,7 @@ import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as EditorContext from "../EditorContext.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 
-function useChunksState(subtitles, transcriptionInProgress) {
+function useChunksState(subtitles, transcriptionInProgress, default_chunk_size) {
   var subtitlesRef = React.useRef(subtitles);
   var match = React.useState(function () {
         return "TranscriptionInProgress";
@@ -19,13 +19,11 @@ function useChunksState(subtitles, transcriptionInProgress) {
   if (!transcriptionInProgress) {
     if (typeof transcriptionState !== "object") {
       if (subtitles.length > 0) {
-        var originalNonWordSubtitlesWithIds = Subtitles.fillChunksIds(subtitlesRef.current);
-        var averageChunkSize = Subtitles.averageChunkLength(originalNonWordSubtitlesWithIds);
         setTranscriptionState(function (param) {
               return {
                       TAG: "SubtitlesNotEdited",
-                      resizedSubtitles: originalNonWordSubtitlesWithIds,
-                      size: averageChunkSize
+                      resizedSubtitles: Subtitles.resizeChunks(Subtitles.splitChunksByPauses(subtitles), default_chunk_size),
+                      size: default_chunk_size
                     };
             });
       }
@@ -48,7 +46,7 @@ function useChunksState(subtitles, transcriptionInProgress) {
                             setTranscriptionState(function (param) {
                                   return {
                                           TAG: "SubtitlesNotEdited",
-                                          resizedSubtitles: Subtitles.resizeChunks(subtitles, newSize),
+                                          resizedSubtitles: Subtitles.resizeChunks(Utils.Log.andReturn(Subtitles.splitChunksByPauses(subtitles)), newSize),
                                           size: newSize
                                         };
                                 });

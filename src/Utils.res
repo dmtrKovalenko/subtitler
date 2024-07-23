@@ -101,6 +101,10 @@ module Log = {
     Js.Console.log(a)
     a
   }
+  let andReturn2 = (a, b) => {
+    Js.Console.log2(a, b)
+    a
+  }
 }
 
 module Path = {

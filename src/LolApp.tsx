@@ -41,7 +41,7 @@ async function createTarget(file: File): Promise<Target> {
       suggestedName,
       types: [
         {
-          description: "Video File",
+          description: "Final Video File",
           accept: { "video/mp4": [".mp4"] },
         },
       ],
@@ -154,6 +154,7 @@ export default function LolApp() {
   const subtitlesManager = useChunksState(
     transcriber.output?.chunks ?? [],
     transcriber.isBusy,
+    Constants.DEFAULT_CHUNK_THRESHOLD_CHARS,
   );
 
   const render = React.useCallback(

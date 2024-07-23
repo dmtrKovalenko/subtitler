@@ -150,10 +150,16 @@ function andReturn(a) {
   return a;
 }
 
+function andReturn2(a, b) {
+  console.log(a, b);
+  return a;
+}
+
 var Log = {
   logU: logU,
   logU2: logU2,
-  andReturn: andReturn
+  andReturn: andReturn,
+  andReturn2: andReturn2
 };
 
 function getFilename(path) {

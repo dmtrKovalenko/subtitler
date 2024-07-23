@@ -10,6 +10,7 @@ export type timestamp = [number, (null | undefined | number)];
 export type subtitleCue = {
   readonly id: (undefined | number); 
   readonly text: string; 
+  readonly isInProgress: (undefined | boolean); 
   readonly timestamp: timestamp
 };
 

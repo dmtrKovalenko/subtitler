@@ -1,9 +1,10 @@
 /* eslint-disable camelcase */
-import { pipeline, env } from "@xenova/transformers";
+import { pipeline, env, WhisperTextStreamer } from "@xenova/transformers";
+import Constants from "./Constants";
 
 // Specify a custom location for models (defaults to '/models/').
-env.localModelPath = "/models/";
-env.allowRemoteModels = true;
+// env.localModelPath = "/models/";
+// env.allowRemoteModels = true;
 
 // Define model factories
 // Ensures only one model is created of each type
@@ -28,12 +29,7 @@ class PipelineFactory {
           encoder_model: "fp32",
           decoder_model_merged: "q4", // or 'fp32' ('fp16' is broken)
         },
-        device: "webgpu",
-
-        // For medium models, we need to load the `no_attentions` revision to avoid running out of memory
-        revision: this.model.includes("whisper-medium")
-          ? "no_attentions"
-          : "main",
+        device: navigator.gpu ? "webgpu" : "wasm",
       });
     }
 
@@ -50,7 +46,6 @@ self.addEventListener("message", async (event) => {
     message.audio,
     message.model,
     message.quantized,
-    message.subtask,
     message.language,
   );
   if (transcript === null) return;
@@ -69,7 +64,9 @@ class AutomaticSpeechRecognitionPipelineFactory extends PipelineFactory {
   static quantized = null;
 }
 
-const transcribe = async (audio, modelName, quantized, subtask, language) => {
+const SENTENCE_ENDING_REGEXP = /.*[.!?。！？]$/;
+
+const transcribe = async (audio, modelName, quantized, language) => {
   const p = AutomaticSpeechRecognitionPipelineFactory;
   if (p.model !== modelName || p.quantized !== quantized) {
     // Invalidate model if different
@@ -91,54 +88,48 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
     transcriber.processor.feature_extractor.config.chunk_length /
     transcriber.model.config.max_source_positions;
 
-  // Storage for chunks to be processed. Initialise with an empty chunk.
-  let chunks_to_process = [
-    {
-      tokens: [],
-      finalised: false,
+  let start_time;
+  let num_tokens = 0;
+  let tps;
+
+  let in_progress_text = "";
+  let in_progress_chunks = [];
+
+  const streamer = new WhisperTextStreamer(transcriber.tokenizer, {
+    time_precision,
+    token_callback_function: () => {
+      start_time ??= performance.now();
+      if (num_tokens++ > 0) {
+        tps = (num_tokens / (performance.now() - start_time)) * 1000;
+      }
     },
-  ];
+    callback_function: (x) => {
+      const last_chunk = in_progress_chunks[in_progress_chunks.length - 1];
+      if (
+        in_progress_chunks.length === 0 ||
+        SENTENCE_ENDING_REGEXP.test(last_chunk.text.trim()) ||
+        last_chunk.text.trim().length + x.trim().length >
+          Constants.DEFAULT_CHUNK_THRESHOLD_CHARS
+      ) {
+        in_progress_chunks.push({
+          text: x,
+          timestamp: [0, null],
+          isInProgress: true,
+        });
+      } else {
+        last_chunk.text += x;
+      }
 
-  // TODO: Storage for fully-processed and merged chunks
-  // let decoded_chunks = [];
+      in_progress_text += x;
 
-  function chunk_callback(chunk) {
-    let last = chunks_to_process[chunks_to_process.length - 1];
-
-    // Overwrite last chunk with new info
-    Object.assign(last, chunk);
-    last.finalised = true;
-
-    // Create an empty chunk after, if it not the last chunk
-    if (!chunk.is_last) {
-      chunks_to_process.push({
-        tokens: [],
-        finalised: false,
+      self.postMessage({
+        tps,
+        status: "update",
+        text: in_progress_text,
+        chunks: in_progress_chunks,
       });
-    }
-  }
-
-  // Inject custom callback function to handle merging of chunks
-  function callback_function(item) {
-    let last = chunks_to_process[chunks_to_process.length - 1];
-
-    // Update tokens of last chunk
-    last.tokens = [...item[0].output_token_ids];
-
-    // Merge text chunks
-    // TODO optimise so we don't have to decode all chunks every time
-    let data = transcriber.tokenizer._decode_asr(chunks_to_process, {
-      time_precision: time_precision,
-      return_timestamps: true,
-      force_full_sequences: false,
-    });
-
-    self.postMessage({
-      status: "update",
-      task: "automatic-speech-recognition",
-      data: data,
-    });
-  }
+    },
+  });
 
   // Actually run transcription
   let output = await transcriber(audio, {
@@ -158,9 +149,7 @@ const transcribe = async (audio, modelName, quantized, subtask, language) => {
     return_timestamps: "word",
     force_full_sequences: false,
 
-    // Callback functions
-    callback_function: callback_function, // after each generation step
-    chunk_callback: chunk_callback, // after each chunk is processed
+    streamer,
   }).catch((error) => {
     self.postMessage({
       status: "error",

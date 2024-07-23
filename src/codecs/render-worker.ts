@@ -211,7 +211,6 @@ class EncoderMuxer {
           throw new Error(
             "Found filehnadle target when the muxer is fanlized. Only accepting filestream target at this point",
           );
-        // @ts-expect-error yes we want to fall through
         case "arraybuffer":
           if (this.#muxer?.target instanceof ArrayBufferTarget) {
             populatedTarget = {
@@ -257,7 +256,6 @@ export async function render({
   cues,
   style,
 }: RenderMessage) {
-  console.log("FROM RENDER WORKER");
   let metadataRef: { current: Metadata | null } = {
     current: null,
   };

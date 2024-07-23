@@ -64,6 +64,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
       return this.state.error.stack;
     }
 
+    let anyError = this.state.error as any;
+    if (anyError.RE_EXN_ID) {
+      return anyError.RE_EXN_ID + "\n" + anyError.Error.stack;
+    }
+
     if (this.state.error instanceof Error) {
       return this.state.error.message + "\n" + this.state.error.stack;
     }
@@ -107,7 +112,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
             more info for smelly nerds
           </p>
 
-          <div className="max-w-2xl select-all max-h-[20.8rem] bg-white/10 font-medium mx-auto backdrop-blur-3xl text-left font-mono p-4 rounded-xl overflow-auto">
+          <div className="max-w-2xl select-all max-h-[20.8rem] bg-white/10 font-medium mx-auto backdrop-blur-3xl whitespace-pre text-left font-mono p-4 rounded-xl overflow-auto">
             {this.getErrorDetails()}
           </div>
 
