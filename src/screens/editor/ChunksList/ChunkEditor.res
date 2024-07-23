@@ -26,7 +26,7 @@ let useEditorInputHandler = () => {
 
 module TimestampEditor = {
   @react.component
-  let make = (~ts: option<float>, ~label, ~allowEmpty, ~onChange, ~readonly) => {
+  let make = (~ts: option<float>, ~label, ~inProgress, ~allowEmpty, ~onChange, ~readonly) => {
     let inputRef = useMask({
       mask: "__:__,___",
       replacement: Js.Dict.fromArray([("_", RegExp.fromString("\\d"))]),
@@ -83,9 +83,10 @@ module TimestampEditor = {
         }
       }}
       defaultValue={parsedValue}
-      placeholder="till the next cue"
+      placeholder={inProgress ? "transcribing" : "till the next cue"}
       className={Cx.cx([
-        "w-full ",
+        "w-full",
+        inProgress ? "animate-pulse pointer-events-none" : "",
         parseError->Option.isSome ? "ring-red-500 rounded-lg ring-2 focus:ring-0" : "",
       ])}
     />
@@ -141,6 +142,8 @@ let make = React.memo((
     }
   }, [start])
 
+  let inProgress = chunk.isInProgress->Option.getOr(false)
+
   <div
     ref={ReactDOM.Ref.domRef(ref)}
     onFocus=seekToThisCue
@@ -150,6 +153,7 @@ let make = React.memo((
     ])}>
     <div className="flex items-center gap-1">
       <TimestampEditor
+        inProgress
         label={"Start time of cue " ++ index->Int.toString}
         readonly
         allowEmpty=false
@@ -163,6 +167,7 @@ let make = React.memo((
       />
       <Icons.ArrowRightIcon className="text-white size-10" />
       <TimestampEditor
+        inProgress
         label={"Start time of cue " ++ index->Int.toString}
         readonly
         allowEmpty=true

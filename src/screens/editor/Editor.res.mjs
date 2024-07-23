@@ -128,6 +128,7 @@ var make = React.memo(function (props) {
                                           width: ctx.videoMeta.width.toString()
                                         }),
                                     JsxRuntime.jsx(EditorCanvas.make, {
+                                          transcriptionInProgress: transcriptionInProgress,
                                           width: ctx.videoMeta.width,
                                           height: ctx.videoMeta.height,
                                           style: {

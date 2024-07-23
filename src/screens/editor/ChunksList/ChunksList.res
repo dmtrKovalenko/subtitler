@@ -14,18 +14,17 @@ type subtitlesManager = {
 }
 
 @genType
-let useChunksState = (~subtitles, ~transcriptionInProgress) => {
+let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size) => {
   let subtitlesRef = React.useRef(subtitles)
   let (transcriptionState, setTranscriptionState) = React.useState(_ => TranscriptionInProgress)
 
   switch (transcriptionInProgress, transcriptionState) {
   | (false, TranscriptionInProgress) if Array.length(subtitles) > 0 =>
-    let originalNonWordSubtitlesWithIds = subtitlesRef.current->Subtitles.fillChunksIds
-    let averageChunkSize = originalNonWordSubtitlesWithIds->Subtitles.averageChunkLength
-
     setTranscriptionState(_ => SubtitlesNotEdited({
-      resizedSubtitles: originalNonWordSubtitlesWithIds,
-      size: averageChunkSize,
+      resizedSubtitles: subtitles
+      ->Subtitles.splitChunksByPauses
+      ->Subtitles.resizeChunks(~maxSize=default_chunk_size),
+      size: default_chunk_size,
     }))
   | _ => ()
   }
@@ -48,7 +47,10 @@ let useChunksState = (~subtitles, ~transcriptionInProgress) => {
       )),
     resizeSubtitles: newSize => {
       setTranscriptionState(_ => SubtitlesNotEdited({
-        resizedSubtitles: subtitles->Subtitles.resizeChunks(~maxSize=newSize),
+        resizedSubtitles: subtitles
+        ->Subtitles.splitChunksByPauses
+        ->Utils.Log.andReturn
+        ->Subtitles.resizeChunks(~maxSize=newSize),
         size: newSize,
       }))
     },

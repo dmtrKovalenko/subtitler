@@ -4,6 +4,7 @@ type timestamp = (float, Js.nullable<float>)
 type subtitleCue = {
   id: option<float>,
   text: string,
+  isInProgress: option<bool>,
   timestamp: timestamp,
 }
 
@@ -95,38 +96,95 @@ let addChunkId = (chunk: subtitleCue) => {
 
 let fillChunksIds = (subtitles: array<subtitleCue>) => subtitles->Array.map(addChunkId)
 
-// Simple alghortim taking into account word level timestamps
-// and combining them into chunks of a given max size
-let resizeChunks = (wordChunks, ~maxSize) => {
-  let resizedChunks = []
-  let chunkInProgressRef = ref(None)
+let splitChunksByPauses = wordChunks => {
+  let splitChunks = []
 
-  let wordlen = chunkA => {
-    chunkA.text->String.trim->String.length
-  }
+  wordChunks->Array.forEachWithIndex((chunk, i) => {
+    let prevWordChunk = wordChunks->Array.get(i - 1)
+    let prevChunkGroup = splitChunks->Utils.Array.last
 
-  wordChunks->Array.forEach(chunk => {
-    // we need to keep the populate ids for every chunk on this step
-    let chunk = chunk->addChunkId
-
-    switch chunkInProgressRef.contents {
-    | None => chunkInProgressRef := Some(chunk)
-    | Some(chunkInProgress) if chunk->wordlen + chunkInProgress->wordlen < maxSize =>
-      chunkInProgressRef :=
-        Some({
-          id: Some(Math.random()),
-          text: chunkInProgress.text ++ chunk.text,
-          timestamp: (chunkInProgress.timestamp->fst, chunk.timestamp->snd),
-        })
-    | Some(chunkInProgress) =>
-      resizedChunks->Array.push(chunkInProgress)
-      chunkInProgressRef := Some(chunk)
+    switch (prevWordChunk, prevChunkGroup) {
+    | (None, _) | (_, None) => splitChunks->Array.push([chunk])
+    | (Some(prevChunk), Some(_))
+      if prevChunk
+      ->end
+      ->Js.Nullable.toOption
+      ->Option.map(prevEnd => chunk->start -. prevEnd > 0.2)
+      ->Option.getOr(false) =>
+      splitChunks->Array.push([chunk])
+    | (Some(_), Some(lastChunkGroup)) => lastChunkGroup->Array.push(chunk)
     }
   })
 
-  chunkInProgressRef.contents->Option.forEach(chunk => Array.push(resizedChunks, chunk))
+  splitChunks
+}
 
-  resizedChunks
+let trim_syntax_ending_punctuation_regexp = %re("/[.,!?。！？]$/")
+
+let resizeChunks = (chunkGroups, ~maxSize) => {
+  chunkGroups
+  ->Array.flatMap(group => {
+    let totalGroupCharLength = group->Array.reduce(0, (acc, chunk) => {
+      acc + chunk.text->String.length
+    })
+
+    if totalGroupCharLength > maxSize {
+      %debugger
+      let relation = totalGroupCharLength->float_of_int /. maxSize->float_of_int
+      let subChunkSize = Math.ceil(Array.length(group)->float_of_int /. relation)->int_of_float
+
+      let subChunks = []
+      for i in 0 to relation->int_of_float {
+        let subChunk = group->Array.slice(~start=i * subChunkSize, ~end=(i + 1) * subChunkSize)
+
+        if subChunk->Array.length > 0 {
+          subChunks->Array.push({
+            id: Some(Math.random()),
+            text: subChunk->Array.reduce("", (acc, chunk) => {
+              acc ++ chunk.text
+            }),
+            isInProgress: (subChunk->Array.getUnsafe(0)).isInProgress,
+            timestamp: (
+              subChunk
+              ->Array.get(0)
+              ->Option.getExn(~message="Missing original chunk when calculating subgroup")
+              ->start,
+              subChunk
+              ->Utils.Array.last
+              ->Option.getExn(~message="Missing original chunk when calculating subgroup")
+              ->end,
+            ),
+          })
+        }
+      }
+
+      subChunks
+    } else {
+      let combinedText = group->Array.reduce("", (acc, chunk) => {
+        acc ++ chunk.text
+      })
+
+      [
+        {
+          id: Some(Math.random()),
+          text: combinedText,
+          isInProgress: (group->Array.getUnsafe(0)).isInProgress,
+          timestamp: (
+            group->Array.getUnsafe(0)->start,
+            group->Array.getUnsafe(group->Array.length - 1)->end,
+          ),
+        },
+      ]
+    }
+  })
+  ->Array.map(chunk => {
+    {
+      ...chunk,
+      text: chunk.text
+      ->String.trim
+      ->String.replaceRegExp(trim_syntax_ending_punctuation_regexp, ""),
+    }
+  })
 }
 
 let editChunkText = (chunks, index, newText) => {
@@ -153,7 +211,6 @@ let sortChunks = chunks => {
 
 let editChunkTimestamp = (chunks, index, newTimestamp) => {
   chunks
-  ->Utils.Log.andReturn
   ->Array.mapWithIndex((chunk, i) => {
     if i == index {
       {
@@ -164,7 +221,6 @@ let editChunkTimestamp = (chunks, index, newTimestamp) => {
       chunk
     }
   })
-  ->Utils.Log.andReturn
   ->sortChunks
 }
 
@@ -193,6 +249,5 @@ let removeChunk = (chunks, index, ~joinSiblingsTimestamps) => {
       }
     })
   })
-  ->Utils.Log.andReturn
   ->Option.getOr(chunks)
 }

@@ -1,3 +1,5 @@
+import { serde } from "../hooks/useStickyState.gen";
+
 function mobileTabletCheck() {
   // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
   let check = false;
@@ -23,14 +25,38 @@ function mobileTabletCheck() {
 
 const isMobileOrTablet = mobileTabletCheck();
 
+export const MODELS = {
+  "onnx-community/whisper-tiny_timestamped": "Tiny (152 Mb)",
+  "onnx-community/whisper-base_timestamped": "Base (291 Mb)",
+  "onnx-community/whisper-small_timestamped": "Small (586 Mb)",
+} as const;
+
+export type Model = keyof typeof MODELS;
+
+export const ALL_MODELS = Object.keys(MODELS) as Array<Model>;
+const DEFAULT_MODEL: Model = "onnx-community/whisper-base_timestamped";
+
+export const modelSerde: serde<Model> = {
+  parse: function (input: string): Model {
+    if (ALL_MODELS.includes(input as Model)) {
+      return input as Model;
+    }
+
+    throw new Error("Invalid model");
+  },
+  serialize: function (input: Model): string {
+    return input;
+  },
+};
+
 export default {
   SAMPLING_RATE: 16000,
-  DEFAULT_AUDIO_URL: `https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/${
-    isMobileOrTablet ? "jfk" : "ted_60_16k"
-  }.wav`,
-  DEFAULT_MODEL: "whisper-base",
   DEFAULT_SUBTASK: "transcribe",
   DEFAULT_LANGUAGE: "en",
   DEFAULT_QUANTIZED: isMobileOrTablet,
   DEFAULT_MULTILINGUAL: true,
+  MODELS,
+  ALL_MODELS,
+  DEFAULT_CHUNK_THRESHOLD_CHARS: 65,
+  DEFAULT_MODEL,
 };

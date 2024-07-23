@@ -9,6 +9,7 @@ import clsx from "clsx";
 type EditorCanvasProps = {
   width: number;
   height: number;
+  transcriptionInProgress: boolean;
   subtitles: Array<subtitleCue>;
 } & StageProps;
 
@@ -17,6 +18,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   height,
   className,
   subtitles,
+  transcriptionInProgress,
   style,
 }) => {
   const editorContext = useEditorContext();
@@ -50,8 +52,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     }
   }
 
+  const cueIndexToShow = transcriptionInProgress
+    ? 0
+    : player.currentPlayingCue?.currentIndex ?? 0;
+
   const currentSubtitle = player.currentPlayingCue
-    ? subtitles[player.currentPlayingCue.currentIndex]?.text ?? ""
+    ? subtitles[cueIndexToShow]?.text ?? ""
     : "";
 
   React.useEffect(() => {

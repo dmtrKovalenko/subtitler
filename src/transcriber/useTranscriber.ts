@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { serdeString, useStickyState } from "../hooks/useStickyState.gen";
 import WhisperWorker from "./whisper-worker?worker";
-import Constants from "./Constants";
+import Constants, { Model, modelSerde } from "./Constants";
 import { ProgressItem } from "../LolApp";
 
 type Chunk = {
   text: string;
   timestamp: [number, number | null];
+  isInProgress: boolean | undefined;
   id: number | undefined;
 };
 
@@ -20,7 +21,7 @@ interface TranscriberProgressMessage {
 }
 
 interface TranscriberUpdateData {
-  data: [string, { chunks: Chunk[] }];
+  chunks: Chunk[];
   text: string;
 }
 
@@ -43,8 +44,8 @@ export interface Transcriber {
   isModelLoading: boolean;
   start: (audioData: AudioBuffer | undefined) => void;
   output?: TranscriberData;
-  model: string;
-  setModel: (model: string) => void;
+  model: Model;
+  setModel: (model: Model) => void;
   quantized: boolean;
   setQuantized: (model: boolean) => void;
   language?: string;
@@ -84,8 +85,8 @@ export function useTranscriber(
         const updateMessage = message as TranscriberUpdateData;
         setTranscript({
           isBusy: true,
-          text: updateMessage.data[0],
-          chunks: updateMessage.data[1].chunks,
+          text: updateMessage.text,
+          chunks: updateMessage.chunks,
         });
         break;
       case "complete":
@@ -146,9 +147,9 @@ export function useTranscriber(
 
   const [model, setModel] = useStickyState(
     "subtitler:model",
-    0,
+    1,
     Constants.DEFAULT_MODEL,
-    serdeString,
+    modelSerde,
   );
 
   const [language, setLanguage] = useStickyState(

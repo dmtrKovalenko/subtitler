@@ -100,6 +100,7 @@ function addChunkId(chunk) {
   return {
           id: Math.random(),
           text: chunk.text,
+          isInProgress: chunk.isInProgress,
           timestamp: chunk.timestamp
         };
 }
@@ -108,36 +109,84 @@ function fillChunksIds(subtitles) {
   return subtitles.map(addChunkId);
 }
 
-function resizeChunks(wordChunks, maxSize) {
-  var resizedChunks = [];
-  var chunkInProgressRef = {
-    contents: undefined
-  };
-  wordChunks.forEach(function (chunk) {
-        var chunk$1 = addChunkId(chunk);
-        var chunkInProgress = chunkInProgressRef.contents;
-        if (chunkInProgress !== undefined) {
-          if ((chunk$1.text.trim().length + chunkInProgress.text.trim().length | 0) < maxSize) {
-            chunkInProgressRef.contents = {
-              id: Math.random(),
-              text: chunkInProgress.text + chunk$1.text,
-              timestamp: [
-                chunkInProgress.timestamp[0],
-                chunk$1.timestamp[1]
-              ]
-            };
+function splitChunksByPauses(wordChunks) {
+  var splitChunks = [];
+  wordChunks.forEach(function (chunk, i) {
+        var prevWordChunk = wordChunks[i - 1 | 0];
+        var prevChunkGroup = Utils.$$Array.last(splitChunks);
+        if (prevWordChunk !== undefined) {
+          if (prevChunkGroup !== undefined) {
+            if (Core__Option.getOr(Core__Option.map(Caml_option.nullable_to_opt(prevWordChunk.timestamp[1]), (function (prevEnd) {
+                          return chunk.timestamp[0] - prevEnd > 0.2;
+                        })), false)) {
+              splitChunks.push([chunk]);
+            } else {
+              prevChunkGroup.push(chunk);
+            }
           } else {
-            resizedChunks.push(chunkInProgress);
-            chunkInProgressRef.contents = chunk$1;
+            splitChunks.push([chunk]);
           }
         } else {
-          chunkInProgressRef.contents = chunk$1;
+          splitChunks.push([chunk]);
         }
       });
-  Core__Option.forEach(chunkInProgressRef.contents, (function (chunk) {
-          resizedChunks.push(chunk);
-        }));
-  return resizedChunks;
+  return splitChunks;
+}
+
+var trim_syntax_ending_punctuation_regexp = /[.,!?。！？]$/;
+
+function resizeChunks(chunkGroups, maxSize) {
+  return chunkGroups.flatMap(function (group) {
+                var totalGroupCharLength = Core__Array.reduce(group, 0, (function (acc, chunk) {
+                        return acc + chunk.text.length | 0;
+                      }));
+                if (totalGroupCharLength > maxSize) {
+                  debugger;
+                  var relation = totalGroupCharLength / maxSize;
+                  var subChunkSize = Math.ceil(group.length / relation) | 0;
+                  var subChunks = [];
+                  for(var i = 0 ,i_finish = relation | 0; i <= i_finish; ++i){
+                    var subChunk = group.slice(Math.imul(i, subChunkSize), Math.imul(i + 1 | 0, subChunkSize));
+                    if (subChunk.length > 0) {
+                      var chunk = Core__Option.getExn(subChunk[0], "Missing original chunk when calculating subgroup");
+                      var chunk$1 = Core__Option.getExn(Utils.$$Array.last(subChunk), "Missing original chunk when calculating subgroup");
+                      subChunks.push({
+                            id: Math.random(),
+                            text: Core__Array.reduce(subChunk, "", (function (acc, chunk) {
+                                    return acc + chunk.text;
+                                  })),
+                            isInProgress: subChunk[0].isInProgress,
+                            timestamp: [
+                              chunk.timestamp[0],
+                              chunk$1.timestamp[1]
+                            ]
+                          });
+                    }
+                    
+                  }
+                  return subChunks;
+                }
+                var combinedText = Core__Array.reduce(group, "", (function (acc, chunk) {
+                        return acc + chunk.text;
+                      }));
+                var chunk$2 = group[group.length - 1 | 0];
+                return [{
+                          id: Math.random(),
+                          text: combinedText,
+                          isInProgress: group[0].isInProgress,
+                          timestamp: [
+                            group[0].timestamp[0],
+                            chunk$2.timestamp[1]
+                          ]
+                        }];
+              }).map(function (chunk) {
+              return {
+                      id: chunk.id,
+                      text: chunk.text.trim().replace(trim_syntax_ending_punctuation_regexp, ""),
+                      isInProgress: chunk.isInProgress,
+                      timestamp: chunk.timestamp
+                    };
+            });
 }
 
 function editChunkText(chunks, index, newText) {
@@ -146,6 +195,7 @@ function editChunkText(chunks, index, newText) {
                 return {
                         id: chunk.id,
                         text: newText,
+                        isInProgress: chunk.isInProgress,
                         timestamp: chunk.timestamp
                       };
               } else {
@@ -163,48 +213,51 @@ function sortChunks(chunks) {
 }
 
 function editChunkTimestamp(chunks, index, newTimestamp) {
-  return sortChunks(Utils.Log.andReturn(Utils.Log.andReturn(chunks).map(function (chunk, i) {
-                      if (i === index) {
-                        return {
-                                id: chunk.id,
-                                text: chunk.text,
-                                timestamp: newTimestamp
-                              };
-                      } else {
-                        return chunk;
-                      }
-                    })));
+  return sortChunks(chunks.map(function (chunk, i) {
+                  if (i === index) {
+                    return {
+                            id: chunk.id,
+                            text: chunk.text,
+                            isInProgress: chunk.isInProgress,
+                            timestamp: newTimestamp
+                          };
+                  } else {
+                    return chunk;
+                  }
+                }));
 }
 
 function removeChunk(chunks, index, joinSiblingsTimestamps) {
   var chunkToRemove = chunks[index];
-  return Core__Option.getOr(Utils.Log.andReturn(Core__Option.map(chunkToRemove, (function (chunkToRemove) {
-                        return Utils.$$Array.filterMapWithIndex(chunks, (function (chunk, i) {
-                                      if (i === index) {
-                                        return ;
-                                      } else if (joinSiblingsTimestamps && i === (index - 1 | 0)) {
-                                        return {
-                                                id: chunk.id,
-                                                text: chunk.text,
-                                                timestamp: [
-                                                  chunk.timestamp[0],
-                                                  chunkToRemove.timestamp[1]
-                                                ]
-                                              };
-                                      } else if (joinSiblingsTimestamps && i === (index + 1 | 0)) {
-                                        return {
-                                                id: chunk.id,
-                                                text: chunk.text,
-                                                timestamp: [
-                                                  Core__Option.getOr(Caml_option.nullable_to_opt(chunkToRemove.timestamp[1]), chunk.timestamp[0]),
-                                                  chunk.timestamp[1]
-                                                ]
-                                              };
-                                      } else {
-                                        return chunk;
-                                      }
-                                    }));
-                      }))), chunks);
+  return Core__Option.getOr(Core__Option.map(chunkToRemove, (function (chunkToRemove) {
+                    return Utils.$$Array.filterMapWithIndex(chunks, (function (chunk, i) {
+                                  if (i === index) {
+                                    return ;
+                                  } else if (joinSiblingsTimestamps && i === (index - 1 | 0)) {
+                                    return {
+                                            id: chunk.id,
+                                            text: chunk.text,
+                                            isInProgress: chunk.isInProgress,
+                                            timestamp: [
+                                              chunk.timestamp[0],
+                                              chunkToRemove.timestamp[1]
+                                            ]
+                                          };
+                                  } else if (joinSiblingsTimestamps && i === (index + 1 | 0)) {
+                                    return {
+                                            id: chunk.id,
+                                            text: chunk.text,
+                                            isInProgress: chunk.isInProgress,
+                                            timestamp: [
+                                              Core__Option.getOr(Caml_option.nullable_to_opt(chunkToRemove.timestamp[1]), chunk.timestamp[0]),
+                                              chunk.timestamp[1]
+                                            ]
+                                          };
+                                  } else {
+                                    return chunk;
+                                  }
+                                }));
+                  })), chunks);
 }
 
 export {
@@ -217,6 +270,8 @@ export {
   averageChunkLength ,
   addChunkId ,
   fillChunksIds ,
+  splitChunksByPauses ,
+  trim_syntax_ending_punctuation_regexp ,
   resizeChunks ,
   editChunkText ,
   sortChunks ,

@@ -26,4 +26,4 @@ export type subtitlesManager = {
   readonly editTimestamp: (_1:number, _2:Subtitles_timestamp) => void
 };
 
-export const useChunksState: (subtitles:Subtitles_subtitleCue[], transcriptionInProgress:boolean) => subtitlesManager = ChunksListJS.useChunksState as any;
+export const useChunksState: (subtitles:Subtitles_subtitleCue[], transcriptionInProgress:boolean, default_chunk_size:number) => subtitlesManager = ChunksListJS.useChunksState as any;

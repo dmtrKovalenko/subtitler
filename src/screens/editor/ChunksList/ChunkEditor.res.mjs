@@ -38,6 +38,7 @@ function useEditorInputHandler() {
 function ChunkEditor$TimestampEditor(props) {
   var onChange = props.onChange;
   var allowEmpty = props.allowEmpty;
+  var inProgress = props.inProgress;
   var ts = props.ts;
   var inputRef = Mask.useMask({
         mask: "__:__,___",
@@ -73,12 +74,13 @@ function ChunkEditor$TimestampEditor(props) {
   return JsxRuntime.jsx(Input.make, {
               defaultValue: parsedValue,
               inputRef: Caml_option.some(inputRef),
-              placeholder: "till the next cue",
+              placeholder: inProgress ? "transcribing" : "till the next cue",
               onKeyDown: useEditorInputHandler(),
               readOnly: props.readonly,
               label: props.label,
               className: Cx.cx([
-                    "w-full ",
+                    "w-full",
+                    inProgress ? "animate-pulse pointer-events-none" : "",
                     Core__Option.isSome(parseError) ? "ring-red-500 rounded-lg ring-2 focus:ring-0" : ""
                   ]),
               labelHidden: true,
@@ -160,6 +162,7 @@ var make = React.memo(function (props) {
               }
               
             }), [start]);
+      var inProgress = Core__Option.getOr(chunk.isInProgress, false);
       return JsxRuntime.jsxs("div", {
                   children: [
                     JsxRuntime.jsxs("div", {
@@ -167,6 +170,7 @@ var make = React.memo(function (props) {
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: start,
                                   label: "Start time of cue " + index.toString(),
+                                  inProgress: inProgress,
                                   allowEmpty: false,
                                   onChange: (function (seconds) {
                                       var seconds$1 = Utils.$$Option.unwrap(seconds);
@@ -188,6 +192,7 @@ var make = React.memo(function (props) {
                             JsxRuntime.jsx(ChunkEditor$TimestampEditor, {
                                   ts: Caml_option.nullable_to_opt(match[1]),
                                   label: "Start time of cue " + index.toString(),
+                                  inProgress: inProgress,
                                   allowEmpty: true,
                                   onChange: (function (seconds) {
                                       onTimestampChange(index, [
