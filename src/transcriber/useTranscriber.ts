@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useContext } from "react";
 import { serdeString, useStickyState } from "../hooks/useStickyState.gen";
 import WhisperWorker from "./whisper-worker?worker";
 import Constants, { Model, modelSerde } from "./Constants";
 import { ProgressItem } from "../LolApp";
+import { ShowErrorContext, UserFacingError } from "../ErrorBoundary";
 
 type Chunk = {
   text: string;
@@ -57,6 +58,7 @@ const worker: Worker = new WhisperWorker();
 export function useTranscriber(
   setProgressItems: React.Dispatch<React.SetStateAction<ProgressItem[]>>,
 ): Transcriber {
+  const failWith = useContext(ShowErrorContext);
   const [transcript, setTranscript] = useState<TranscriberData | undefined>(
     undefined,
   );
@@ -124,9 +126,7 @@ export function useTranscriber(
         break;
       case "error":
         setIsBusy(false);
-        alert(
-          `${message.data.message} This is most likely because you are using Safari on an M1/M2 Mac. Please try again from Chrome, Firefox, or Edge.\n\nIf this is not the case, please file a bug report.`,
-        );
+        failWith(new UserFacingError("Transcription failed", message.data));
         break;
       case "done":
         // Model file loaded: remove the progress item from the list.

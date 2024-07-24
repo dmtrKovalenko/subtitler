@@ -11,8 +11,9 @@ import { Editor } from "./screens/editor/Editor.gen";
 import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
 import { Transition } from "@headlessui/react";
 import type {
-  RenderMessage,
   Target,
+  RenderWorkerMessage,
+  ConfigSupportResponseMessage,
   RenderProgressMessage,
 } from "./codecs/render-worker";
 import clsx from "clsx";
@@ -73,7 +74,6 @@ async function saveTarget(target: Target) {
 
 // Why is this written in TypeScript? 💀 My eyes are bleeding from these terrible states.
 export default function LolApp() {
-  // Changed name to be more descriptive
   const failWith = React.useContext(ShowErrorContext);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const rendererPreviewCanvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -92,14 +92,7 @@ export default function LolApp() {
     make: (props: any) => JSX.Element;
   } | null>(null);
 
-  const onFile = async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) {
-      return;
-    }
-
-    let audioBuffer;
-    log("video_uploaded");
+  async function readAndPrepareAudioContext(file: File) {
     try {
       const audioCtx = new AudioContext({
         sampleRate: Constants.SAMPLING_RATE,
@@ -121,7 +114,7 @@ export default function LolApp() {
         },
       ]);
 
-      audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
       setProgressItems([
         {
           id: "decodeprogress",
@@ -130,25 +123,97 @@ export default function LolApp() {
         },
       ]);
 
-      document.title = `${file.name} subtitles`;
       setFile({
-        name: file.name,
         file,
+        name: file.name,
         objectURL: URL.createObjectURL(file),
         audioBuffer,
         audioCtx,
       });
+
+      return audioBuffer;
     } catch (e) {
-      failWith(
-        new UserFacingError(
-          "We couldn't find decodable audio stream in your video",
-          e,
-        ),
+      throw new UserFacingError(
+        "We couldn't find decodable audio stream in your video",
+        e,
       );
     }
+  }
 
-    setProgressItems([]);
-    transcriber.start(audioBuffer);
+  async function validateFileCodecSupoprted(file: File) {
+    const worker = new RenderWorker();
+
+    worker.postMessage({
+      type: "validate",
+      payload: {
+        dataUri: file,
+      },
+    } as RenderWorkerMessage);
+
+    return new Promise<void>((res, rej) =>
+      worker.addEventListener(
+        "message",
+        ({ data }: MessageEvent<ConfigSupportResponseMessage>) => {
+          if (data.type === "error") {
+            rej(new UserFacingError(data.message, data.error));
+          }
+
+          if (data.type === "config-support") {
+            if (data.encoderSupported && data.decoderSupported) {
+              res();
+            } else {
+              let whichCodecIsMissing = "";
+
+              if (!data.encoderSupported && !data.decoderSupported) {
+                whichCodecIsMissing = "both encoding and decoding";
+              }
+
+              if (!data.encoderSupported && data.decoderSupported) {
+                whichCodecIsMissing = "encoding";
+              }
+
+              if (data.encoderSupported && !data.decoderSupported) {
+                whichCodecIsMissing = "decoding";
+              }
+
+              rej(
+                new UserFacingError(
+                  `You'r browser does not support ${whichCodecIsMissing} for your video file codec.`,
+                  new Error(
+                    "Usually this might mean that your browser not supporting hevc. This might help:\n ffmpeg -i <yourfile> -c:v libx264 -crf 18 -c:a aac <outputfile>",
+                  ),
+                ),
+              );
+            }
+          }
+        },
+        { once: true },
+      ),
+    ).finally(() => worker.terminate());
+  }
+
+  const onFile = async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) {
+      return;
+    }
+
+    log("video_uploaded");
+    document.title = `validating ${file.name}`;
+
+    try {
+      const [audioBuffer, _] = await Promise.all([
+        readAndPrepareAudioContext(file),
+        validateFileCodecSupoprted(file),
+      ]);
+
+      setProgressItems([]);
+      document.title = `transcribing ${file.name}`;
+
+      transcriber.start(audioBuffer);
+    } catch (e) {
+      failWith(e);
+    }
   };
 
   const subtitlesManager = useChunksState(
@@ -190,12 +255,14 @@ export default function LolApp() {
       worker.postMessage(
         {
           type: "render",
-          style,
-          target,
-          dataUri: file.file,
-          canvas: offscreenCanvas,
-          cues: subtitlesManager.activeSubtitles,
-        } as RenderMessage,
+          payload: {
+            style,
+            target,
+            dataUri: file.file,
+            canvas: offscreenCanvas,
+            cues: subtitlesManager.activeSubtitles,
+          },
+        } as RenderWorkerMessage,
         [offscreenCanvas],
       );
 
@@ -203,9 +270,7 @@ export default function LolApp() {
         "message",
         (e: MessageEvent<RenderProgressMessage>) => {
           if (e.data.type === "error") {
-            failWith(
-              new UserFacingError("Failed to render subtitles", e.data.error),
-            );
+            failWith(new UserFacingError(e.data.message, e.data.error));
           }
           if (e.data.type === "done") {
             log("video_rendered");

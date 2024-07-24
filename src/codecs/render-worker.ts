@@ -59,8 +59,43 @@ export type RenderProgressMessage =
       error: unknown;
     };
 
-const postMessage = (message: RenderProgressMessage) =>
-  self.postMessage(message);
+export type RenderMessage = {
+  dataUri: File;
+  canvas: OffscreenCanvas;
+  target: Target;
+  cues: TranscriberData["chunks"];
+  style: style;
+};
+
+export type ValidateMessage = {
+  dataUri: File;
+};
+
+export type RenderWorkerMessage =
+  | {
+      type: "render";
+      payload: RenderMessage;
+    }
+  | {
+      type: "validate";
+      payload: ValidateMessage;
+    };
+
+export type ConfigSupportResponseMessage =
+  | {
+      type: "config-support";
+      decoderSupported: boolean;
+      encoderSupported: boolean;
+    }
+  | {
+      type: "error";
+      message: string;
+      error: unknown;
+    };
+
+const postMessage = (
+  message: RenderProgressMessage | ConfigSupportResponseMessage,
+) => self.postMessage(message);
 
 export type Target =
   | {
@@ -112,6 +147,68 @@ async function prepareOffscreenTargetForWriting(target: Target) {
   return target;
 }
 
+function getCodecLevelString(width: number, height: number): string {
+  // Define the profile for High profile
+  const profile = "64";
+
+  // Calculate the total number of pixels
+  const totalPixels = width * height;
+
+  // Determine the level based on the total number of pixels
+  let level: string;
+
+  if (totalPixels <= 720 * 480) {
+    level = "1E"; // Level 3.0
+  } else if (totalPixels <= 1280 * 720) {
+    level = "1F"; // Level 3.1
+  } else if (totalPixels <= 1920 * 1080) {
+    level = "28"; // Level 4.0
+  } else if (totalPixels <= 1920 * 1080) {
+    level = "29"; // Level 4.1
+  } else if (totalPixels <= 3840 * 2160) {
+    level = "32"; // Level 5.0
+  } else if (totalPixels <= 4096 * 2304) {
+    level = "33"; // Level 5.1
+  } else {
+    throw new Error("Resolution not supported for standard levels");
+  }
+
+  // Combine profile and level to create the codec string
+  return `avc1.${profile}00${level}`;
+}
+
+async function convertDecoderConfigToEncoderConfigOrFallback(
+  videoConfig: VideoDecoderConfig,
+  metadata: Metadata | null,
+) {
+  const originalVideoConfig: VideoEncoderConfig = {
+    codec: videoConfig.codec,
+    width: videoConfig.codedWidth ?? metadata?.width ?? -1,
+    height: videoConfig.codedHeight ?? metadata?.height ?? -1,
+    hardwareAcceleration: "no-preference",
+    bitrate: metadata?.bitrate,
+  };
+
+  const { supported } =
+    await VideoEncoder.isConfigSupported(originalVideoConfig);
+
+  // if not supported fallback to widely supported avc
+  if (supported) {
+    return originalVideoConfig;
+  } else {
+    console.warn(
+      `Just to let you know: We must fallback to encode the file using avc1/h264 because the codec of the input file: ${videoConfig.codec} can not be used for encoding`,
+    );
+    return {
+      ...originalVideoConfig,
+      codec: getCodecLevelString(
+        videoConfig.codedWidth ?? metadata?.width ?? -1,
+        videoConfig.codedHeight ?? metadata?.height ?? -1,
+      ),
+    };
+  }
+}
+
 class EncoderMuxer {
   videoMetadataRef: { current: Metadata | null };
   encoder: VideoEncoder | undefined;
@@ -130,18 +227,15 @@ class EncoderMuxer {
     this.#onEncodeQueueEmptied = onEncodeQueueDevastation;
   }
 
-  configure(videoConfig: VideoDecoderConfig, audioConfig: AudioDecoderConfig) {
+  configure(videoConfig: VideoEncoderConfig, audioConfig: AudioDecoderConfig) {
     let encodedFrames = 0;
-    if (!videoConfig.codedWidth || !videoConfig.codedHeight) {
-      throw new Error("Can not resolve video size");
-    }
 
     this.#muxer = new Muxer({
       target: createMuxerTarget(this.#target),
       video: {
         codec: webcodecsCodecToMuxer(videoConfig.codec),
-        width: videoConfig.codedWidth,
-        height: videoConfig.codedHeight,
+        width: videoConfig.width,
+        height: videoConfig.height,
       },
       audio: {
         codec: audioConfig.codec.toLowerCase().includes("opus")
@@ -175,12 +269,7 @@ class EncoderMuxer {
         } as RenderProgressMessage),
     });
 
-    this.encoder.configure({
-      codec: videoConfig.codec,
-      width: videoConfig.codedWidth,
-      height: videoConfig.codedHeight,
-    });
-
+    this.encoder.configure(videoConfig);
     this.encoder.ondequeue = () => {
       if (this.encoder?.encodeQueueSize === 0) {
         this.#onEncodeQueueEmptied();
@@ -239,15 +328,6 @@ class EncoderMuxer {
     }
   };
 }
-
-export type RenderMessage = {
-  type: "render";
-  dataUri: File;
-  canvas: OffscreenCanvas;
-  target: Target;
-  cues: TranscriberData["chunks"];
-  style: style;
-};
 
 export async function render({
   dataUri,
@@ -312,7 +392,7 @@ export async function render({
         });
       }
     },
-    error(e) {
+    error(e: unknown) {
       postMessage({
         type: "error",
         error: e,
@@ -324,13 +404,20 @@ export async function render({
   let decodingStarted = false;
   // Fetch and demux the media data.
   new MP4Demuxer(dataUri, {
-    onMetadata(metadata: Metadata) {
-      metadataRef.current = metadata;
-    },
-    onConfig(videoConfig: VideoDecoderConfig, audioConfig: AudioDecoderConfig) {
+    onConfig(
+      videoConfig: VideoDecoderConfig,
+      audioConfig: AudioDecoderConfig,
+      metadata: Metadata,
+    ) {
       decoder.configure(videoConfig);
+      metadataRef.current = metadata;
       rendererCtx = createCtx(videoConfig, canvas, style);
-      encoderMuxer.configure(videoConfig, audioConfig);
+
+      convertDecoderConfigToEncoderConfigOrFallback(videoConfig, metadata).then(
+        (videoConfig) => {
+          encoderMuxer.configure(videoConfig, audioConfig);
+        },
+      );
     },
     onVideoChunk(chunk: EncodedVideoChunk) {
       chunks.push(chunk);
@@ -345,15 +432,54 @@ export async function render({
   });
 }
 
+export function validateInput({ dataUri }: ValidateMessage) {
+  new MP4Demuxer(dataUri, {
+    onConfig(videoConfig, _, metadata) {
+      Promise.all([
+        convertDecoderConfigToEncoderConfigOrFallback(
+          videoConfig,
+          metadata,
+        ).then(VideoEncoder.isConfigSupported),
+        VideoDecoder.isConfigSupported(videoConfig),
+      ])
+        .then(([decoderSupport, encoderSupport]) => {
+          postMessage({
+            type: "config-support",
+            decoderSupported: Boolean(decoderSupport.supported),
+            encoderSupported: Boolean(encoderSupport.supported),
+          });
+        })
+        .catch((e: unknown) => {
+          postMessage({
+            type: "error",
+            error: e,
+            message:
+              "Failed to validate video config support for your video file",
+          });
+        });
+    },
+    onVideoChunk() {},
+    onRawAudioChunk() {},
+    setStatus() {},
+  });
+}
+
 // Listen for the start request.
-self.addEventListener("message", (message) => {
-  if (message.data.type === "render") {
-    render(message.data).catch((e) => {
-      postMessage({
-        type: "error",
-        error: e,
-        message: "Failed to render video",
+self.addEventListener(
+  "message",
+  (message: MessageEvent<RenderWorkerMessage>) => {
+    if (message.data.type === "render") {
+      render(message.data.payload).catch((e) => {
+        postMessage({
+          type: "error",
+          error: e,
+          message: "Failed to render video",
+        });
       });
-    });
-  }
-});
+    }
+
+    if (message.data.type === "validate") {
+      validateInput(message.data.payload);
+    }
+  },
+);

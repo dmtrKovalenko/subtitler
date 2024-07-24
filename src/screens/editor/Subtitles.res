@@ -129,7 +129,6 @@ let resizeChunks = (chunkGroups, ~maxSize) => {
     })
 
     if totalGroupCharLength > maxSize {
-      %debugger
       let relation = totalGroupCharLength->float_of_int /. maxSize->float_of_int
       let subChunkSize = Math.ceil(Array.length(group)->float_of_int /. relation)->int_of_float
 

@@ -38,24 +38,31 @@ class PipelineFactory {
 }
 
 self.addEventListener("message", async (event) => {
-  const message = event.data;
+  try {
+    const message = event.data;
 
-  // Do some work...
-  // TODO use message data
-  let transcript = await transcribe(
-    message.audio,
-    message.model,
-    message.quantized,
-    message.language,
-  );
-  if (transcript === null) return;
+    let transcript = await transcribe(
+      message.audio,
+      message.model,
+      message.quantized,
+      message.language,
+    );
 
-  // Send the result back to the main thread
-  self.postMessage({
-    status: "complete",
-    task: "automatic-speech-recognition",
-    data: transcript,
-  });
+    if (transcript === null) return;
+
+    // Send the result back to the main thread
+    self.postMessage({
+      status: "complete",
+      task: "automatic-speech-recognition",
+      data: transcript,
+    });
+  } catch (error) {
+    self.postMessage({
+      status: "error",
+      task: "automatic-speech-recognition",
+      data: error,
+    });
+  }
 });
 
 class AutomaticSpeechRecognitionPipelineFactory extends PipelineFactory {
@@ -150,13 +157,6 @@ const transcribe = async (audio, modelName, quantized, language) => {
     force_full_sequences: false,
 
     streamer,
-  }).catch((error) => {
-    self.postMessage({
-      status: "error",
-      task: "automatic-speech-recognition",
-      data: error,
-    });
-    return null;
   });
 
   return output;
