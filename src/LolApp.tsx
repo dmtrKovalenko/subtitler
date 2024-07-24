@@ -26,6 +26,7 @@ type VideoFile = {
   objectURL: string;
   audioBuffer: AudioBuffer;
   audioCtx: AudioContext;
+  validEncoderConfig: VideoEncoderConfig;
 };
 
 export type ProgressItem = {
@@ -123,15 +124,7 @@ export default function LolApp() {
         },
       ]);
 
-      setFile({
-        file,
-        name: file.name,
-        objectURL: URL.createObjectURL(file),
-        audioBuffer,
-        audioCtx,
-      });
-
-      return audioBuffer;
+      return { audioBuffer, audioCtx };
     } catch (e) {
       throw new UserFacingError(
         "We couldn't find decodable audio stream in your video",
@@ -150,7 +143,7 @@ export default function LolApp() {
       },
     } as RenderWorkerMessage);
 
-    return new Promise<void>((res, rej) =>
+    return new Promise<VideoEncoderConfig>((res, rej) =>
       worker.addEventListener(
         "message",
         ({ data }: MessageEvent<ConfigSupportResponseMessage>) => {
@@ -159,8 +152,12 @@ export default function LolApp() {
           }
 
           if (data.type === "config-support") {
-            if (data.encoderSupported && data.decoderSupported) {
-              res();
+            if (
+              data.encoderSupported &&
+              data.decoderSupported &&
+              data.encoderConfig
+            ) {
+              res(data.encoderConfig);
             } else {
               let whichCodecIsMissing = "";
 
@@ -202,10 +199,18 @@ export default function LolApp() {
     document.title = `validating ${file.name}`;
 
     try {
-      const [audioBuffer, _] = await Promise.all([
-        readAndPrepareAudioContext(file),
-        validateFileCodecSupoprted(file),
-      ]);
+      const [{ audioCtx, audioBuffer }, validEncoderConfig] = await Promise.all(
+        [readAndPrepareAudioContext(file), validateFileCodecSupoprted(file)],
+      );
+
+      setFile({
+        file,
+        name: file.name,
+        objectURL: URL.createObjectURL(file),
+        audioBuffer,
+        audioCtx,
+        validEncoderConfig,
+      });
 
       setProgressItems([]);
       document.title = `transcribing ${file.name}`;
@@ -241,6 +246,11 @@ export default function LolApp() {
       setRenderState("rendering");
       setProgressItems([
         {
+          id: "filereadprogress",
+          title: "Reading file",
+          progress: 0,
+        },
+        {
           id: "renderprogress",
           title: "Rendering frames",
           progress: 0,
@@ -261,6 +271,7 @@ export default function LolApp() {
             dataUri: file.file,
             canvas: offscreenCanvas,
             cues: subtitlesManager.activeSubtitles,
+            validEncoderConfig: file.validEncoderConfig,
           },
         } as RenderWorkerMessage,
         [offscreenCanvas],
@@ -293,11 +304,14 @@ export default function LolApp() {
               new JsConfetti().addConfetti();
             });
           }
+          if (e.data.type === "renderprogress") {
+            document.title = `${Math.floor(e.data.progress)}% — subtitles for ${file.name}`;
+          }
           if (
             e.data.type === "renderprogress" ||
-            e.data.type === "encodeprogress"
+            e.data.type === "encodeprogress" ||
+            e.data.type === "filereadprogress"
           ) {
-            document.title = `${Math.floor(e.data.progress)}% — subtitles for ${file.name}`;
             const progress = e.data.progress;
             setProgressItems((prev) =>
               prev.map((item) => {

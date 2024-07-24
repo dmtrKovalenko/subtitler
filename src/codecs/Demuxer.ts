@@ -10,18 +10,23 @@ import MP4Box, {
   MP4VideoTrack,
 } from "mp4box";
 
+export type MuxProgressType = "filereadprogress";
+
 // Wraps an MP4Box File as a WritableStream underlying sink.
 class MP4FileSink {
-  #setStatus: (status: string, message: string) => void;
+  #setProgress: (status: MuxProgressType, progress: number) => void;
   #file: ISOFile;
   #offset = 0;
+  #totalSize: number;
 
   constructor(
+    totalSize: number,
     file: ISOFile,
-    setStatus: (status: string, message: string) => void,
+    setStatus: (status: MuxProgressType, progress: number) => void,
   ) {
     this.#file = file;
-    this.#setStatus = setStatus;
+    this.#totalSize = totalSize;
+    this.#setProgress = setStatus;
   }
 
   write(chunk: Uint8Array) {
@@ -29,17 +34,18 @@ class MP4FileSink {
     const buffer = new ArrayBuffer(chunk.byteLength) as MP4ArrayBuffer;
     new Uint8Array(buffer).set(chunk);
 
-    // Inform MP4Box where in the file this chunk is from.
     buffer.fileStart = this.#offset;
     this.#offset += buffer.byteLength;
 
-    // Append chunk.
-    this.#setStatus("fetch", (this.#offset / 1024 ** 2).toFixed(1) + " MiB");
+    this.#setProgress(
+      "filereadprogress",
+      (this.#offset / this.#totalSize) * 100,
+    );
     this.#file.appendBuffer(buffer);
   }
 
   close() {
-    this.#setStatus("fetch", "Done");
+    this.#setProgress("filereadprogress", 100);
     this.#file.flush();
   }
 }
@@ -80,7 +86,8 @@ export class MP4Demuxer {
       onConfig,
       onRawAudioChunk,
       onVideoChunk,
-      setStatus,
+      onError,
+      onProgress,
     }: {
       onConfig: (
         videoConfig: VideoDecoderConfig,
@@ -95,7 +102,8 @@ export class MP4Demuxer {
         duration: number,
         meta?: EncodedAudioChunkMetadata,
       ) => void;
-      setStatus: (status: string, message?: string) => void;
+      onProgress: (status: MuxProgressType, progress: number) => void;
+      onError: (error: string) => void;
     },
   ) {
     this.#onConfig = onConfig;
@@ -104,12 +112,12 @@ export class MP4Demuxer {
 
     // Configure an MP4Box File for demuxing.
     this.#file = MP4Box.createFile();
-    this.#file.onError = (error) => setStatus("demux", error);
+    this.#file.onError = onError;
     this.#file.onReady = this.#onReady.bind(this);
     this.#file.onSamples = this.#onSamples.bind(this);
 
     // Fetch the file and pipe the data through.
-    const fileSink = new MP4FileSink(this.#file, setStatus);
+    const fileSink = new MP4FileSink(file.size, this.#file, onProgress);
 
     // highWaterMark should be large enough for smooth streaming, but lower is
     // better for memory usage.

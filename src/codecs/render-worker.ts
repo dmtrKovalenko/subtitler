@@ -1,5 +1,5 @@
 import { TranscriberData } from "../transcriber/useTranscriber";
-import { MP4Demuxer, Metadata } from "./Demuxer";
+import { MP4Demuxer, Metadata, MuxProgressType } from "./Demuxer";
 import {
   Muxer,
   FileSystemWritableFileStreamTarget,
@@ -50,6 +50,10 @@ export type RenderProgressMessage =
       progress: number;
     }
   | {
+      type: MuxProgressType;
+      progress: number;
+    }
+  | {
       type: "done";
       target: Target;
     }
@@ -65,6 +69,7 @@ export type RenderMessage = {
   target: Target;
   cues: TranscriberData["chunks"];
   style: style;
+  validEncoderConfig: VideoEncoderConfig;
 };
 
 export type ValidateMessage = {
@@ -86,6 +91,7 @@ export type ConfigSupportResponseMessage =
       type: "config-support";
       decoderSupported: boolean;
       encoderSupported: boolean;
+      encoderConfig: VideoEncoderConfig | null;
     }
   | {
       type: "error";
@@ -145,68 +151,6 @@ async function prepareOffscreenTargetForWriting(target: Target) {
   }
 
   return target;
-}
-
-function getCodecLevelString(width: number, height: number): string {
-  // Define the profile for High profile
-  const profile = "64";
-
-  // Calculate the total number of pixels
-  const totalPixels = width * height;
-
-  // Determine the level based on the total number of pixels
-  let level: string;
-
-  if (totalPixels <= 720 * 480) {
-    level = "1E"; // Level 3.0
-  } else if (totalPixels <= 1280 * 720) {
-    level = "1F"; // Level 3.1
-  } else if (totalPixels <= 1920 * 1080) {
-    level = "28"; // Level 4.0
-  } else if (totalPixels <= 1920 * 1080) {
-    level = "29"; // Level 4.1
-  } else if (totalPixels <= 3840 * 2160) {
-    level = "32"; // Level 5.0
-  } else if (totalPixels <= 4096 * 2304) {
-    level = "33"; // Level 5.1
-  } else {
-    throw new Error("Resolution not supported for standard levels");
-  }
-
-  // Combine profile and level to create the codec string
-  return `avc1.${profile}00${level}`;
-}
-
-async function convertDecoderConfigToEncoderConfigOrFallback(
-  videoConfig: VideoDecoderConfig,
-  metadata: Metadata | null,
-) {
-  const originalVideoConfig: VideoEncoderConfig = {
-    codec: videoConfig.codec,
-    width: videoConfig.codedWidth ?? metadata?.width ?? -1,
-    height: videoConfig.codedHeight ?? metadata?.height ?? -1,
-    hardwareAcceleration: "no-preference",
-    bitrate: metadata?.bitrate,
-  };
-
-  const { supported } =
-    await VideoEncoder.isConfigSupported(originalVideoConfig);
-
-  // if not supported fallback to widely supported avc
-  if (supported) {
-    return originalVideoConfig;
-  } else {
-    console.warn(
-      `Just to let you know: We must fallback to encode the file using avc1/h264 because the codec of the input file: ${videoConfig.codec} can not be used for encoding`,
-    );
-    return {
-      ...originalVideoConfig,
-      codec: getCodecLevelString(
-        videoConfig.codedWidth ?? metadata?.width ?? -1,
-        videoConfig.codedHeight ?? metadata?.height ?? -1,
-      ),
-    };
-  }
 }
 
 class EncoderMuxer {
@@ -335,6 +279,7 @@ export async function render({
   target,
   cues,
   style,
+  validEncoderConfig,
 }: RenderMessage) {
   let metadataRef: { current: Metadata | null } = {
     current: null,
@@ -412,12 +357,7 @@ export async function render({
       decoder.configure(videoConfig);
       metadataRef.current = metadata;
       rendererCtx = createCtx(videoConfig, canvas, style);
-
-      convertDecoderConfigToEncoderConfigOrFallback(videoConfig, metadata).then(
-        (videoConfig) => {
-          encoderMuxer.configure(videoConfig, audioConfig);
-        },
-      );
+      encoderMuxer.configure(validEncoderConfig, audioConfig);
     },
     onVideoChunk(chunk: EncodedVideoChunk) {
       chunks.push(chunk);
@@ -428,25 +368,101 @@ export async function render({
       }
     },
     onRawAudioChunk: encoderMuxer.supplyRawAudioChunk,
-    setStatus: console.log,
+    onProgress(status: MuxProgressType, progress: number) {
+      postMessage({
+        type: status,
+        progress,
+      });
+    },
+    onError(e: string) {
+      postMessage({
+        type: "error",
+        message: e,
+        error: new Error(e),
+      });
+    },
   });
 }
 
-export function validateInput({ dataUri }: ValidateMessage) {
+function getCodecLevelString(width: number, height: number): string {
+  const profile = "64"; // high profile (0x40)
+  const totalPixels = width * height;
+
+  let level: string;
+  if (totalPixels <= 720 * 480) {
+    level = "1E"; // Level 3.0
+  } else if (totalPixels <= 1280 * 720) {
+    level = "1F"; // Level 3.1
+  } else if (totalPixels <= 1920 * 1080) {
+    level = "28"; // Level 4.0
+  } else if (totalPixels <= 1920 * 1080) {
+    level = "29"; // Level 4.1
+  } else if (totalPixels <= 3840 * 2160) {
+    level = "32"; // Level 5.0
+  } else if (totalPixels <= 4096 * 2304) {
+    level = "33"; // Level 5.1
+  } else {
+    throw new Error("Resolution not supported for standard levels");
+  }
+
+  // Combine profile and level to create the codec string
+  return `avc1.${profile}00${level}`;
+}
+
+async function convertDecoderConfigToEncoderConfigOrFallback(
+  videoConfig: VideoDecoderConfig,
+  metadata: Metadata | null,
+) {
+  const originalVideoConfig: VideoEncoderConfig = {
+    codec: videoConfig.codec,
+    width: videoConfig.codedWidth ?? metadata?.width ?? -1,
+    height: videoConfig.codedHeight ?? metadata?.height ?? -1,
+    hardwareAcceleration: "no-preference",
+    bitrate: metadata?.bitrate,
+  };
+
+  const { supported } =
+    await VideoEncoder.isConfigSupported(originalVideoConfig);
+
+  // if not supported fallback to widely supported avc
+  if (supported) {
+    return originalVideoConfig;
+  }
+
+  const fallback = {
+    ...originalVideoConfig,
+    codec: getCodecLevelString(
+      videoConfig.codedWidth ?? metadata?.width ?? -1,
+      videoConfig.codedHeight ?? metadata?.height ?? -1,
+    ),
+  };
+
+  const { supported: fallbackSupported } =
+    await VideoEncoder.isConfigSupported(fallback);
+  if (!fallbackSupported) {
+    return null;
+  }
+
+  console.warn(
+    `Just to let you know: We must fallback to encode the file using avc1/h264 because the codec of the input file: ${videoConfig.codec} can not be used for encoding`,
+  );
+
+  return fallback;
+}
+
+export function validateFile({ dataUri }: ValidateMessage) {
   new MP4Demuxer(dataUri, {
     onConfig(videoConfig, _, metadata) {
       Promise.all([
-        convertDecoderConfigToEncoderConfigOrFallback(
-          videoConfig,
-          metadata,
-        ).then(VideoEncoder.isConfigSupported),
         VideoDecoder.isConfigSupported(videoConfig),
+        convertDecoderConfigToEncoderConfigOrFallback(videoConfig, metadata),
       ])
-        .then(([decoderSupport, encoderSupport]) => {
+        .then(([decoderSupport, validatedEncoderConfig]) => {
           postMessage({
             type: "config-support",
             decoderSupported: Boolean(decoderSupport.supported),
-            encoderSupported: Boolean(encoderSupport.supported),
+            encoderSupported: validatedEncoderConfig !== null,
+            encoderConfig: validatedEncoderConfig,
           });
         })
         .catch((e: unknown) => {
@@ -458,9 +474,16 @@ export function validateInput({ dataUri }: ValidateMessage) {
           });
         });
     },
+    onError(e) {
+      postMessage({
+        type: "error",
+        message: e,
+        error: new Error(e),
+      });
+    },
     onVideoChunk() {},
     onRawAudioChunk() {},
-    setStatus() {},
+    onProgress() {},
   });
 }
 
@@ -479,7 +502,7 @@ self.addEventListener(
     }
 
     if (message.data.type === "validate") {
-      validateInput(message.data.payload);
+      validateFile(message.data.payload);
     }
   },
 );
