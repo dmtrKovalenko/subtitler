@@ -22,9 +22,9 @@ type ErrorBoundaryState = {
   error: UserFacingError | unknown;
 };
 
-export const ShowErrorContext = React.createContext<
-  (error: UserFacingError) => void
->(() => {});
+export const ShowErrorContext = React.createContext<(error: unknown) => void>(
+  () => {},
+);
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   state: ErrorBoundaryState = {

@@ -141,7 +141,6 @@ function resizeChunks(chunkGroups, maxSize) {
                         return acc + chunk.text.length | 0;
                       }));
                 if (totalGroupCharLength > maxSize) {
-                  debugger;
                   var relation = totalGroupCharLength / maxSize;
                   var subChunkSize = Math.ceil(group.length / relation) | 0;
                   var subChunks = [];

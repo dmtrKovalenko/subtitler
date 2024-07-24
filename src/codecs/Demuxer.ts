@@ -45,6 +45,9 @@ class MP4FileSink {
 }
 
 export type Metadata = {
+  width: number;
+  height: number;
+  bitrate: number;
   duration: number;
   timescale: number;
   nbSamples: number;
@@ -59,6 +62,7 @@ export class MP4Demuxer {
   #onConfig: (
     videoConfig: VideoDecoderConfig,
     audioConfig: AudioDecoderConfig,
+    metadata: Metadata,
   ) => void;
   #onVideoChunk: (chunk: EncodedVideoChunk) => void;
   #onRawAudioChunk: (
@@ -68,7 +72,6 @@ export class MP4Demuxer {
     duration: number,
     meta?: EncodedAudioChunkMetadata,
   ) => void;
-  #onMetadata: (medata: Metadata) => void;
   #file: ISOFile | null = null;
 
   constructor(
@@ -78,11 +81,11 @@ export class MP4Demuxer {
       onRawAudioChunk,
       onVideoChunk,
       setStatus,
-      onMetadata,
     }: {
       onConfig: (
         videoConfig: VideoDecoderConfig,
         audioConfig: AudioDecoderConfig,
+        metadata: Metadata,
       ) => void;
       onVideoChunk: (chunk: EncodedVideoChunk) => void;
       onRawAudioChunk: (
@@ -93,13 +96,11 @@ export class MP4Demuxer {
         meta?: EncodedAudioChunkMetadata,
       ) => void;
       setStatus: (status: string, message?: string) => void;
-      onMetadata: (metadata: Metadata) => void;
     },
   ) {
     this.#onConfig = onConfig;
     this.#onVideoChunk = onVideoChunk;
     this.#onRawAudioChunk = onRawAudioChunk;
-    this.#onMetadata = onMetadata;
 
     // Configure an MP4Box File for demuxing.
     this.#file = MP4Box.createFile();
@@ -148,13 +149,6 @@ export class MP4Demuxer {
     this.#videoTrack = info.videoTracks[0];
     this.#audioTrack = info.audioTracks[0];
 
-    this.#onMetadata({
-      totalDuration: info.duration,
-      duration: this.#videoTrack.duration,
-      timescale: this.#videoTrack.timescale,
-      nbSamples: this.#videoTrack.nb_samples,
-    });
-
     // Generate and emit an appropriate VideoDecoderConfig.
     this.#onConfig(
       {
@@ -171,6 +165,15 @@ export class MP4Demuxer {
         codec: this.#audioTrack.codec,
         numberOfChannels: this.#audioTrack.audio.channel_count,
         sampleRate: this.#audioTrack.audio.sample_rate,
+      },
+      {
+        totalDuration: info.duration,
+        duration: this.#videoTrack.duration,
+        timescale: this.#videoTrack.timescale,
+        nbSamples: this.#videoTrack.nb_samples,
+        bitrate: this.#videoTrack.bitrate,
+        width: this.#videoTrack.video.width,
+        height: this.#videoTrack.video.height,
       },
     );
 
