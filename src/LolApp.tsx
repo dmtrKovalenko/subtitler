@@ -528,8 +528,8 @@ export default function LolApp() {
               </h2>
               <p className="text-gray-300 text-balance text-center text-lg max-w-screen-sm mt-4">
                 In a moment you'll get your video with subtitles created at the
-                selected location. For faster and more reliable render do not
-                leave this tab.
+                selected location. Feel free to move to the other tab, the
+                render will continue in the background.
               </p>
 
               <div className="w-full flex flex-col gap-y-2 mt-8 max-w-[34rem]">
