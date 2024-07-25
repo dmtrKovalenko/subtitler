@@ -105,27 +105,21 @@ export function renderCue(
   frame: VideoFrame,
   ctx: RendererContext,
 ) {
-  const timestamp = frame.timestamp;
-  const currentCue = getOrLookupCurrentCue(
-    timestamp / 1e6,
-    cues,
-    ctx.lastPlayedCue,
-  );
-
-  if (!currentCue || currentCue.currentCue.text.trim() === "") {
-    return frame;
-  }
-
-  if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
-    ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
-    ctx.layer.draw();
-  }
-  ctx.lastPlayedCue = currentCue;
-
   if (!ctx.videoCanvasContext) {
     throw new Error("Can't access video canvas context");
   }
 
+  const timestamp = frame.timestamp;
+  const frameOptions = {
+    alpha: "discard" as const,
+    timestamp: frame.timestamp,
+    displayWidth: frame.displayWidth,
+    displayHeight: frame.displayHeight,
+    colorSpace: frame.colorSpace,
+    format: frame.format,
+  };
+
+  // render the vide frame itself
   ctx.videoCanvasContext.drawImage(
     frame,
     0,
@@ -133,15 +127,31 @@ export function renderCue(
     frame.displayWidth,
     frame.displayHeight,
   );
-  ctx.videoCanvasContext.drawImage(
-    ctx.layer.getCanvas()._canvas,
-    0,
-    0,
-    frame.displayWidth,
-    frame.displayHeight,
-  );
-
   frame.close();
 
-  return new VideoFrame(ctx.videoCanvasContext.canvas, { timestamp });
+  const currentCue = getOrLookupCurrentCue(
+    timestamp / 1e6,
+    cues,
+    ctx.lastPlayedCue,
+  );
+
+  // update the text layer canvas if needed
+  if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
+    ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
+    ctx.layer.draw();
+  }
+
+  // render text layer if current cue is not empty
+  if (currentCue && currentCue.currentCue.text.trim() !== "") {
+    ctx.videoCanvasContext.drawImage(
+      ctx.layer.getCanvas()._canvas,
+      0,
+      0,
+      frameOptions.displayWidth,
+      frameOptions.displayHeight,
+    );
+  }
+
+  ctx.lastPlayedCue = currentCue;
+  return new VideoFrame(ctx.videoCanvasContext.canvas, frameOptions);
 }
