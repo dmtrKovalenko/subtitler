@@ -6,7 +6,7 @@ import * as Caml_option from "rescript/lib/es6/caml_option.js";
 import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
-import ReactFontpickerTsLite from "react-fontpicker-ts-lite";
+import ReactFontpickerTs from "react-fontpicker-ts";
 
 function parseVariantString(variant) {
   var match = variant.split(",");
@@ -51,7 +51,7 @@ var make = React.memo(function (props) {
           });
       var setFontToLoad = match[1];
       var fontToLoad = match[0];
-      return JsxRuntime.jsx(ReactFontpickerTsLite, {
+      return JsxRuntime.jsx(ReactFontpickerTs, {
                   inputId: props.inputId,
                   autoLoad: false,
                   loadFonts: Core__Option.getOr(Core__Option.map(fontToLoad, (function (font) {

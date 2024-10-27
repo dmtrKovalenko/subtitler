@@ -1,4 +1,4 @@
-@import url("react-fontpicker-ts-lite/dist/index.css");
+@import url("react-fontpicker-ts/dist/index.css");
 
 @tailwind base;
 @tailwind components;
@@ -8,12 +8,15 @@
   input[type="color"] {
     @apply p-0 block h-9 w-full rounded-lg border-none bg-white/10 overflow-hidden text-sm/6 text-white focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400;
   }
+
   input[type="color"]::-webkit-color-swatch-wrapper {
     padding: 0;
   }
+
   input[type="color"]::-webkit-color-swatch {
     border: none;
   }
+
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
