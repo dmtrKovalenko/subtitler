@@ -227,7 +227,7 @@ let make = Utils.neverRerender(() => {
           className="w-full col-span-1 flex-1"
           value={style.background.color}
           onChange={value =>
-            dispatch(Style.SetBackground({...style.background, strokeWidth: value}))}
+            dispatch(Style.SetBackground({...style.background, strokeColor: Some(value)}))}
         />
         <Input
           type_="number"
