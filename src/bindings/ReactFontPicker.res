@@ -32,7 +32,7 @@ let parseVariantString = (variant: string): option<Style.fontWeight> => {
 }
 
 module ReactFontPicker = {
-  @react.component @module("react-fontpicker-ts-lite")
+  @react.component @module("react-fontpicker-ts")
   external make: (
     ~inputId: string=?,
     ~autoLoad: bool=?,
