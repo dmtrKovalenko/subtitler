@@ -2,6 +2,12 @@
 import { pipeline, env, WhisperTextStreamer } from "@xenova/transformers";
 import Constants from "./Constants";
 
+async function isWebGPUAvailable() {
+  if (!navigator.gpu) return false;
+  const adapter = await navigator.gpu.requestAdapter();
+  return !!adapter;
+}
+
 // Specify a custom location for models (defaults to '/models/').
 // env.localModelPath = "/models/";
 // env.allowRemoteModels = true;
@@ -29,7 +35,7 @@ class PipelineFactory {
           encoder_model: "fp32",
           decoder_model_merged: "q4", // or 'fp32' ('fp16' is broken)
         },
-        device: navigator.gpu ? "webgpu" : "wasm",
+        device: await isWebGPUAvailable() ? "webgpu" : "wasm",
       });
     }
 
@@ -116,7 +122,7 @@ const transcribe = async (audio, modelName, quantized, language) => {
         in_progress_chunks.length === 0 ||
         SENTENCE_ENDING_REGEXP.test(last_chunk.text.trim()) ||
         last_chunk.text.trim().length + x.trim().length >
-          Constants.DEFAULT_CHUNK_THRESHOLD_CHARS
+        Constants.DEFAULT_CHUNK_THRESHOLD_CHARS
       ) {
         in_progress_chunks.push({
           text: x,
