@@ -26,7 +26,7 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) =>
 
   let styleTitle = React.string("Style")
 
-  <div id="fframes-editor" className="w-screen h-screen bg-zinc-900 overflow-hidden relative">
+  <div id="fframes-editor" className="w-screen h-screen bg-zinc-900 overflow-clip relative">
     <div className="overflow-auto flex justify-center w-full">
       {// MediaList
       layout.mediaControls

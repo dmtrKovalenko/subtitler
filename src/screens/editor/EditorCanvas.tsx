@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Layer, Stage, StageProps, Text, Transformer } from "react-konva";
+import { Layer, Line, Stage, StageProps, Text, Transformer } from "react-konva";
 import { subtitleCue } from "./Subtitles.gen";
 import { useEditorContext } from "./EditorContext.gen";
 import type Konva from "konva";
@@ -25,10 +25,16 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const [player, _] = editorContext.usePlayer();
   const [subtitleStyle, styleDispatch] = editorContext.useStyle();
 
+  const lineHelperXRef = React.useRef<Konva.Line | null>(null);
+  const lineHelperYRef = React.useRef<Konva.Line | null>(null);
+
   const textRef = React.useRef<Konva.Text | null>(null);
   const transformerRef = React.useRef<Konva.Transformer | null>(null);
 
   React.useEffect(() => {
+    lineHelperXRef.current?.hide();
+    lineHelperYRef.current?.hide();
+
     if (textRef.current) {
       transformerRef.current?.nodes([textRef.current]);
       transformerRef.current?.getLayer()?.batchDraw();
@@ -60,6 +66,28 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     ? subtitles[cueIndexToShow]?.text ?? ""
     : "";
 
+  const handleDragMove = React.useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+    let centerX = width / 2 - e.target.width() / 2;
+    let centerY = height / 2 - e.target.height() / 2;
+
+    let isCenterX = Math.abs(e.target.x() - centerX) < width * 0.04;
+    let isCenterY = Math.abs(e.target.y() - centerY) < height * 0.04;
+
+    if (isCenterX) {
+      e.target.x(centerX);
+      lineHelperXRef.current?.show();
+    } else {
+      lineHelperXRef.current?.hide();
+    }
+
+    if (isCenterY) {
+      e.target.y(centerY);
+      lineHelperYRef.current?.show();
+    } else {
+      lineHelperYRef.current?.hide();
+    }
+  }, [width])
+
   React.useEffect(() => {
     document.fonts
       .load(
@@ -89,6 +117,21 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       style={style}
     >
       <Layer>
+        <Line
+          ref={lineHelperXRef}
+          points={[width / 2, 0, width / 2, height]}
+          stroke="red"
+          strokeWidth={2}
+        />
+
+        <Line
+          ref={lineHelperYRef}
+          points={[0, height / 2, width, height / 2]}
+          stroke="red"
+          strokeWidth={2}
+        />
+
+
         <Text
           ref={textRef}
           draggable
@@ -103,8 +146,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           stroke={subtitleStyle.strokeColor}
           onTransform={handleResize}
           align={subtitleStyle.align.toLowerCase()}
-          verticalAlign="middle"
           fontFamily={`"${subtitleStyle.fontFamily}"`}
+          onDragMove={handleDragMove}
           onDragEnd={(e) => {
             styleDispatch({
               TAG: "SetPosition",

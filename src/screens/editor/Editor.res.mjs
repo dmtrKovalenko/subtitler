@@ -161,7 +161,7 @@ var make = React.memo(function (props) {
                           fullScreenToggler: match[1]
                         })
                   ],
-                  className: "w-screen h-screen bg-zinc-900 overflow-hidden relative",
+                  className: "w-screen h-screen bg-zinc-900 overflow-clip relative",
                   id: "fframes-editor"
                 });
     });
