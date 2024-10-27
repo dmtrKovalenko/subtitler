@@ -69,7 +69,6 @@ export function createCtx(
   canvas: OffscreenCanvas,
   style: style,
 ): RendererContext {
-  // @ts-expect-error
   let stage = new KonvaCore.Stage({
     width: videoConfig.codedWidth,
     height: videoConfig.codedHeight,
