@@ -81,6 +81,33 @@ var BorderRadiusIcon = {
   make: Icons$BorderRadiusIcon
 };
 
+function Icons$ProductHuntIcon(props) {
+  var __className = props.className;
+  var __color = props.color;
+  var color = __color !== undefined ? __color : "currentColor";
+  var className = __className !== undefined ? __className : "";
+  return JsxRuntime.jsxs("svg", {
+              children: [
+                JsxRuntime.jsx("path", {
+                      d: "M26.254 13.128c0 7.253-5.875 13.128-13.128 13.128S-.003 20.382-.003 13.128 5.872 0 13.125 0s13.128 5.875 13.128 13.128",
+                      fill: "white"
+                    }),
+                JsxRuntime.jsx("path", {
+                      d: "M14.876 13.128h-3.72V9.2h3.72c1.083 0 1.97.886 1.97 1.97s-.886 1.97-1.97 1.97m0-6.564H8.53v13.128h2.626v-3.938h3.72c2.538 0 4.595-2.057 4.595-4.595s-2.057-4.595-4.595-4.595",
+                      fill: color
+                    })
+              ],
+              className: className,
+              style: props.style,
+              viewBox: "0 0 26.245 26.256",
+              xmlns: "http://www.w3.org/2000/svg"
+            });
+}
+
+var ProductHuntIcon = {
+  make: Icons$ProductHuntIcon
+};
+
 export {
   MusicalNotesIcon ,
   FontIcon ,
@@ -101,5 +128,6 @@ export {
   EditIcon ,
   AlertIcon ,
   BorderRadiusIcon ,
+  ProductHuntIcon ,
 }
 /* react/jsx-runtime Not a pure module */
