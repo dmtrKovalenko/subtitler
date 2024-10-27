@@ -166,10 +166,8 @@ export function renderCue(
 
     if (ctx.background) {
       if (!currentCue) {
-        console.log("Hiding background");
         ctx.background.hide();
       } else {
-        console.log("Showing background");
         ctx.background.show();
       }
 
