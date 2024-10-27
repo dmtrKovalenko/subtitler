@@ -1,6 +1,7 @@
 import * as React from "react";
 import pandaImage from "./assets/fail-panda.gif";
 import { logException } from "./hooks/useAnalytics";
+import * as Sentry from "@sentry/react";
 
 type ErrorBoundaryProps = {
   children?: React.ReactNode;
@@ -23,7 +24,7 @@ type ErrorBoundaryState = {
 };
 
 export const ShowErrorContext = React.createContext<(error: unknown) => void>(
-  () => {},
+  () => { },
 );
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
@@ -39,14 +40,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
 
   logError = (error: unknown, additionalInfo?: React.ErrorInfo) => {
     logException(error, additionalInfo);
+
+    Sentry.captureException(error,
+      {
+        contexts: {
+          react: {
+            ...additionalInfo
+          },
+        }
+      }
+    );
   };
 
-  componentDidCatch(e: unknown, { componentStack }: React.ErrorInfo) {
+  componentDidCatch(e: unknown, additionalInfo: React.ErrorInfo) {
     if (!this.state.error) {
       return;
     }
 
-    this.logError(e, componentStack as any);
+    this.logError(e, additionalInfo as any);
   }
 
   getErrorDetails = () => {

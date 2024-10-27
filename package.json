@@ -22,6 +22,7 @@
     "@react-input/mask": "^1.2.5",
     "@rescript/core": "1.4.0",
     "@rescript/react": "^0.12.1",
+    "@sentry/react": "^8.35.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
