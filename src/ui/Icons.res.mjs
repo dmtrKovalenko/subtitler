@@ -55,6 +55,32 @@ var EditIcon = {};
 
 var AlertIcon = {};
 
+function Icons$BorderRadiusIcon(props) {
+  var __className = props.className;
+  var __color = props.color;
+  var color = __color !== undefined ? __color : "currentColor";
+  var className = __className !== undefined ? __className : "";
+  return JsxRuntime.jsx("svg", {
+              children: JsxRuntime.jsx("path", {
+                    d: "M4 14C4 9.58172 7.58172 6 12 6H20",
+                    strokeLinecap: "round",
+                    strokeWidth: "2"
+                  }),
+              className: className,
+              style: props.style,
+              height: "24",
+              width: "24",
+              fill: "none",
+              stroke: color,
+              viewBox: "0 0 24 24",
+              xmlns: "http://www.w3.org/2000/svg"
+            });
+}
+
+var BorderRadiusIcon = {
+  make: Icons$BorderRadiusIcon
+};
+
 export {
   MusicalNotesIcon ,
   FontIcon ,
@@ -74,5 +100,6 @@ export {
   RenderIcon ,
   EditIcon ,
   AlertIcon ,
+  BorderRadiusIcon ,
 }
 /* react/jsx-runtime Not a pure module */

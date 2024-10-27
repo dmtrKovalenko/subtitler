@@ -39,6 +39,14 @@ var make = React.memo(function (props) {
               ],
               className: "gap-2 inline-flex items-center"
             }) : "Subtitles";
+      var lastIsTranscriptionInProgress = React.useRef(transcriptionInProgress);
+      React.useLayoutEffect((function () {
+              if (!transcriptionInProgress && lastIsTranscriptionInProgress.current) {
+                lastIsTranscriptionInProgress.current = true;
+                ctx.playerImmediateDispatch("UpdateCurrentCue");
+              }
+              
+            }), [subtitlesManager.transcriptionState]);
       var styleTitle = "Style";
       return JsxRuntime.jsxs("div", {
                   children: [

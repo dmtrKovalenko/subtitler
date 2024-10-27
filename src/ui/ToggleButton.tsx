@@ -107,7 +107,7 @@ export const ToggleGroup = <T extends string | number | null>({
         }
       }}
       className={clsx(
-        "relative outline-none focus-visible:ring-2 ring-orange-500 rounded-md bg-white/10 !py-1.5",
+        "relative outline-none focus-visible:ring-2 ring-orange-400 rounded-md bg-white/10 !py-1.5",
         className,
       )}
       {...other}
@@ -155,11 +155,11 @@ export const ToggleButton = <T extends string | number>({
       tabIndex={-1}
       type="button"
       className={clsx(
-        "inline-flex flex-1 text-white items-center justify-center gap-2 overflow-auto px-2 outline-none",
+        "inline-flex flex-1 text-white items-center justify-cenuer gap-2 overflow-auto px-2 outline-none",
         selected
           ? "pointer-events-none"
           : // we turn it rounded only if user manually uses tab to focus otherwise divide style affected
-            "focus-visible:rounded-md focus-visible:",
+          "focus-visible:rounded-md focus-visible:",
         className,
       )}
       {...other}

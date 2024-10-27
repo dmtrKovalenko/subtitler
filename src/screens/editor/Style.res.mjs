@@ -15,6 +15,16 @@ var all_font_weights = [
   900
 ];
 
+var defaultBackground = {
+  color: "#000000",
+  strokeColor: undefined,
+  strokeWidth: 1,
+  opacity: 0.5,
+  paddingX: 16,
+  paddingY: 16,
+  borderRadius: 32
+};
+
 function MakeRendererObservable(Ctx) {
   var width = Ctx.videoMeta.width > Ctx.videoMeta.height ? Ctx.videoMeta.width / 4 | 0 : ((Ctx.videoMeta.width / 3 | 0) << 1);
   var center = (Ctx.videoMeta.width / 2 | 0) - (width / 2 | 0) | 0;
@@ -32,105 +42,51 @@ function MakeRendererObservable(Ctx) {
     fontSizePx: fontSizePx,
     color: "#ffffff",
     strokeColor: undefined,
+    strokeWidth: 1,
     align: "Center",
     blockSize: initial_blockSize,
-    fontVariants: all_font_weights
+    fontVariants: all_font_weights,
+    showBackground: false,
+    background: defaultBackground
   };
   var reducer = function (state, action) {
     if (typeof action !== "object") {
-      return {
-              x: state.x,
-              y: state.y,
-              fontFamily: state.fontFamily,
-              fontWeight: state.fontWeight,
-              fontSizePx: state.fontSizePx,
-              color: state.color,
-              strokeColor: state.strokeColor,
-              align: state.align,
-              blockSize: state.blockSize,
-              fontVariants: all_font_weights
-            };
+      if (action === "ResetFontVariants") {
+        return {
+                x: state.x,
+                y: state.y,
+                fontFamily: state.fontFamily,
+                fontWeight: state.fontWeight,
+                fontSizePx: state.fontSizePx,
+                color: state.color,
+                strokeColor: state.strokeColor,
+                strokeWidth: state.strokeWidth,
+                align: state.align,
+                blockSize: state.blockSize,
+                fontVariants: all_font_weights,
+                showBackground: state.showBackground,
+                background: state.background
+              };
+      } else {
+        return {
+                x: state.x,
+                y: state.y,
+                fontFamily: state.fontFamily,
+                fontWeight: state.fontWeight,
+                fontSizePx: state.fontSizePx,
+                color: state.color,
+                strokeColor: state.strokeColor,
+                strokeWidth: state.strokeWidth,
+                align: state.align,
+                blockSize: state.blockSize,
+                fontVariants: state.fontVariants,
+                showBackground: !state.showBackground,
+                background: state.background
+              };
+      }
     }
     switch (action.TAG) {
-      case "SetPosition" :
-          return {
-                  x: action._0,
-                  y: action._1,
-                  fontFamily: state.fontFamily,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: state.fontSizePx,
-                  color: state.color,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetFontFamily" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: action._0,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: state.fontSizePx,
-                  color: state.color,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetFontWeight" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: state.fontFamily,
-                  fontWeight: action._0,
-                  fontSizePx: state.fontSizePx,
-                  color: state.color,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetFontSizePx" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: state.fontFamily,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: action._0,
-                  color: state.color,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetColor" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: state.fontFamily,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: state.fontSizePx,
-                  color: action._0,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetStrokeColor" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: state.fontFamily,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: state.fontSizePx,
-                  color: state.color,
-                  strokeColor: action._0,
-                  align: state.align,
-                  blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
-                };
-      case "SetBlockWidth" :
+      case "Resize" :
           return {
                   x: state.x,
                   y: state.y,
@@ -139,28 +95,12 @@ function MakeRendererObservable(Ctx) {
                   fontSizePx: state.fontSizePx,
                   color: state.color,
                   strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
                   align: state.align,
-                  blockSize: {
-                    width: action._0,
-                    height: state.blockSize.height
-                  },
-                  fontVariants: state.fontVariants
-                };
-      case "SetBlockHeight" :
-          return {
-                  x: state.x,
-                  y: state.y,
-                  fontFamily: state.fontFamily,
-                  fontWeight: state.fontWeight,
-                  fontSizePx: state.fontSizePx,
-                  color: state.color,
-                  strokeColor: state.strokeColor,
-                  align: state.align,
-                  blockSize: {
-                    width: state.blockSize.width,
-                    height: action._0
-                  },
-                  fontVariants: state.fontVariants
+                  blockSize: action._0,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
                 };
       case "SetAlign" :
           return {
@@ -171,11 +111,14 @@ function MakeRendererObservable(Ctx) {
                   fontSizePx: state.fontSizePx,
                   color: state.color,
                   strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
                   align: action._0,
                   blockSize: state.blockSize,
-                  fontVariants: state.fontVariants
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
                 };
-      case "Resize" :
+      case "SetBackground" :
           return {
                   x: state.x,
                   y: state.y,
@@ -184,9 +127,98 @@ function MakeRendererObservable(Ctx) {
                   fontSizePx: state.fontSizePx,
                   color: state.color,
                   strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
                   align: state.align,
-                  blockSize: action._0,
-                  fontVariants: state.fontVariants
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: action._0
+                };
+      case "SetBlockHeight" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: {
+                    width: state.blockSize.width,
+                    height: action._0
+                  },
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetBlockWidth" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: {
+                    width: action._0,
+                    height: state.blockSize.height
+                  },
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetColor" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: action._0,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetFontFamily" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: action._0,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetFontSizePx" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: action._0,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
                 };
       case "SetFontVariants" :
           var variants = action._0;
@@ -199,9 +231,12 @@ function MakeRendererObservable(Ctx) {
                     fontSizePx: state.fontSizePx,
                     color: state.color,
                     strokeColor: state.strokeColor,
+                    strokeWidth: state.strokeWidth,
                     align: state.align,
                     blockSize: state.blockSize,
-                    fontVariants: variants
+                    fontVariants: variants,
+                    showBackground: state.showBackground,
+                    background: state.background
                   };
           } else {
             return {
@@ -212,11 +247,78 @@ function MakeRendererObservable(Ctx) {
                     fontSizePx: state.fontSizePx,
                     color: state.color,
                     strokeColor: state.strokeColor,
+                    strokeWidth: state.strokeWidth,
                     align: state.align,
                     blockSize: state.blockSize,
-                    fontVariants: variants
+                    fontVariants: variants,
+                    showBackground: state.showBackground,
+                    background: state.background
                   };
           }
+      case "SetFontWeight" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: action._0,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetPosition" :
+          return {
+                  x: action._0,
+                  y: action._1,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetStrokeColor" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: action._0,
+                  strokeWidth: state.strokeWidth,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
+      case "SetStrokeWidth" :
+          return {
+                  x: state.x,
+                  y: state.y,
+                  fontFamily: state.fontFamily,
+                  fontWeight: state.fontWeight,
+                  fontSizePx: state.fontSizePx,
+                  color: state.color,
+                  strokeColor: state.strokeColor,
+                  strokeWidth: action._0,
+                  align: state.align,
+                  blockSize: state.blockSize,
+                  fontVariants: state.fontVariants,
+                  showBackground: state.showBackground,
+                  background: state.background
+                };
       
     }
   };
@@ -228,6 +330,7 @@ function MakeRendererObservable(Ctx) {
 
 export {
   all_font_weights ,
+  defaultBackground ,
   MakeRendererObservable ,
 }
 /* UseObservable Not a pure module */

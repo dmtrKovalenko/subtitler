@@ -24,6 +24,16 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef) =>
     "Subtitles"->React.string
   }
 
+  let lastIsTranscriptionInProgress = React.useRef(transcriptionInProgress)
+  React.useLayoutEffect1(() => {
+    if !transcriptionInProgress && lastIsTranscriptionInProgress.current {
+      lastIsTranscriptionInProgress.current = true
+      ctx.playerImmediateDispatch(UpdateCurrentCue)
+    }
+
+    None
+  }, [subtitlesManager.transcriptionState])
+
   let styleTitle = React.string("Style")
 
   <div id="fframes-editor" className="w-screen h-screen bg-zinc-900 overflow-clip relative">

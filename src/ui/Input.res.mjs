@@ -70,6 +70,7 @@ function Input(props) {
                               min: props.min,
                               placeholder: props.placeholder,
                               readOnly: Core__Option.getOr(props.readOnly, false),
+                              step: props.step,
                               type: Core__Option.getOr(props.type_, "text"),
                               value: Core__Option.getOr(props.value, undefined),
                               onKeyDown: props.onKeyDown,
