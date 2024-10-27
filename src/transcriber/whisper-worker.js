@@ -4,7 +4,15 @@ import Constants from "./Constants";
 
 async function isWebGPUAvailable() {
   if (!navigator.gpu) return false;
-  const adapter = await navigator.gpu.requestAdapter();
+
+  let adapter;
+  try {
+    adapter = await navigator.gpu.requestAdapter();
+  } catch (e) {
+    console.info("WebGPU not available:", e);
+    return false
+  }
+
   return !!adapter;
 }
 
