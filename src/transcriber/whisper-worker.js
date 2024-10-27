@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { pipeline, env, WhisperTextStreamer } from "@xenova/transformers";
+import { pipeline, env, WhisperTextStreamer } from "@huggingface/transformers";
 import Constants from "./Constants";
 
 async function isWebGPUAvailable() {

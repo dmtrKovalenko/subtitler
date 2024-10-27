@@ -385,8 +385,8 @@ var make = Utils.neverRerender(function (props) {
                                                     TAG: "SetBackground",
                                                     _0: {
                                                       color: init.color,
-                                                      strokeColor: init.strokeColor,
-                                                      strokeWidth: value,
+                                                      strokeColor: value,
+                                                      strokeWidth: init.strokeWidth,
                                                       opacity: init.opacity,
                                                       paddingX: init.paddingX,
                                                       paddingY: init.paddingY,

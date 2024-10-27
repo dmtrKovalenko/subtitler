@@ -49,7 +49,6 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
       setTranscriptionState(_ => SubtitlesNotEdited({
         resizedSubtitles: subtitles
         ->Subtitles.splitChunksByPauses
-        ->Utils.Log.andReturn
         ->Subtitles.resizeChunks(~maxSize=newSize),
         size: newSize,
       }))
@@ -60,7 +59,7 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
       )),
     editTimestamp: (index, newTimestamp) =>
       setTranscriptionState(_ => SubtitlesEdited(
-        activeSubtitles->Subtitles.editChunkTimestamp(index, newTimestamp)->Utils.Log.andReturn,
+        activeSubtitles->Subtitles.editChunkTimestamp(index, newTimestamp),
       )),
   }, (transcriptionState, subtitles))
 }

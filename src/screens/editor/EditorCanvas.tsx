@@ -144,7 +144,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           <Rect
             ref={backgroundRef}
             fill={subtitleStyle.background.color}
-            stroke="red"
+            stroke={subtitleStyle.background.strokeColor}
             strokeWidth={subtitleStyle.background.strokeWidth}
             fillAfterStrokeEnabled={true}
             opacity={subtitleStyle.background.opacity}
