@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Layer, Line, Stage, StageProps, Text, Transformer } from "react-konva";
+import { Layer, Line, Stage, Rect, StageProps, Text, Transformer } from "react-konva";
 import { subtitleCue } from "./Subtitles.gen";
 import { useEditorContext } from "./EditorContext.gen";
 import type Konva from "konva";
@@ -28,6 +28,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   const lineHelperXRef = React.useRef<Konva.Line | null>(null);
   const lineHelperYRef = React.useRef<Konva.Line | null>(null);
 
+  const backgroundRef = React.useRef<Konva.Rect | null>(null);
   const textRef = React.useRef<Konva.Text | null>(null);
   const transformerRef = React.useRef<Konva.Transformer | null>(null);
 
@@ -35,11 +36,31 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     lineHelperXRef.current?.hide();
     lineHelperYRef.current?.hide();
 
+    updateBackground();
     if (textRef.current) {
       transformerRef.current?.nodes([textRef.current]);
       transformerRef.current?.getLayer()?.batchDraw();
     }
   });
+
+  const updateBackground = React.useCallback(() => {
+    if (textRef.current && backgroundRef.current && subtitleStyle.showBackground) {
+      const textNode = textRef.current;
+      const backgroundNode = backgroundRef.current;
+
+      // Get text dimensions
+      const textWidth = textNode.width() * textNode.scaleX();
+      const textHeight = textNode.height() * textNode.scaleY();
+
+      // Update background position and size
+      backgroundNode.setAttrs({
+        x: textNode.x() - subtitleStyle.background.paddingX,
+        y: textNode.y() - subtitleStyle.background.paddingY,
+        width: textWidth + (subtitleStyle.background.paddingX * 2),
+        height: textHeight + (subtitleStyle.background.paddingY * 2),
+      });
+    }
+  }, [subtitleStyle.background, subtitleStyle.showBackground]);
 
   function handleResize() {
     if (textRef.current !== null) {
@@ -86,7 +107,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     } else {
       lineHelperYRef.current?.hide();
     }
-  }, [width])
+
+    updateBackground()
+  }, [width, updateBackground])
 
   React.useEffect(() => {
     document.fonts
@@ -117,6 +140,47 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       style={style}
     >
       <Layer>
+        {subtitleStyle.showBackground && currentSubtitle.trim().length > 0 && (
+          <Rect
+            ref={backgroundRef}
+            fill={subtitleStyle.background.color}
+            stroke="red"
+            strokeWidth={subtitleStyle.background.strokeWidth}
+            fillAfterStrokeEnabled={true}
+            opacity={subtitleStyle.background.opacity}
+            cornerRadius={subtitleStyle.background.borderRadius}
+            shadowForStrokeEnabled={false}
+            perfectDrawEnabled={false}
+          />
+        )}
+
+        <Text
+          ref={textRef}
+          draggable
+          fillAfterStrokeEnabled
+          fontStyle={subtitleStyle.fontWeight.toString()}
+          text={currentSubtitle.trim()}
+          x={subtitleStyle.x}
+          y={subtitleStyle.y}
+          width={subtitleStyle.blockSize.width}
+          fill={subtitleStyle.color}
+          fontSize={subtitleStyle.fontSizePx}
+          stroke={subtitleStyle.strokeColor}
+          strokeWidth={subtitleStyle.strokeWidth}
+          strokeEnabled={subtitleStyle.strokeColor !== subtitleStyle.color}
+          onTransform={handleResize}
+          align={subtitleStyle.align.toLowerCase()}
+          fontFamily={`"${subtitleStyle.fontFamily}"`}
+          onDragMove={handleDragMove}
+          onDragEnd={(e) => {
+            styleDispatch({
+              TAG: "SetPosition",
+              _0: Math.floor(e.target.x()),
+              _1: Math.floor(e.target.y()),
+            });
+          }}
+        />
+
         <Line
           ref={lineHelperXRef}
           points={[width / 2, 0, width / 2, height]}
@@ -131,31 +195,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           strokeWidth={2}
         />
 
-
-        <Text
-          ref={textRef}
-          draggable
-          fillAfterStrokeEnabled
-          fontStyle={subtitleStyle.fontWeight.toString()}
-          text={currentSubtitle.trim()}
-          x={subtitleStyle.x}
-          y={subtitleStyle.y}
-          width={subtitleStyle.blockSize.width}
-          fill={subtitleStyle.color}
-          fontSize={subtitleStyle.fontSizePx}
-          stroke={subtitleStyle.strokeColor}
-          onTransform={handleResize}
-          align={subtitleStyle.align.toLowerCase()}
-          fontFamily={`"${subtitleStyle.fontFamily}"`}
-          onDragMove={handleDragMove}
-          onDragEnd={(e) => {
-            styleDispatch({
-              TAG: "SetPosition",
-              _0: Math.floor(e.target.x()),
-              _1: Math.floor(e.target.y()),
-            });
-          }}
-        />
         <Transformer
           ref={transformerRef}
           rotateEnabled={false}

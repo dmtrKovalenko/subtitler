@@ -7,11 +7,13 @@ import { style } from "../screens/editor/Style.gen";
 import KonvaCore from "konva/lib/Core";
 import type Konva from "konva";
 import { Text } from "konva/lib/shapes/Text";
+import { Rect } from "konva/lib/shapes/Rect";
 
 export type RendererContext = {
   stage: Konva.Stage;
   layer: Konva.Layer;
   text: Konva.Text;
+  background: Konva.Rect | null;
   lastPlayedCue: currentPlayingCue | undefined;
   style: style;
   videoCanvasContext: OffscreenCanvasRenderingContext2D | null;
@@ -84,9 +86,31 @@ export function createCtx(
     stroke: style.strokeColor,
     align: style.align.toLowerCase(),
     width: style.blockSize.width,
+    strokeWidth: style.strokeWidth,
+    strokeEnabled: style.strokeColor !== style.color,
   });
 
+  let background = style.showBackground ? new Rect({
+    fill: style.background.color,
+    stroke: style.background.strokeColor,
+    strokeWidth: style.background.strokeWidth,
+    opacity: style.background.opacity,
+    shadowForStrokeEnabled: false,
+    perfectDrawEnabled: false,
+    cornerRadius: style.background.borderRadius,
+    fillAfterStrokeEnabled: true,
+    visible: style.showBackground,
+    x: text.x() - style.background.paddingX,
+    y: text.y() - style.background.paddingY,
+    width: text.width() + (style.background.paddingX * 2),
+    height: text.height() + (style.background.paddingY * 2),
+  }) : null;
+
   let layer = new KonvaCore.Layer();
+  if (background) {
+    layer.add(background);
+  }
+
   layer.add(text);
   stage.add(layer);
 
@@ -95,6 +119,7 @@ export function createCtx(
     layer,
     text,
     style,
+    background,
     lastPlayedCue: undefined,
     videoCanvasContext: canvas.getContext("2d"),
   };
@@ -138,6 +163,24 @@ export function renderCue(
   // update the text layer canvas if needed
   if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
     ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
+
+    if (ctx.background) {
+      if (!currentCue) {
+        console.log("Hiding background");
+        ctx.background.hide();
+      } else {
+        console.log("Showing background");
+        ctx.background.show();
+      }
+
+      ctx.background.setAttrs({
+        x: ctx.text.x() - ctx.style.background.paddingX,
+        y: ctx.text.y() - ctx.style.background.paddingY,
+        width: ctx.text.width() + (ctx.style.background.paddingX * 2),
+        height: ctx.text.height() + (ctx.style.background.paddingY * 2),
+      });
+    }
+
     ctx.layer.draw();
   }
 

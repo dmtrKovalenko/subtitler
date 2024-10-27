@@ -9,6 +9,16 @@ export type fontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 
 export type size = { readonly width: number; readonly height: number };
 
+export type background = {
+  readonly color: string; 
+  readonly strokeColor: (undefined | string); 
+  readonly strokeWidth: number; 
+  readonly opacity: number; 
+  readonly paddingX: number; 
+  readonly paddingY: number; 
+  readonly borderRadius: number
+};
+
 export type style = {
   readonly x: number; 
   readonly y: number; 
@@ -17,21 +27,27 @@ export type style = {
   readonly fontSizePx: number; 
   readonly color: string; 
   readonly strokeColor: (undefined | string); 
+  readonly strokeWidth: number; 
   readonly align: align; 
   readonly blockSize: size; 
-  readonly fontVariants: fontWeight[]
+  readonly fontVariants: fontWeight[]; 
+  readonly showBackground: boolean; 
+  readonly background: background
 };
 
 export type changeStyleAction = 
     "ResetFontVariants"
-  | { TAG: "SetPosition"; _0: number; _1: number }
-  | { TAG: "SetFontFamily"; _0: string }
-  | { TAG: "SetFontWeight"; _0: fontWeight }
-  | { TAG: "SetFontSizePx"; _0: number }
-  | { TAG: "SetColor"; _0: string }
-  | { TAG: "SetStrokeColor"; _0: string }
-  | { TAG: "SetBlockWidth"; _0: number }
-  | { TAG: "SetBlockHeight"; _0: number }
-  | { TAG: "SetAlign"; _0: align }
+  | "ToggleBackground"
   | { TAG: "Resize"; _0: size }
-  | { TAG: "SetFontVariants"; _0: fontWeight[] };
+  | { TAG: "SetAlign"; _0: align }
+  | { TAG: "SetBackground"; _0: background }
+  | { TAG: "SetBlockHeight"; _0: number }
+  | { TAG: "SetBlockWidth"; _0: number }
+  | { TAG: "SetColor"; _0: string }
+  | { TAG: "SetFontFamily"; _0: string }
+  | { TAG: "SetFontSizePx"; _0: number }
+  | { TAG: "SetFontVariants"; _0: fontWeight[] }
+  | { TAG: "SetFontWeight"; _0: fontWeight }
+  | { TAG: "SetPosition"; _0: number; _1: number }
+  | { TAG: "SetStrokeColor"; _0: string }
+  | { TAG: "SetStrokeWidth"; _0: number };

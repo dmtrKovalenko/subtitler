@@ -3,7 +3,7 @@ import { serde } from "../hooks/useStickyState.gen";
 function mobileTabletCheck() {
   // https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
   let check = false;
-  (function (a: string) {
+  (function(a: string) {
     if (
       /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(
         a,
@@ -15,10 +15,10 @@ function mobileTabletCheck() {
       check = true;
   })(
     navigator.userAgent ||
-      navigator.vendor ||
-      ("opera" in window && typeof window.opera === "string"
-        ? window.opera
-        : ""),
+    navigator.vendor ||
+    ("opera" in window && typeof window.opera === "string"
+      ? window.opera
+      : ""),
   );
   return check;
 }
@@ -37,14 +37,14 @@ export const ALL_MODELS = Object.keys(MODELS) as Array<Model>;
 const DEFAULT_MODEL: Model = "onnx-community/whisper-base_timestamped";
 
 export const modelSerde: serde<Model> = {
-  parse: function (input: string): Model {
+  parse: function(input: string): Model {
     if (ALL_MODELS.includes(input as Model)) {
       return input as Model;
     }
 
     throw new Error("Invalid model");
   },
-  serialize: function (input: Model): string {
+  serialize: function(input: Model): string {
     return input;
   },
 };

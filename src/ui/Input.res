@@ -27,6 +27,7 @@ type position = Left | Right
 
 @react.component
 let make = (
+  ~step=?,
   ~defaultValue=?,
   ~inputRef=?,
   ~placeholder=?,
@@ -75,6 +76,7 @@ let make = (
         ?placeholder
         ?min
         ?max
+        ?step
         readOnly={readOnly->Option.getOr(false)}
         type_={type_->Option.getOr("text")}
         value={value->Option.getOr(%raw("undefined"))}

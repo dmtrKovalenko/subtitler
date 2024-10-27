@@ -20,6 +20,16 @@ type size = {
   height: int,
 }
 
+type background = {
+  color: string,
+  strokeColor: option<string>,
+  strokeWidth: int,
+  opacity: float,
+  paddingX: int,
+  paddingY: int,
+  borderRadius: int,
+}
+
 @genType
 type style = {
   x: int,
@@ -29,25 +39,41 @@ type style = {
   fontSizePx: int,
   color: string,
   strokeColor: option<string>,
+  strokeWidth: int,
   align: align,
   blockSize: size,
   fontVariants: array<fontWeight>,
+  showBackground: bool,
+  background: background,
 }
 
 @genType
 type changeStyleAction =
-  | SetPosition(int, int)
-  | SetFontFamily(string)
-  | SetFontWeight(fontWeight)
-  | SetFontSizePx(int)
-  | SetColor(string)
-  | SetStrokeColor(string)
-  | SetBlockWidth(int)
-  | SetBlockHeight(int)
-  | SetAlign(align)
-  | Resize(size)
-  | SetFontVariants(array<fontWeight>)
   | ResetFontVariants
+  | Resize(size)
+  | SetAlign(align)
+  | SetBackground(background)
+  | SetBlockHeight(int)
+  | SetBlockWidth(int)
+  | SetColor(string)
+  | SetFontFamily(string)
+  | SetFontSizePx(int)
+  | SetFontVariants(array<fontWeight>)
+  | SetFontWeight(fontWeight)
+  | SetPosition(int, int)
+  | SetStrokeColor(string)
+  | SetStrokeWidth(int)
+  | ToggleBackground
+
+let defaultBackground: background = {
+  color: "#000000",
+  opacity: 0.5,
+  paddingY: 16,
+  paddingX: 16,
+  strokeWidth: 1,
+  strokeColor: None,
+  borderRadius: 32,
+}
 
 module type StyleObservable = UseObservable.Observable
   with type t = style
@@ -81,6 +107,9 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     blockSize: {width, height: fontSizePx},
     align: Center,
     fontVariants: all_font_weights,
+    showBackground: false,
+    background: defaultBackground,
+    strokeWidth: 1,
   }
 
   let reducer = (state, action) =>
@@ -110,5 +139,8 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
       }
     | SetFontVariants(fontVariants) => {...state, fontVariants}
     | ResetFontVariants => {...state, fontVariants: all_font_weights}
+    | ToggleBackground => {...state, showBackground: !state.showBackground}
+    | SetBackground(background) => {...state, background}
+    | SetStrokeWidth(strokeWidth) => {...state, strokeWidth}
     }
 })

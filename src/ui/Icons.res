@@ -165,3 +165,20 @@ module AlertIcon = {
     ~style: ReactDOM.Style.t=?,
   ) => React.element = "ExclamationTriangleIcon"
 }
+
+module BorderRadiusIcon = {
+  @react.component
+  let make = (~color="currentColor", ~className="", ~style=?) => {
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke=color
+      className
+      ?style>
+      <path d="M4 14C4 9.58172 7.58172 6 12 6H20" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  }
+}
