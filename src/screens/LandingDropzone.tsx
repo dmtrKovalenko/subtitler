@@ -8,6 +8,7 @@ import { SubtitlesStrikethrough } from "../ui/SubtitlesStrikethrough";
 import { isFocusable } from "../bindings/Web.gen";
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 import { ALL_MODELS, MODELS, Model } from "../transcriber/Constants";
+import { ProductHuntIcon } from "../ui/Icons.res.mjs";
 
 type LandingDropzoneProps = {
   language: string;
@@ -189,6 +190,17 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           )}
         </div>
         <div className="mt-auto flex gap-6">
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2"
+            href="https://www.producthunt.com/products/fframes-subtitles"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="sr-only">Producthunt</span>
+            <ProductHuntIcon.make className="size-7 text-black" />
+          </a>
+
           <a
             target="_blank"
             rel="noopener noreferrer"

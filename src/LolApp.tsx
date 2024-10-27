@@ -19,6 +19,8 @@ import type {
 import clsx from "clsx";
 import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
 import { log } from "./hooks/useAnalytics";
+import HeartIcon from "@heroicons/react/20/solid/HeartIcon";
+import { ProductHuntIcon } from "./ui/Icons.res.mjs";
 
 type VideoFile = {
   name: string;
@@ -473,12 +475,12 @@ export default function LolApp() {
         <div className="w-full flex flex-col gap-y-2 mt-12 max-w-[34rem]">
           {progressItems
             ? progressItems.map((item) => (
-                <Progress
-                  key={item.id}
-                  name={item.title}
-                  progress={item.progress ?? 0}
-                />
-              ))
+              <Progress
+                key={item.id}
+                name={item.title}
+                progress={item.progress ?? 0}
+              />
+            ))
             : null}
         </div>
       </div>
@@ -535,12 +537,12 @@ export default function LolApp() {
               <div className="w-full flex flex-col gap-y-2 mt-8 max-w-[34rem]">
                 {progressItems
                   ? progressItems.map((item) => (
-                      <Progress
-                        key={item.id}
-                        name={item.title}
-                        progress={item.progress ?? 0}
-                      />
-                    ))
+                    <Progress
+                      key={item.id}
+                      name={item.title}
+                      progress={item.progress ?? 0}
+                    />
+                  ))
                   : null}
               </div>
             </>
@@ -554,16 +556,30 @@ export default function LolApp() {
               <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
                 You'll find your video in the location you selected a moment
                 before. Time for publishing but before you do that ... just know
-                ... 👉👈 your video is amazing!
+                ... 👉👈 your video is amazing!<br />
+                If you need more subtitles just <strong>reload your tab</strong>.
               </p>
 
-              <a
-                type="button"
-                href="/"
-                className="mx-auto outline-none mt-6 focus-visible:ring ring-emerald-500 ring-offset-zinc-900 ring-offset-2 hover:bg-emerald-400 transition rounded-lg bg-emerald-600 inline-flex items-center px-4 py-2 font-medium"
-              >
-                Generate more subtitles
-              </a>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+
+                <a
+                  href="https://www.producthunt.com/products/fframes-subtitles/reviews/new"
+                  rel="noopener noreferrer"
+                  className="mx-auto outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2 hover:bg-orange-400 transition rounded-lg gap-2 bg-orange-600 inline-flex items-center px-4 py-3 font-medium"
+                >
+                  <ProductHuntIcon.make className="size-6 text-orange-500" />
+                  Leave a Review
+                </a>
+
+                <a
+                  href="https://github.com/sponsors/dmtrKovalenko"
+                  rel="noopener noreferrer"
+                  className="mx-auto outline-none focus-visible:ring ring-rose-500 ring-offset-zinc-900 ring-offset-2 hover:bg-rose-400 transition rounded-lg bg-rose-600 gap-2 inline-flex items-center px-4 py-3 font-medium"
+                >
+                  <HeartIcon className="size-6" />
+                  Support Author
+                </a>
+              </div>
             </>
           )}
         </div>
