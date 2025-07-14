@@ -1,2 +1,2 @@
-*.res.mjs linguist-vendored
-*.gen.tsx linguist-vendored
+*.res.mjs linguist-generated=true
+*.gen.tsx linguist-generated=true

@@ -49,7 +49,9 @@ let make = (
   let id = React.useId()
 
   <Field className={className->Option.getOr("")}>
-    <Label forId={id} className={Cx.cx([labelHidden->Option.getOr(false) ? "sr-only" : ""])}>
+    <Label
+      forId={id}
+      className={Cx.cx([labelHidden->Option.getOr(false) ? "sr-only" : "whitespace-nowrap"])}>
       {React.string(label)}
     </Label>
     <div className="relative rounded-lg flex">

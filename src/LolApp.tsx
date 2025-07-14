@@ -512,6 +512,7 @@ export default function LolApp() {
             render={render}
             subtitlesManager={subtitlesManager}
             rendererPreviewCanvasRef={rendererPreviewCanvasRef}
+            videoFileName={file.name}
           />
         </EditorContext.make>
       )}

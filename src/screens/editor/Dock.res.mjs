@@ -16,11 +16,19 @@ import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as Core__Promise from "@rescript/core/src/Core__Promise.res.mjs";
 import * as EditorContext from "./EditorContext.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
+import DockButton from "../../ui/DockButton";
 import * as Webapi__Dom__Window from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__Window.res.mjs";
+import * as SubtitleExportDropdown from "../../ui/SubtitleExportDropdown.res.mjs";
 import * as Webapi__Dom__EventTarget from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__EventTarget.res.mjs";
 import * as Solid from "@heroicons/react/24/solid";
 import * as Outline from "@heroicons/react/24/outline";
 import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
+
+var make = DockButton;
+
+var DockButton$1 = {
+  make: make
+};
 
 var DocumentEvent = Webapi__Dom__EventTarget.Impl({});
 
@@ -141,7 +149,7 @@ var shortcuts = [
   }
 ];
 
-var make = Utils.neverRerender(function (props) {
+var make$1 = Utils.neverRerender(function (props) {
       return JsxRuntime.jsx("div", {
                   children: JsxRuntime.jsx("hr", {
                         className: "mx-2 h-9 border-gray-600 border bg-none"
@@ -150,12 +158,12 @@ var make = Utils.neverRerender(function (props) {
     });
 
 var DockDivider = {
-  make: make
+  make: make$1
 };
 
 var baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300";
 
-var make$1 = React.memo(function (props) {
+var make$2 = React.memo(function (props) {
       var __className = props.className;
       var className = __className !== undefined ? __className : "";
       return JsxRuntime.jsx("div", {
@@ -169,39 +177,6 @@ var make$1 = React.memo(function (props) {
 
 var DockSpace = {
   baseClass: baseClass,
-  make: make$1
-};
-
-var make$2 = React.memo(function (props) {
-      var __highlight = props.highlight;
-      var onClick = props.onClick;
-      var __className = props.className;
-      var className = __className !== undefined ? __className : "";
-      var highlight = __highlight !== undefined ? __highlight : false;
-      return JsxRuntime.jsxs("button", {
-                  children: [
-                    JsxRuntime.jsx("span", {
-                          children: props.label,
-                          className: "sr-only"
-                        }),
-                    JsxRuntime.jsx("span", {
-                          children: props.children,
-                          className: "group-active:scale-90 flex items-center gap-2 transition-transform"
-                        })
-                  ],
-                  className: Cx.cx([
-                        baseClass,
-                        "group hover:scale-110 transition-all duration-200",
-                        highlight ? "bg-gradient-to-tr from-amber-500/90 via-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80 focus-visible:!ring-white" : "bg-slate-700 hover:bg-slate-500",
-                        className
-                      ]),
-                  onClick: (function (param) {
-                      onClick();
-                    })
-                });
-    });
-
-var DockButton = {
   make: make$2
 };
 
@@ -371,16 +346,37 @@ function Dock(props) {
   var match$3 = subtitlesManager.transcriptionState;
   var tmp$1;
   var exit = 0;
+  var subtitles;
   if (typeof match$3 !== "object") {
     tmp$1 = null;
+  } else if (match$3.TAG === "SubtitlesNotEdited") {
+    subtitles = match$3.resizedSubtitles;
+    exit = 1;
   } else {
+    subtitles = match$3._0;
     exit = 1;
   }
   if (exit === 1) {
     tmp$1 = JsxRuntime.jsxs(JsxRuntime.Fragment, {
           children: [
-            JsxRuntime.jsx(make, {}),
-            JsxRuntime.jsxs(make$2, {
+            JsxRuntime.jsx(make$1, {}),
+            JsxRuntime.jsx(SubtitleExportDropdown.make, {
+                  subtitles: subtitles,
+                  sideOffset: 5,
+                  align: "start",
+                  videoFileName: props.videoFileName,
+                  children: JsxRuntime.jsxs(make, {
+                        children: [
+                          JsxRuntime.jsx(Outline.ArrowDownTrayIcon, {
+                                className: "mr-2 h-4 w-4"
+                              }),
+                          "Export"
+                        ],
+                        label: "Download file as .vtt or .srt file",
+                        className: "hover:!scale-100"
+                      })
+                }),
+            JsxRuntime.jsxs(make, {
                   children: [
                     JsxRuntime.jsx(Outline.SparklesIcon, {
                           className: "size-5"
@@ -388,7 +384,7 @@ function Dock(props) {
                     "Render video"
                   ],
                   label: "Render video file",
-                  className: "whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4",
+                  className: "whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4",
                   onClick: startRender,
                   highlight: true
                 })
@@ -397,7 +393,7 @@ function Dock(props) {
   }
   return JsxRuntime.jsxs("div", {
               children: [
-                JsxRuntime.jsxs(make$1, {
+                JsxRuntime.jsxs(make$2, {
                       children: [
                         JsxRuntime.jsx("span", {
                               children: Utils.Duration.formatSeconds(player.ts)
@@ -412,28 +408,28 @@ function Dock(props) {
                       ],
                       className: "tabular-nums space-x-1"
                     }),
-                JsxRuntime.jsx(make, {}),
-                JsxRuntime.jsx(make$2, {
+                JsxRuntime.jsx(make$1, {}),
+                JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Icons.BackwardIcon.make, {
                             className: "size-5 mx-0.5"
                           }),
                       label: "Play forward 5 seconds",
                       onClick: handleSeekLeft
                     }),
-                JsxRuntime.jsx(make$2, {
+                JsxRuntime.jsx(make, {
                       children: tmp,
                       label: "Play",
                       onClick: handlePlayOrPause,
                       highlight: true
                     }),
-                JsxRuntime.jsx(make$2, {
+                JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Outline.ArrowUturnRightIcon, {
                             className: "size-5 mx-0.5"
                           }),
                       label: "Play back 5 seconds",
                       onClick: handleSeekRight
                     }),
-                JsxRuntime.jsxs(make$1, {
+                JsxRuntime.jsxs(make$2, {
                       children: [
                         volume !== undefined && volume > 0 ? JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
                                 className: "size-7"
@@ -451,15 +447,15 @@ function Dock(props) {
                       ],
                       className: "w-40"
                     }),
-                JsxRuntime.jsx(make, {}),
-                JsxRuntime.jsx(make$2, {
+                JsxRuntime.jsx(make$1, {}),
+                JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
                             className: "size-6 mx-0.5"
                           }),
                       label: "Turn on/off full-screen mode",
                       onClick: fullScreenToggler.toggle
                     }),
-                JsxRuntime.jsx(make$2, {
+                JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Outline.PencilSquareIcon, {
                             className: "size-6 mx-0.5"
                           }),
@@ -478,12 +474,12 @@ function Dock(props) {
 var make$3 = Dock;
 
 export {
+  DockButton$1 as DockButton,
   DocumentEvent ,
   $$Promise$1 as $$Promise,
   shortcuts ,
   DockDivider ,
   DockSpace ,
-  DockButton ,
   make$3 as make,
 }
-/* DocumentEvent Not a pure module */
+/* make Not a pure module */
