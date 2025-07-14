@@ -81,6 +81,10 @@ var BorderRadiusIcon = {
   make: Icons$BorderRadiusIcon
 };
 
+var DownloadIcon = {};
+
+var ChatBubbleIcon = {};
+
 function Icons$ProductHuntIcon(props) {
   var __className = props.className;
   var __color = props.color;
@@ -128,6 +132,8 @@ export {
   EditIcon ,
   AlertIcon ,
   BorderRadiusIcon ,
+  DownloadIcon ,
+  ChatBubbleIcon ,
   ProductHuntIcon ,
 }
 /* react/jsx-runtime Not a pure module */

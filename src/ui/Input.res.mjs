@@ -42,7 +42,7 @@ function Input(props) {
                 JsxRuntime.jsx(Input$Label, {
                       forId: id,
                       children: props.label,
-                      className: Cx.cx([Core__Option.getOr(props.labelHidden, false) ? "sr-only" : ""])
+                      className: Cx.cx([Core__Option.getOr(props.labelHidden, false) ? "sr-only" : "whitespace-nowrap"])
                     }),
                 JsxRuntime.jsxs("div", {
                       children: [

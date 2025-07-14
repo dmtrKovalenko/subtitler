@@ -182,6 +182,23 @@ module BorderRadiusIcon = {
     </svg>
   }
 }
+module DownloadIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowDownTrayIcon"
+}
+
+module ChatBubbleIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ChatBubbleBottomCenterTextIcon"
+}
 
 @genType
 module ProductHuntIcon = {

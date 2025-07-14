@@ -166,7 +166,8 @@ var make = React.memo(function (props) {
                     JsxRuntime.jsx(Dock.make, {
                           subtitlesManager: subtitlesManager,
                           render: props.render,
-                          fullScreenToggler: match[1]
+                          fullScreenToggler: match[1],
+                          videoFileName: props.videoFileName
                         })
                   ],
                   className: "w-screen h-screen bg-zinc-900 overflow-clip relative",

@@ -4,6 +4,18 @@ open Shortcut
 open Webapi
 open ChunksList
 open Player
+
+module DockButton = {
+  @react.component @module("../../ui/DockButton")
+  external make: (
+    ~children: React.element,
+    ~label: string,
+    ~className: string=?,
+    ~onClick: unit => unit=?,
+    ~highlight: bool=?,
+  ) => React.element = "default"
+}
+
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
 // didn't found a better way to interop this with gentype to intercept Promise ts type
@@ -57,31 +69,8 @@ module DockSpace = {
 
 @send external focus: Dom.Element.t => unit = "focus"
 
-module DockButton = {
-  @react.component
-  let make = React.memo(
-    React.forwardRef((~children, ~label, ~className="", ~onClick: 'a => unit, ~highlight=false) => {
-      <button
-        onClick={_ => onClick()}
-        className={cx([
-          DockSpace.baseClass,
-          "group hover:scale-110 transition-all duration-200",
-          highlight
-            ? "bg-gradient-to-tr from-amber-500/90 via-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80 focus-visible:!ring-white"
-            : "bg-slate-700 hover:bg-slate-500",
-          className,
-        ])}>
-        <span className="sr-only"> {React.string(label)} </span>
-        <span className="group-active:scale-90 flex items-center gap-2 transition-transform">
-          {children}
-        </span>
-      </button>
-    }),
-  )
-}
-
 @react.component
-let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
+let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~videoFileName) => {
   let context = EditorContext.useEditorContext()
   let (isCollapsed, collapsedToggle) = Hooks.useToggle(false)
   let (player, playerDispatch) = context.usePlayer()
@@ -242,14 +231,20 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle) => {
     </DockButton>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null
-    | _ =>
+    | SubtitlesNotEdited({resizedSubtitles: subtitles}) | SubtitlesEdited(subtitles) =>
       <>
         <DockDivider />
+        <SubtitleExportDropdown sideOffset={5} align=#start subtitles videoFileName>
+          <DockButton label="Download file as .vtt or .srt file" className="hover:!scale-100">
+            <DownloadIcon className="mr-2 h-4 w-4" />
+            {React.string("Export")}
+          </DockButton>
+        </SubtitleExportDropdown>
         <DockButton
           highlight=true
           label="Render video file"
           onClick={startRender}
-          className="whitespace-nowrap flex font-medium hover:!bg-orange-400 px-4">
+          className="whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4">
           <RenderIcon className="size-5" />
           {React.string("Render video")}
         </DockButton>

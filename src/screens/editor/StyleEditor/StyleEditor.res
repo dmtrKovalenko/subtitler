@@ -231,7 +231,7 @@ let make = Utils.neverRerender(() => {
         />
         <Input
           type_="number"
-          label="Stroke width"
+          label="width"
           adornmentClassName
           className="w-full"
           min="0"

@@ -397,7 +397,7 @@ var make = Utils.neverRerender(function (props) {
                                         }),
                                     JsxRuntime.jsx(Input.make, {
                                           step: 1.0,
-                                          label: "Stroke width",
+                                          label: "width",
                                           value: String(style.background.strokeWidth),
                                           type_: "number",
                                           className: "w-full",
