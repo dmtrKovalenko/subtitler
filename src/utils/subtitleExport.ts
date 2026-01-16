@@ -11,13 +11,13 @@ async function saveFile(
   mimeType: string,
 ): Promise<void> {
   if ("showSaveFilePicker" in window) {
-    const fileExtension = filename.split(".").pop() || "";
+    const fileExtension = `.${filename.split(".").pop() || ""}` as const;
     const fileHandle = await window.showSaveFilePicker({
       suggestedName: filename,
       types: [
         {
           description: `${fileExtension.toUpperCase()} File`,
-          accept: { [mimeType]: [`.${fileExtension}`] },
+          accept: { [mimeType as `${string}/${string}`]: [fileExtension] },
         },
       ],
     });

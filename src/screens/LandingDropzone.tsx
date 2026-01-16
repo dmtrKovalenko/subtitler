@@ -35,7 +35,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
   } = useDropzone({
     onDrop,
     accept: {
-      "video/mp4": [".mp4"],
+      "video/*": [".mp4", ".webm", ".mov", ".avi", ".mkv", ".m4v", ".ogv", ".3gp"],
     },
   });
 
@@ -94,7 +94,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
         {fileRejections.length > 0 && (
           <div className="mb-4 bg-red-200 px-4 py-2 shadow-red-400 shadow rounded-2xl">
             <p className="text-red-500 font-medium text-lg">
-              We only support .mp4 files
+              Please upload a valid video file
             </p>
           </div>
         )}

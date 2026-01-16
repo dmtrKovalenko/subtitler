@@ -15,6 +15,9 @@ import type {
   RenderWorkerMessage,
   ConfigSupportResponseMessage,
   RenderProgressMessage,
+  OutputFormat,
+  OutputVideoCodec,
+  OutputAudioCodec,
 } from "./codecs/render-worker";
 import clsx from "clsx";
 import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
@@ -28,7 +31,6 @@ type VideoFile = {
   objectURL: string;
   audioBuffer: AudioBuffer;
   audioCtx: AudioContext;
-  validEncoderConfig: VideoEncoderConfig;
 };
 
 export type ProgressItem = {
@@ -37,16 +39,35 @@ export type ProgressItem = {
   progress: number;
 };
 
-async function createTarget(file: File): Promise<Target> {
-  const suggestedName = `transcribed_${file.name}`;
+type FormatConfig = {
+  extension: string;
+  mimeType: string;
+  description: string;
+};
+
+const FORMAT_CONFIGS: Record<OutputFormat, FormatConfig> = {
+  mp4: { extension: ".mp4", mimeType: "video/mp4", description: "MP4 Video" },
+  webm: { extension: ".webm", mimeType: "video/webm", description: "WebM Video" },
+  mov: { extension: ".mov", mimeType: "video/quicktime", description: "QuickTime Video" },
+};
+
+function getOutputFileName(originalName: string, format: OutputFormat): string {
+  // Remove existing extension and add the new one
+  const baseName = originalName.replace(/\.[^/.]+$/, "");
+  return `transcribed_${baseName}${FORMAT_CONFIGS[format].extension}`;
+}
+
+async function createTarget(file: File, format: OutputFormat): Promise<Target> {
+  const suggestedName = getOutputFileName(file.name, format);
+  const config = FORMAT_CONFIGS[format];
 
   if ("showSaveFilePicker" in window) {
-    let fileHandle = await window.showSaveFilePicker({
+    let fileHandle = await (window as any).showSaveFilePicker({
       suggestedName,
       types: [
         {
-          description: "Final Video File",
-          accept: { "video/mp4": [".mp4"] },
+          description: config.description,
+          accept: { [config.mimeType]: [config.extension] },
         },
       ],
     });
@@ -63,9 +84,10 @@ async function createTarget(file: File): Promise<Target> {
   };
 }
 
-async function saveTarget(target: Target) {
+function saveTarget(target: Target, format: OutputFormat) {
   if (target.type === "populated_arraybuffer") {
-    const blob = new Blob([target.arrayBuffer!], { type: "video/mp4" });
+    const config = FORMAT_CONFIGS[format];
+    const blob = new Blob([target.arrayBuffer!], { type: config.mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -135,7 +157,7 @@ export default function LolApp() {
     }
   }
 
-  async function validateFileCodecSupoprted(file: File) {
+  async function validateFileCodecSupported(file: File) {
     const worker = new RenderWorker();
 
     worker.postMessage({
@@ -145,7 +167,7 @@ export default function LolApp() {
       },
     } as RenderWorkerMessage);
 
-    return new Promise<VideoEncoderConfig>((res, rej) =>
+    return new Promise<boolean>((res, rej) =>
       worker.addEventListener(
         "message",
         ({ data }: MessageEvent<ConfigSupportResponseMessage>) => {
@@ -159,7 +181,7 @@ export default function LolApp() {
               data.decoderSupported &&
               data.encoderConfig
             ) {
-              res(data.encoderConfig);
+              res(true);
             } else {
               let whichCodecIsMissing = "";
 
@@ -177,9 +199,9 @@ export default function LolApp() {
 
               rej(
                 new UserFacingError(
-                  `You'r browser does not support ${whichCodecIsMissing} for your video file codec.`,
+                  `Your browser does not support ${whichCodecIsMissing} for your video file codec.`,
                   new Error(
-                    "Usually this might mean that your browser not supporting hevc. This might help:\n ffmpeg -i <yourfile> -c:v libx264 -crf 18 -c:a aac <outputfile>",
+                    "mediabunny will try to find a compatible codec. This error may occur if your browser lacks WebCodecs support.",
                   ),
                 ),
               );
@@ -201,9 +223,10 @@ export default function LolApp() {
     document.title = `validating ${file.name}`;
 
     try {
-      const [{ audioCtx, audioBuffer }, validEncoderConfig] = await Promise.all(
-        [readAndPrepareAudioContext(file), validateFileCodecSupoprted(file)],
-      );
+      const [{ audioCtx, audioBuffer }] = await Promise.all([
+        readAndPrepareAudioContext(file),
+        validateFileCodecSupported(file),
+      ]);
 
       setFile({
         file,
@@ -211,7 +234,6 @@ export default function LolApp() {
         objectURL: URL.createObjectURL(file),
         audioBuffer,
         audioCtx,
-        validEncoderConfig,
       });
 
       setProgressItems([]);
@@ -230,7 +252,12 @@ export default function LolApp() {
   );
 
   const render = React.useCallback(
-    async (style: style) => {
+    async (
+      style: style, 
+      outputFormat: string = "mp4",
+      videoCodec?: string,
+      audioCodec?: string,
+    ) => {
       log("video_render_started");
 
       const worker = new RenderWorker();
@@ -244,7 +271,24 @@ export default function LolApp() {
         return Promise.reject();
       }
 
-      const target = await createTarget(file.file);
+      // Validate output format
+      const validFormat: OutputFormat = 
+        outputFormat === "webm" ? "webm" : 
+        outputFormat === "mov" ? "mov" : "mp4";
+
+      // Validate video codec
+      const validVideoCodec: OutputVideoCodec | undefined = 
+        videoCodec && ["avc", "hevc", "vp9", "vp8", "av1"].includes(videoCodec) 
+          ? videoCodec as OutputVideoCodec 
+          : undefined;
+
+      // Validate audio codec
+      const validAudioCodec: OutputAudioCodec | undefined = 
+        audioCodec && ["aac", "opus", "mp3", "vorbis", "flac"].includes(audioCodec)
+          ? audioCodec as OutputAudioCodec
+          : undefined;
+
+      const target = await createTarget(file.file, validFormat);
       setRenderState("rendering");
       setProgressItems([
         {
@@ -273,7 +317,9 @@ export default function LolApp() {
             dataUri: file.file,
             canvas: offscreenCanvas,
             cues: subtitlesManager.activeSubtitles,
-            validEncoderConfig: file.validEncoderConfig,
+            outputFormat: validFormat,
+            videoCodec: validVideoCodec,
+            audioCodec: validAudioCodec,
           },
         } as RenderWorkerMessage,
         [offscreenCanvas],
@@ -288,14 +334,8 @@ export default function LolApp() {
           if (e.data.type === "done") {
             log("video_rendered");
 
-            saveTarget(e.data.target).catch((e) => {
-              failWith(
-                new UserFacingError(
-                  "Failed to save rendered video file",
-                  e as Error,
-                ),
-              );
-            });
+            // Use the actual output format from the worker (may differ if fallback occurred)
+            saveTarget(e.data.target, e.data.outputFormat);
 
             document.title = `✅ Subtitles rendered!`;
             setRenderState("done");

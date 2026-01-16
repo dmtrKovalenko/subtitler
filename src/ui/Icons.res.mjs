@@ -85,6 +85,10 @@ var DownloadIcon = {};
 
 var ChatBubbleIcon = {};
 
+var CheckIcon = {};
+
+var FilmIcon = {};
+
 function Icons$ProductHuntIcon(props) {
   var __className = props.className;
   var __color = props.color;
@@ -134,6 +138,8 @@ export {
   BorderRadiusIcon ,
   DownloadIcon ,
   ChatBubbleIcon ,
+  CheckIcon ,
+  FilmIcon ,
   ProductHuntIcon ,
 }
 /* react/jsx-runtime Not a pure module */

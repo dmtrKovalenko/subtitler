@@ -26,16 +26,28 @@ var Item = {
   make: make$3
 };
 
-var make$4 = DropdownMenu.DropdownMenuSeparator;
+var make$4 = DropdownMenu.DropdownMenuRadioGroup;
 
-var Separator = {
+var RadioGroup = {
   make: make$4
 };
 
-var make$5 = DropdownMenu.DropdownMenuLabel;
+var make$5 = DropdownMenu.DropdownMenuRadioItem;
+
+var RadioItem = {
+  make: make$5
+};
+
+var make$6 = DropdownMenu.DropdownMenuSeparator;
+
+var Separator = {
+  make: make$6
+};
+
+var make$7 = DropdownMenu.DropdownMenuLabel;
 
 var Label = {
-  make: make$5
+  make: make$7
 };
 
 export {
@@ -43,6 +55,8 @@ export {
   Trigger ,
   Content ,
   Item ,
+  RadioGroup ,
+  RadioItem ,
   Separator ,
   Label ,
 }

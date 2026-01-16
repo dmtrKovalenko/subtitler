@@ -1,7 +1,11 @@
 // Styled DropdownMenu component bindings
 module Root = {
   @react.component @module("./DropdownMenu")
-  external make: (~children: React.element) => React.element = "DropdownMenu"
+  external make: (
+    ~children: React.element,
+    ~open_: bool=?,
+    ~onOpenChange: bool => unit=?,
+  ) => React.element = "DropdownMenu"
 }
 
 module Trigger = {
@@ -31,6 +35,22 @@ module Item = {
     ~onClick: unit => unit=?,
     ~disabled: bool=?,
   ) => React.element = "DropdownMenuItem"
+}
+
+module RadioGroup = {
+  @react.component @module("./DropdownMenu")
+  external make: (
+    ~children: React.element,
+    ~value: string=?,
+    ~onValueChange: string => unit=?,
+    ~className: string=?,
+  ) => React.element = "DropdownMenuRadioGroup"
+}
+
+module RadioItem = {
+  @react.component @module("./DropdownMenu")
+  external make: (~children: React.element, ~value: string, ~className: string=?) => React.element =
+    "DropdownMenuRadioItem"
 }
 
 module Separator = {

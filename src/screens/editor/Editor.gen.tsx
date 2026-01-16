@@ -22,7 +22,7 @@ export const a: <T1>() => {[id: string]: T1} = EditorJS.a as any;
 
 export const Editor: React.ComponentType<{
   readonly subtitlesManager: ChunksList_subtitlesManager; 
-  readonly render: (_1:Style_style) => Core__Promise_t<void>; 
+  readonly render: (_1:Style_style, _2:string, _3:string, _4:string) => Core__Promise_t<void>; 
   readonly rendererPreviewCanvasRef: any; 
   readonly videoFileName: string
 }> = EditorJS.make as any;
