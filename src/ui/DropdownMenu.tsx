@@ -102,13 +102,17 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 const DropdownMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onSelect, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={clsx(
-      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-zinc-700 focus:text-zinc-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors focus:bg-zinc-700 focus:text-zinc-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-zinc-700 hover:cursor-pointer whitespace-nowrap",
       className,
     )}
+    onSelect={(e) => {
+      e.preventDefault();
+      onSelect?.(e);
+    }}
     {...props}
   >
     {children}
@@ -125,7 +129,6 @@ const DropdownMenuLabel = React.forwardRef<
     ref={ref}
     className={clsx(
       "px-2 py-1.5 text-sm font-semibold text-zing-200",
-      inset && "pl-8",
       className,
     )}
     {...props}

@@ -200,6 +200,24 @@ module ChatBubbleIcon = {
   ) => React.element = "ChatBubbleBottomCenterTextIcon"
 }
 
+module CheckIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "CheckIcon"
+}
+
+module FilmIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "FilmIcon"
+}
+
 @genType
 module ProductHuntIcon = {
   @genType.as("ProductHuntIcon") @react.component

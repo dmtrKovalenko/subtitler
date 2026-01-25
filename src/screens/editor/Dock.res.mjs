@@ -21,6 +21,7 @@ import * as Webapi__Dom__Window from "rescript-webapi/src/Webapi/Dom/Webapi__Dom
 import * as SubtitleExportDropdown from "../../ui/SubtitleExportDropdown.res.mjs";
 import * as Webapi__Dom__EventTarget from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__EventTarget.res.mjs";
 import * as Solid from "@heroicons/react/24/solid";
+import * as VideoExportFormatDropdown from "../../ui/VideoExportFormatDropdown.res.mjs";
 import * as Outline from "@heroicons/react/24/outline";
 import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
 
@@ -190,6 +191,11 @@ function Dock(props) {
   var match$1 = context.usePlayer();
   var playerDispatch = match$1[1];
   var player = match$1[0];
+  var match$2 = React.useState(function () {
+        return VideoExportFormatDropdown.makeDefaultSettings();
+      });
+  var setExportSettings = match$2[1];
+  var exportSettings = match$2[0];
   var handlePlayOrPause = function (param) {
     var match = context.getImmediatePlayerState().playState;
     var tmp;
@@ -282,7 +288,7 @@ function Dock(props) {
       });
   var startRender = Hooks.useEvent(function () {
         playerDispatch("StopForRender");
-        Core__Promise.$$catch(render(context.getImmediateStyleState()), (function (param) {
+        Core__Promise.$$catch(render(context.getImmediateStyleState(), VideoExportFormatDropdown.formatToString(exportSettings.format), VideoExportFormatDropdown.videoCodecToString(exportSettings.videoCodec), VideoExportFormatDropdown.audioCodecToString(exportSettings.audioCodec)), (function (param) {
                 return Promise.resolve(playerDispatch("AbortRender"));
               }));
       });
@@ -320,9 +326,9 @@ function Dock(props) {
             
           }
         }));
-  var match$2 = player.playState;
+  var match$3 = player.playState;
   var tmp;
-  switch (match$2) {
+  switch (match$3) {
     case "Playing" :
         tmp = JsxRuntime.jsx(Solid.PauseIcon, {
               className: "size-6 mx-0.5"
@@ -343,17 +349,17 @@ function Dock(props) {
     
   }
   var volume = player.volume;
-  var match$3 = subtitlesManager.transcriptionState;
+  var match$4 = subtitlesManager.transcriptionState;
   var tmp$1;
   var exit = 0;
   var subtitles;
-  if (typeof match$3 !== "object") {
+  if (typeof match$4 !== "object") {
     tmp$1 = null;
-  } else if (match$3.TAG === "SubtitlesNotEdited") {
-    subtitles = match$3.resizedSubtitles;
+  } else if (match$4.TAG === "SubtitlesNotEdited") {
+    subtitles = match$4.resizedSubtitles;
     exit = 1;
   } else {
-    subtitles = match$3._0;
+    subtitles = match$4._0;
     exit = 1;
   }
   if (exit === 1) {
@@ -376,17 +382,27 @@ function Dock(props) {
                         className: "hover:!scale-100"
                       })
                 }),
-            JsxRuntime.jsxs(make, {
-                  children: [
-                    JsxRuntime.jsx(Outline.SparklesIcon, {
-                          className: "size-5"
-                        }),
-                    "Render video"
-                  ],
-                  label: "Render video file",
-                  className: "whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4",
-                  onClick: startRender,
-                  highlight: true
+            JsxRuntime.jsx(VideoExportFormatDropdown.make, {
+                  settings: exportSettings,
+                  onSettingsChange: (function (settings) {
+                      setExportSettings(function (param) {
+                            return settings;
+                          });
+                    }),
+                  onRender: startRender,
+                  sideOffset: 5,
+                  align: "end",
+                  children: JsxRuntime.jsxs(make, {
+                        children: [
+                          JsxRuntime.jsx(Outline.SparklesIcon, {
+                                className: "size-5"
+                              }),
+                          "Render video"
+                        ],
+                        label: "Render video file",
+                        className: "whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4",
+                        highlight: true
+                      })
                 })
           ]
         });
@@ -465,7 +481,7 @@ function Dock(props) {
                 tmp$1
               ],
               className: Cx.cx([
-                    "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex -translate-x-1/2",
+                    "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex flex-row -translate-x-1/2",
                     match[0] ? "translate-y-16 duration-300" : ""
                   ])
             });

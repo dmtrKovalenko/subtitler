@@ -4,6 +4,7 @@ open Shortcut
 open Webapi
 open ChunksList
 open Player
+open VideoExportFormatDropdown
 
 module DockButton = {
   @react.component @module("../../ui/DockButton")
@@ -74,6 +75,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
   let context = EditorContext.useEditorContext()
   let (isCollapsed, collapsedToggle) = Hooks.useToggle(false)
   let (player, playerDispatch) = context.usePlayer()
+  let (exportSettings, setExportSettings) = React.useState(() => makeDefaultSettings())
 
   let handlePlayOrPause = _ => {
     open Player
@@ -154,7 +156,12 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
 
   let startRender = Hooks.useEvent(_ => {
     playerDispatch(StopForRender)
-    render(context.getImmediateStyleState())
+    render(
+      context.getImmediateStyleState(),
+      exportSettings.format->formatToString,
+      exportSettings.videoCodec->videoCodecToString,
+      exportSettings.audioCodec->audioCodecToString,
+    )
     ->Promise.catch(_ => playerDispatch(AbortRender)->Promise.resolve)
     ->ignore
   })
@@ -180,7 +187,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
 
   <div
     className={Cx.cx([
-      "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex -translate-x-1/2",
+      "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex flex-row -translate-x-1/2",
       isCollapsed ? "translate-y-16 duration-300" : "",
     ])}>
     <DockSpace className="tabular-nums space-x-1">
@@ -240,14 +247,20 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
             {React.string("Export")}
           </DockButton>
         </SubtitleExportDropdown>
-        <DockButton
-          highlight=true
-          label="Render video file"
-          onClick={startRender}
-          className="whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4">
-          <RenderIcon className="size-5" />
-          {React.string("Render video")}
-        </DockButton>
+        <VideoExportFormatDropdown
+          settings=exportSettings
+          onSettingsChange={settings => setExportSettings(_ => settings)}
+          onRender={startRender}
+          sideOffset={5}
+          align=#end>
+          <DockButton
+            highlight=true
+            label="Render video file"
+            className="whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4">
+            <RenderIcon className="size-5" />
+            {React.string("Render video")}
+          </DockButton>
+        </VideoExportFormatDropdown>
       </>
     }}
   </div>

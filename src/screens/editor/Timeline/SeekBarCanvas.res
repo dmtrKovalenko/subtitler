@@ -59,7 +59,7 @@ let make = (~size) => {
     None
   }, (size, player.ts, player.playState))
 
-  let handleMouseMove = React.useCallback1(e => {
+  let _handleMouseMove = React.useCallback1(e => {
     if (
       editorContext.getImmediatePlayerState().playState !== Playing &&
         Webapi.Dom.document->Web.Document.hasFocus
@@ -77,7 +77,8 @@ let make = (~size) => {
 
   <canvas
     onClick=handleClick
-    onMouseMove=handleMouseMove
+    // got a user feedback that this is annoying, testing...
+    // onMouseMove=handleMouseMove
     className={Cx.cx([
       "absolute inset-0",
       switch player.playState {

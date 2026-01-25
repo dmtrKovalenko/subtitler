@@ -33,8 +33,7 @@
     "concurrently": "^8.2.2",
     "js-confetti": "^0.12.0",
     "konva": "^9.3.12",
-    "mp4-muxer": "^4.2.0",
-    "mp4box": "^0.5.2",
+    "mediabunny": "^1.27.2",
     "patch-package": "^8.0.0",
     "postcss-nesting": "^12.1.5",
     "react": "^18.3.1",
@@ -51,12 +50,17 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
+    "@types/wicg-file-system-access": "^2023.10.7",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/browser": "^4.0.16",
+    "@vitest/browser-playwright": "^4.0.16",
     "autoprefixer": "^10.4.15",
+    "playwright": "^1.57.0",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.4.4",
     "vite": "^5.0.6",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite-plugin-pwa": "^0.20.0",
+    "vitest": "^4.0.16"
   },
   "resolutions": {}
 }

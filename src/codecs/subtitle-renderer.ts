@@ -8,7 +8,6 @@ import KonvaCore from "konva/lib/Core";
 import type Konva from "konva";
 import { Text } from "konva/lib/shapes/Text";
 import { Rect } from "konva/lib/shapes/Rect";
-
 export type RendererContext = {
   stage: Konva.Stage;
   layer: Konva.Layer;
@@ -124,11 +123,46 @@ export function createCtx(
   };
 }
 
+/**
+ * Updates the text layer with the current cue and redraws if changed.
+ * Handles text content, background visibility, and positioning.
+ */
+function updateTextLayer(
+  ctx: RendererContext,
+  currentCue: currentPlayingCue | undefined,
+): void {
+  ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
+
+  if (ctx.background) {
+    if (!currentCue) {
+      ctx.background.hide();
+    } else {
+      ctx.background.show();
+    }
+
+    ctx.background.setAttrs({
+      x: ctx.text.x() - ctx.style.background.paddingX,
+      y: ctx.text.y() - ctx.style.background.paddingY,
+      width: ctx.text.width() + ctx.style.background.paddingX * 2,
+      height: ctx.text.height() + ctx.style.background.paddingY * 2,
+    });
+  }
+
+  ctx.layer.draw();
+}
+
+/**
+ * Checks if the current cue has non-empty text content.
+ */
+function hasVisibleCue(currentCue: currentPlayingCue | undefined): boolean {
+  return !!(currentCue && currentCue.currentCue?.text?.trim() !== "");
+}
+
 export function renderCue(
   cues: subtitleCue[],
   frame: VideoFrame,
   ctx: RendererContext,
-) {
+): VideoFrame {
   if (!ctx.videoCanvasContext) {
     throw new Error("Can't access video canvas context");
   }
@@ -143,7 +177,7 @@ export function renderCue(
     format: frame.format,
   };
 
-  // render the vide frame itself
+  // render the video frame itself
   ctx.videoCanvasContext.drawImage(
     frame,
     0,
@@ -161,28 +195,11 @@ export function renderCue(
 
   // update the text layer canvas if needed
   if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
-    ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
-
-    if (ctx.background) {
-      if (!currentCue) {
-        ctx.background.hide();
-      } else {
-        ctx.background.show();
-      }
-
-      ctx.background.setAttrs({
-        x: ctx.text.x() - ctx.style.background.paddingX,
-        y: ctx.text.y() - ctx.style.background.paddingY,
-        width: ctx.text.width() + (ctx.style.background.paddingX * 2),
-        height: ctx.text.height() + (ctx.style.background.paddingY * 2),
-      });
-    }
-
-    ctx.layer.draw();
+    updateTextLayer(ctx, currentCue);
   }
 
   // render text layer if current cue is not empty
-  if (currentCue && currentCue.currentCue.text.trim() !== "") {
+  if (hasVisibleCue(currentCue)) {
     ctx.videoCanvasContext.drawImage(
       ctx.layer.getCanvas()._canvas,
       0,
@@ -194,4 +211,57 @@ export function renderCue(
 
   ctx.lastPlayedCue = currentCue;
   return new VideoFrame(ctx.videoCanvasContext.canvas, frameOptions);
+}
+
+/**
+ * Renders subtitle cue onto canvas from a source canvas.
+ * @param cues - Array of subtitle cues
+ * @param sourceCanvas - Source canvas containing the video frame
+ * @param ctx - Renderer context (must be created with the target canvas)
+ * @param timestamp - Time in seconds (not microseconds)
+ */
+export function renderCueOnCanvas(
+  cues: subtitleCue[],
+  sourceCanvas: HTMLCanvasElement | OffscreenCanvas,
+  ctx: RendererContext,
+  timestamp: number,
+): void {
+  if (!ctx.videoCanvasContext) {
+    throw new Error("Can't access video canvas context");
+  }
+
+  const canvas = ctx.videoCanvasContext.canvas;
+
+  // Draw source video frame to target canvas
+  ctx.videoCanvasContext.drawImage(
+    sourceCanvas,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+
+  const currentCue = getOrLookupCurrentCue(
+    timestamp,
+    cues,
+    ctx.lastPlayedCue,
+  );
+
+  // Update the text layer canvas if needed
+  if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
+    updateTextLayer(ctx, currentCue);
+  }
+
+  // Render text layer if current cue is not empty
+  if (hasVisibleCue(currentCue)) {
+    ctx.videoCanvasContext.drawImage(
+      ctx.layer.getCanvas()._canvas,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+  }
+
+  ctx.lastPlayedCue = currentCue;
 }
