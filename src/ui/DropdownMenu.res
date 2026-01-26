@@ -3,7 +3,7 @@ module Root = {
   @react.component @module("./DropdownMenu")
   external make: (
     ~children: React.element,
-    ~open_: bool=?,
+    @as("open") ~open_: bool=?,
     ~onOpenChange: bool => unit=?,
   ) => React.element = "DropdownMenu"
 }

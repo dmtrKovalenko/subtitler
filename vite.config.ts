@@ -1,6 +1,11 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
+import path from "path";
+
+const ReactCompilerConfig = {
+  target: "19",
+};
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,7 +13,7 @@ export default defineConfig({
     react({
       include: ["**/*.res.mjs", "**/*.tsx", "**/*.ts"],
       babel: {
-        //plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
+        plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
       },
     }),
     VitePWA({

@@ -388,8 +388,8 @@ let make = (
   }
 
   let handleRenderClick = () => {
-    setIsOpen(_ => false)
     onRender()
+    setIsOpen(_ => false)
   }
 
   <DropdownMenu.Root open_=isOpen onOpenChange={isOpenValue => setIsOpen(_ => isOpenValue)}>

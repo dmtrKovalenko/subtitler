@@ -525,10 +525,10 @@ function VideoExportFormatDropdown(props) {
         });
   };
   var handleRenderClick = function () {
+    onRender();
     setIsOpen(function (param) {
           return false;
         });
-    onRender();
   };
   return JsxRuntime.jsxs(DropdownMenu.Root.make, {
               children: [
@@ -592,7 +592,7 @@ function VideoExportFormatDropdown(props) {
                       align: props.align
                     })
               ],
-              open_: match[0],
+              open: match[0],
               onOpenChange: (function (isOpenValue) {
                   setIsOpen(function (param) {
                         return isOpenValue;

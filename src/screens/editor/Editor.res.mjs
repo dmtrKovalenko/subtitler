@@ -25,10 +25,16 @@ function a(prim) {
 console.log("Happy subtitles making experience!");
 
 var make = React.memo(function (props) {
+      var onResetPlayerState = props.onResetPlayerState;
       var subtitlesManager = props.subtitlesManager;
       var match = Hooks.useToggle(false);
       var ctx = EditorContext.useEditorContext();
       var layout = Hooks.useEditorLayout(match[0]);
+      React.useEffect((function () {
+              onResetPlayerState(function () {
+                    ctx.playerImmediateDispatch("AbortRender");
+                  });
+            }), []);
       var transcriptionInProgress = subtitlesManager.transcriptionState === "TranscriptionInProgress";
       var subtitlesTitle = transcriptionInProgress ? JsxRuntime.jsxs("div", {
               children: [
@@ -134,7 +140,7 @@ var make = React.memo(function (props) {
                                           },
                                           height: ctx.videoMeta.height.toString(),
                                           width: ctx.videoMeta.width.toString()
-                                        }),
+                                        }, props.renderCanvasKey.toString()),
                                     JsxRuntime.jsx(EditorCanvas.make, {
                                           transcriptionInProgress: transcriptionInProgress,
                                           width: ctx.videoMeta.width,
