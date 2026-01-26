@@ -163,6 +163,13 @@ var make = React.memo(function (props) {
               
             }), [start]);
       var inProgress = Core__Option.getOr(chunk.isInProgress, false);
+      var handleBlur = React.useCallback((function (e) {
+              var newText = e.target.value;
+              if (newText !== chunk.text) {
+                return onTextChange(index, newText);
+              }
+              
+            }), [chunk.text]);
       return JsxRuntime.jsxs("div", {
                   children: [
                     JsxRuntime.jsxs("div", {
@@ -207,18 +214,16 @@ var make = React.memo(function (props) {
                         }),
                     JsxRuntime.jsx("textarea", {
                           ref: Caml_option.some(textAreaRef),
+                          defaultValue: chunk.text,
                           className: Cx.cx([
                                 "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                                 "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
                               ]),
                           readOnly: readonly,
                           rows: chunk.text === "" ? 2 : 3,
-                          value: chunk.text,
                           onKeyDown: useEditorInputHandler(),
-                          onChange: (function (e) {
-                              onTextChange(index, e.target.value);
-                            })
-                        }),
+                          onBlur: handleBlur
+                        }, chunk.text),
                     chunk.text === "" ? JsxRuntime.jsxs("div", {
                             children: [
                               JsxRuntime.jsx("button", {
@@ -243,8 +248,8 @@ var make = React.memo(function (props) {
                   ],
                   ref: Caml_option.some(ref),
                   className: Cx.cx([
-                        "gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
-                        current ? "!border-zinc-500" : ""
+                        "scroll-mt-24 gap-3 flex focus-within:border-orange-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
+                        current ? "!border-orange-500" : ""
                       ]),
                   onFocus: seekToThisCue
                 });

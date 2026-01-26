@@ -147,6 +147,15 @@ module RenderIcon = {
   ) => React.element = "SparklesIcon"
 }
 
+module RocketIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "RocketLaunchIcon"
+}
+
 module EditIcon = {
   @react.component @module("@heroicons/react/24/outline")
   external make: (

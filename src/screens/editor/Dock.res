@@ -38,7 +38,6 @@ let shortcuts = [
   {key: "j", modifier: NoModifier, action: SeekToNextCue},
   {key: "i", modifier: NoModifier, action: EditCurrentSubtitle},
   {key: "Enter", modifier: NoModifier, action: EditCurrentSubtitle},
-  {key: "t", modifier: NoModifier, action: ToggleDock},
   {key: "r", modifier: NoModifier, action: StartRender},
   {key: "f", modifier: NoModifier, action: ToggleFullScreen},
   {key: "m", modifier: NoModifier, action: Mute},
@@ -238,7 +237,8 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
     </DockButton>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null
-    | SubtitlesNotEdited({resizedSubtitles: subtitles}) | SubtitlesEdited(subtitles) =>
+    | SubtitlesReady(_) =>
+      let subtitles = subtitlesManager.activeSubtitles
       <>
         <DockDivider />
         <SubtitleExportDropdown sideOffset={5} align=#start subtitles videoFileName>
@@ -257,7 +257,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
             highlight=true
             label="Render video file"
             className="whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4">
-            <RenderIcon className="size-5" />
+            <RocketIcon className="size-5" />
             {React.string("Render video")}
           </DockButton>
         </VideoExportFormatDropdown>

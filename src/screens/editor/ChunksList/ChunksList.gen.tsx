@@ -9,10 +9,11 @@ import type {subtitleCue as Subtitles_subtitleCue} from '../../../../src/screens
 
 import type {timestamp as Subtitles_timestamp} from '../../../../src/screens/editor/Subtitles.gen';
 
+import type {wordChunk as WordTimestamps_wordChunk} from '../../../../src/screens/editor/WordTimestamps.gen';
+
 export type transcriptionState = 
     "TranscriptionInProgress"
-  | { TAG: "SubtitlesNotEdited"; readonly resizedSubtitles: Subtitles_subtitleCue[]; readonly size: number }
-  | { TAG: "SubtitlesEdited"; _0: Subtitles_subtitleCue[] };
+  | { TAG: "SubtitlesReady"; readonly wordChunks: WordTimestamps_wordChunk[]; readonly pauseAfterIndices: number[]; readonly cueRanges: Array<[number, number]>; readonly size: number };
 
 export type subtitlesManager = {
   readonly activeSubtitles: Subtitles_subtitleCue[]; 

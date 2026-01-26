@@ -51,6 +51,8 @@ var BarsCenterRightIcon = {};
 
 var RenderIcon = {};
 
+var RocketIcon = {};
+
 var EditIcon = {};
 
 var AlertIcon = {};
@@ -133,6 +135,7 @@ export {
   BarsIcon ,
   BarsCenterRightIcon ,
   RenderIcon ,
+  RocketIcon ,
   EditIcon ,
   AlertIcon ,
   BorderRadiusIcon ,
