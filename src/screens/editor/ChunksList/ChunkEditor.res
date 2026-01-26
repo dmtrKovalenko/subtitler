@@ -93,7 +93,7 @@ module TimestampEditor = {
   }
 }
 
-// globally exported and used as a singleton ref to the current (or last if nothing playerd)
+// globally exported and used as a singleton ref to the current (or last if nothing played)
 // textarea cue input dom element
 let globalCurrentCueTextAreaRef = ref(None)
 
@@ -144,12 +144,19 @@ let make = React.memo((
 
   let inProgress = chunk.isInProgress->Option.getOr(false)
 
+  let handleBlur = React.useCallback1(e => {
+    let newText = ReactEvent.Focus.target(e)["value"]
+    if newText !== chunk.text {
+      onTextChange(index, newText)
+    }
+  }, [chunk.text])
+
   <div
     ref={ReactDOM.Ref.domRef(ref)}
     onFocus=seekToThisCue
     className={Cx.cx([
-      "gap-3 flex focus-within:border-zinc-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
-      current ? "!border-zinc-500" : "",
+      "scroll-mt-24 gap-3 flex focus-within:border-orange-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
+      current ? "!border-orange-500" : "",
     ])}>
     <div className="flex items-center gap-1">
       <TimestampEditor
@@ -180,16 +187,17 @@ let make = React.memo((
     <textarea
       ref={ReactDOM.Ref.domRef(textAreaRef)}
       readOnly=readonly
-      value={chunk.text}
+      defaultValue={chunk.text}
+      key={chunk.text}
       rows={chunk.text === "" ? 2 : 3}
-      onChange={e => onTextChange(index, ReactEvent.Form.target(e)["value"])}
+      onBlur={handleBlur}
       onKeyDown={useEditorInputHandler()}
       className={Cx.cx([
         "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
         "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",
       ])}
     />
-    {if chunk.text == "" {
+    {if chunk.text === "" {
       <div className="flex gap-2">
         <button
           type_="button"
@@ -205,7 +213,7 @@ let make = React.memo((
         </button>
       </div>
     } else {
-      {React.null}
+      React.null
     }}
   </div>
 })

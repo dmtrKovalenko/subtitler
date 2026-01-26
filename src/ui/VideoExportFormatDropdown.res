@@ -427,9 +427,9 @@ let make = (
         <button
           onClick={_ => handleRenderClick()}
           disabled={supportedCodecs.loading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 transition-all shadow-lg shadow-orange-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-white bg-gradient-to-tr from-amber-500/90 via-orange-500/90 to-fuchsia-400/80 hover:from-orange-300/80 hover:to-fuchsia-200/80 focus-visible:!ring-white transition-all shadow-lg shadow-orange-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+          {"Start rendering"->React.string}
           <RenderIcon className="size-5" />
-          {"RENDER & DOWNLOAD"->React.string}
         </button>
       </div>
     </DropdownMenu.Content>

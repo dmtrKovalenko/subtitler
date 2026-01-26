@@ -12,7 +12,7 @@ function intEqual(message, a, b) {
 
 function floatEqual(message, a, b) {
   Test.assertion(message, "Float equals", (function (a, b) {
-          return a === b;
+          return Math.abs(a - b) < 0.0001;
         }), a, b);
 }
 

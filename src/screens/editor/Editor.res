@@ -64,7 +64,7 @@ let make = React.memo((
                 {
                   id: "subtitles",
                   name: subtitlesTitle,
-                  content: <ChunksList subtitlesManager />,
+                  content: <ChunksList subtitlesManager title={React.null} />,
                 },
                 {
                   id: "style",
@@ -78,16 +78,7 @@ let make = React.memo((
             className="hidden @2xl:flex overflow-auto px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700">
             <div
               className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
-              <h2
-                className={Cx.cx([
-                  "mx-auto text-xl",
-                  transcriptionInProgress
-                    ? "sticky top-0 bg-zinc-600/5 px-2 rounded-lg backdrop-blur"
-                    : "",
-                ])}>
-                {subtitlesTitle}
-              </h2>
-              <ChunksList subtitlesManager />
+              <ChunksList subtitlesManager title={subtitlesTitle} />
             </div>
             <div className="pl-6 flex-1 flex flex-col gap-y-4">
               <h2 className="mx-auto text-xl"> {styleTitle} </h2>

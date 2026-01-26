@@ -99,11 +99,6 @@ var shortcuts = [
     modifier: "NoModifier"
   },
   {
-    action: "ToggleDock",
-    key: "t",
-    modifier: "NoModifier"
-  },
-  {
     action: "StartRender",
     key: "r",
     modifier: "NoModifier"
@@ -351,18 +346,10 @@ function Dock(props) {
   var volume = player.volume;
   var match$4 = subtitlesManager.transcriptionState;
   var tmp$1;
-  var exit = 0;
-  var subtitles;
   if (typeof match$4 !== "object") {
     tmp$1 = null;
-  } else if (match$4.TAG === "SubtitlesNotEdited") {
-    subtitles = match$4.resizedSubtitles;
-    exit = 1;
   } else {
-    subtitles = match$4._0;
-    exit = 1;
-  }
-  if (exit === 1) {
+    var subtitles = subtitlesManager.activeSubtitles;
     tmp$1 = JsxRuntime.jsxs(JsxRuntime.Fragment, {
           children: [
             JsxRuntime.jsx(make$1, {}),
@@ -394,7 +381,7 @@ function Dock(props) {
                   align: "end",
                   children: JsxRuntime.jsxs(make, {
                         children: [
-                          JsxRuntime.jsx(Outline.SparklesIcon, {
+                          JsxRuntime.jsx(Outline.RocketLaunchIcon, {
                                 className: "size-5"
                               }),
                           "Render video"
