@@ -18,3 +18,8 @@ declare module "./Promise.gen" {
 declare module "@rescript/core/src/Core__Promise.gen" {
   export type t<T> = Promise<T>;
 }
+
+// React 19 JSX namespace compatibility for genType
+declare namespace JSX {
+  type Element = React.ReactElement;
+}

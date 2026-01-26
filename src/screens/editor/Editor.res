@@ -8,10 +8,22 @@ let a = Js.Dict.empty
 Js.Console.log("Happy subtitles making experience!")
 
 @genType.as("Editor") @react.component
-let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef, ~videoFileName) => {
+let make = React.memo((
+  ~subtitlesManager,
+  ~render,
+  ~rendererPreviewCanvasRef,
+  ~renderCanvasKey,
+  ~videoFileName,
+  ~onResetPlayerState,
+) => {
   let (isFullScreen, fullScreenToggler) = Hooks.useToggle(false)
   let ctx = EditorContext.useEditorContext()
   let layout = useEditorLayout(~isFullScreen)
+
+  React.useEffect0(() => {
+    onResetPlayerState(() => ctx.playerImmediateDispatch(AbortRender))
+    None
+  })
 
   let transcriptionInProgress = subtitlesManager.transcriptionState == TranscriptionInProgress
 
@@ -101,6 +113,7 @@ let make = React.memo((~subtitlesManager, ~render, ~rendererPreviewCanvasRef, ~v
           className="bg-black origin-top-left absolute left-0 top-0"
         />
         <canvas
+          key={renderCanvasKey->Int.toString}
           ref={ReactDOM.Ref.domRef(rendererPreviewCanvasRef)}
           width={ctx.videoMeta.width->Int.toString}
           height={ctx.videoMeta.height->Int.toString}

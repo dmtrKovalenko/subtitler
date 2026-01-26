@@ -47,8 +47,16 @@ type FormatConfig = {
 
 const FORMAT_CONFIGS: Record<OutputFormat, FormatConfig> = {
   mp4: { extension: ".mp4", mimeType: "video/mp4", description: "MP4 Video" },
-  webm: { extension: ".webm", mimeType: "video/webm", description: "WebM Video" },
-  mov: { extension: ".mov", mimeType: "video/quicktime", description: "QuickTime Video" },
+  webm: {
+    extension: ".webm",
+    mimeType: "video/webm",
+    description: "WebM Video",
+  },
+  mov: {
+    extension: ".mov",
+    mimeType: "video/quicktime",
+    description: "QuickTime Video",
+  },
 };
 
 function getOutputFileName(originalName: string, format: OutputFormat): string {
@@ -107,14 +115,18 @@ export default function LolApp() {
   const transcriber = useTranscriber(setProgressItems);
   const [file, setFile] = React.useState<VideoFile | null>(null);
   const [renderState, setRenderState] = React.useState<
-    "idle" | "rendering" | "done"
+    "idle" | "rendering" | "done" | "error"
   >("idle");
+  const [renderError, setRenderError] = React.useState<string | null>(null);
+  const resetPlayerStateRef = React.useRef<(() => void) | null>(null);
+  // Key to force canvas recreation after render (transferControlToOffscreen can only be called once)
+  const [renderCanvasKey, setRenderCanvasKey] = React.useState(0);
 
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const timelineVideoRef = React.useRef<HTMLVideoElement>(null);
 
   const [EditorContext, setEditorContext] = React.useState<{
-    make: (props: any) => JSX.Element;
+    make: (props: any) => React.ReactElement;
   } | null>(null);
 
   async function readAndPrepareAudioContext(file: File) {
@@ -251,9 +263,16 @@ export default function LolApp() {
     Constants.DEFAULT_CHUNK_THRESHOLD_CHARS,
   );
 
+  const handleBackToEditor = React.useCallback(() => {
+    setRenderState("idle");
+    resetPlayerStateRef.current?.();
+    // Increment key to force canvas recreation (transferControlToOffscreen can only be called once)
+    setRenderCanvasKey((k) => k + 1);
+  }, []);
+
   const render = React.useCallback(
     async (
-      style: style, 
+      style: style,
       outputFormat: string = "mp4",
       videoCodec?: string,
       audioCodec?: string,
@@ -272,20 +291,24 @@ export default function LolApp() {
       }
 
       // Validate output format
-      const validFormat: OutputFormat = 
-        outputFormat === "webm" ? "webm" : 
-        outputFormat === "mov" ? "mov" : "mp4";
+      const validFormat: OutputFormat =
+        outputFormat === "webm"
+          ? "webm"
+          : outputFormat === "mov"
+            ? "mov"
+            : "mp4";
 
       // Validate video codec
-      const validVideoCodec: OutputVideoCodec | undefined = 
-        videoCodec && ["avc", "hevc", "vp9", "vp8", "av1"].includes(videoCodec) 
-          ? videoCodec as OutputVideoCodec 
+      const validVideoCodec: OutputVideoCodec | undefined =
+        videoCodec && ["avc", "hevc", "vp9", "vp8", "av1"].includes(videoCodec)
+          ? (videoCodec as OutputVideoCodec)
           : undefined;
 
       // Validate audio codec
-      const validAudioCodec: OutputAudioCodec | undefined = 
-        audioCodec && ["aac", "opus", "mp3", "vorbis", "flac"].includes(audioCodec)
-          ? audioCodec as OutputAudioCodec
+      const validAudioCodec: OutputAudioCodec | undefined =
+        audioCodec &&
+        ["aac", "opus", "mp3", "vorbis", "flac"].includes(audioCodec)
+          ? (audioCodec as OutputAudioCodec)
           : undefined;
 
       const target = await createTarget(file.file, validFormat);
@@ -299,11 +322,6 @@ export default function LolApp() {
         {
           id: "renderprogress",
           title: "Rendering frames",
-          progress: 0,
-        },
-        {
-          id: "encodeprogress",
-          title: "Encoding video",
           progress: 0,
         },
       ]);
@@ -329,7 +347,10 @@ export default function LolApp() {
         "message",
         (e: MessageEvent<RenderProgressMessage>) => {
           if (e.data.type === "error") {
-            failWith(new UserFacingError(e.data.message, e.data.error));
+            setRenderError(e.data.message);
+            setRenderState("error");
+            setProgressItems([]);
+            worker.terminate();
           }
           if (e.data.type === "done") {
             log("video_rendered");
@@ -515,12 +536,12 @@ export default function LolApp() {
         <div className="w-full flex flex-col gap-y-2 mt-12 max-w-[34rem]">
           {progressItems
             ? progressItems.map((item) => (
-              <Progress
-                key={item.id}
-                name={item.title}
-                progress={item.progress ?? 0}
-              />
-            ))
+                <Progress
+                  key={item.id}
+                  name={item.title}
+                  progress={item.progress ?? 0}
+                />
+              ))
             : null}
         </div>
       </div>
@@ -552,7 +573,11 @@ export default function LolApp() {
             render={render}
             subtitlesManager={subtitlesManager}
             rendererPreviewCanvasRef={rendererPreviewCanvasRef}
+            renderCanvasKey={renderCanvasKey}
             videoFileName={file.name}
+            onResetPlayerState={(fn: () => void) => {
+              resetPlayerStateRef.current = fn;
+            }}
           />
         </EditorContext.make>
       )}
@@ -560,14 +585,15 @@ export default function LolApp() {
       <Transition show={renderState !== "idle"}>
         <div
           className={clsx(
-            "transition flex-col absolute w-screen h-screen bg-white/10 backdrop-blur-xl inset-0 duration-300 ease-in data-[closed]:opacity-0 flex items-center justify-center",
+            "transition flex-col absolute z-[60] w-screen h-screen bg-white/10 backdrop-blur-xl inset-0 duration-300 ease-in data-[closed]:opacity-0 flex items-center justify-center",
             renderState === "done" && "!bg-green-600/10 !backdrop-blur-2xl",
+            renderState === "error" && "!bg-red-600/10 !backdrop-blur-2xl",
           )}
         >
           {renderState === "rendering" && (
             <>
               <h2 className="text-5xl tracking-wide font-bold">
-                Rendering Your Video
+                Rendering your video
               </h2>
               <p className="text-gray-300 text-balance text-center text-lg max-w-screen-sm mt-4">
                 In a moment you'll get your video with subtitles created at the
@@ -578,14 +604,36 @@ export default function LolApp() {
               <div className="w-full flex flex-col gap-y-2 mt-8 max-w-[34rem]">
                 {progressItems
                   ? progressItems.map((item) => (
-                    <Progress
-                      key={item.id}
-                      name={item.title}
-                      progress={item.progress ?? 0}
-                    />
-                  ))
+                      <Progress
+                        key={item.id}
+                        name={item.title}
+                        progress={item.progress ?? 0}
+                      />
+                    ))
                   : null}
               </div>
+            </>
+          )}
+
+          {renderState === "error" && (
+            <>
+              <h2 className="text-5xl tracking-wide font-bold text-red-400">
+                Rendering Failed
+              </h2>
+              <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
+                {renderError || "An unknown error occurred during rendering."}
+              </p>
+              <p className="text-gray-400 text-balance text-center max-w-screen-md text-sm mt-2">
+                Try selecting a different video codec or format. Some codec
+                combinations may not be supported by your browser.
+              </p>
+
+              <button
+                onClick={handleBackToEditor}
+                className="mt-6 text-gray-300 hover:text-white underline underline-offset-4 transition"
+              >
+                ← Back to editor
+              </button>
             </>
           )}
 
@@ -597,12 +645,10 @@ export default function LolApp() {
               <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
                 You'll find your video in the location you selected a moment
                 before. Time for publishing but before you do that ... just know
-                ... 👉👈 your video is amazing!<br />
-                If you need more subtitles just <strong>reload your tab</strong>.
+                ... 👉👈 your video is amazing!
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-
                 <a
                   href="https://www.producthunt.com/products/fframes-subtitles/reviews/new"
                   rel="noopener noreferrer"
@@ -621,6 +667,13 @@ export default function LolApp() {
                   Support Author
                 </a>
               </div>
+
+              <button
+                onClick={handleBackToEditor}
+                className="mt-6 text-gray-300 hover:text-white underline underline-offset-4 transition"
+              >
+                ← Back to editor
+              </button>
             </>
           )}
         </div>
