@@ -411,7 +411,7 @@ var make = React.memo(function (props) {
       if (typeof match$1 !== "object") {
         tmp = JsxRuntime.jsx("p", {
               children: "Transcription in progress. Once finished you'll be able to edit and resize generated subtitles.",
-              className: "text-center px-2 text-balance text-sm text-gray-500"
+              className: "text-center pb-4 px-2 text-balance text-sm text-gray-500"
             });
       } else {
         var size = match$1.size;

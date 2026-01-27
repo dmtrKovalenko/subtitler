@@ -14,7 +14,6 @@ import {
   AudioSampleSink,
   AudioSampleSource,
   getFirstEncodableVideoCodec,
-  getFirstEncodableAudioCodec,
   getEncodableVideoCodecs,
   getEncodableAudioCodecs,
   canEncodeVideo,
@@ -122,7 +121,10 @@ export type ConfigSupportResponseMessage =
     };
 
 const postMessage = (
-  message: RenderProgressMessage | ConfigSupportResponseMessage | SupportedCodecsMessage,
+  message:
+    | RenderProgressMessage
+    | ConfigSupportResponseMessage
+    | SupportedCodecsMessage,
 ) => self.postMessage(message);
 
 export type Target =
@@ -189,6 +191,7 @@ export async function render({
   let output: Output | null = null;
   let audioSampleSource: AudioSampleSource | null = null;
   let audioProcessingError: Error | null = null;
+  let audioProcessingPromise: Promise<void> | null = null;
 
   try {
     if (!dataUri || !canvas) {
@@ -264,7 +267,9 @@ export async function render({
     let actualOutputFormat: OutputFormat = outputFormat;
 
     // Create format class based on format string
-    function createFormatClass(fmt: OutputFormat): Mp4OutputFormat | WebMOutputFormat | MovOutputFormat {
+    function createFormatClass(
+      fmt: OutputFormat,
+    ): Mp4OutputFormat | WebMOutputFormat | MovOutputFormat {
       switch (fmt) {
         case "webm":
           return new WebMOutputFormat();
@@ -303,11 +308,17 @@ export async function render({
         const supportedVideoCodecs = format.getSupportedVideoCodecs();
 
         // If user specified a preferred codec, try it first if supported by the format
-        if (preferredVideoCodec && supportedVideoCodecs.includes(preferredVideoCodec as VideoCodec)) {
-          const canEncode = await canEncodeVideo(preferredVideoCodec as VideoCodec, {
-            width: videoTrack.displayWidth,
-            height: videoTrack.displayHeight,
-          });
+        if (
+          preferredVideoCodec &&
+          supportedVideoCodecs.includes(preferredVideoCodec as VideoCodec)
+        ) {
+          const canEncode = await canEncodeVideo(
+            preferredVideoCodec as VideoCodec,
+            {
+              width: videoTrack.displayWidth,
+              height: videoTrack.displayHeight,
+            },
+          );
           if (canEncode) {
             videoCodec = preferredVideoCodec as VideoCodec;
           }
@@ -315,13 +326,10 @@ export async function render({
 
         // If preferred codec didn't work, try to find any encodable codec
         if (!videoCodec) {
-          videoCodec = await getFirstEncodableVideoCodec(
-            supportedVideoCodecs,
-            {
-              width: videoTrack.displayWidth,
-              height: videoTrack.displayHeight,
-            },
-          );
+          videoCodec = await getFirstEncodableVideoCodec(supportedVideoCodecs, {
+            width: videoTrack.displayWidth,
+            height: videoTrack.displayHeight,
+          });
         }
 
         if (videoCodec) {
@@ -443,13 +451,10 @@ export async function render({
         const canDecodeAudio = await audioTrack.canDecode();
 
         if (canDecodeAudio) {
-          // Try to find compatible audio codec with multiple parameter combinations
-          const sampleRateAttempts = [
-            audioTrack.sampleRate,
-            48000, // Standard fallback
-            44100, // CD quality fallback
-          ];
+          // Use the source's actual sample rate since we can't resample
+          const sampleRate = audioTrack.sampleRate;
 
+          // Try different channel configurations
           const channelAttempts = [
             audioTrack.numberOfChannels,
             2, // Stereo fallback
@@ -459,51 +464,60 @@ export async function render({
           let audioCodec: AudioCodec | null = null;
           const supportedAudioCodecs = format.getSupportedAudioCodecs();
 
-          // Try different sample rate and channel combinations
-          outerLoop: for (const sampleRate of sampleRateAttempts) {
+          // Prioritize Opus over AAC for better browser compatibility
+          const codecPriority: AudioCodec[] = [
+            "opus",
+            "aac",
+            "mp3",
+            "vorbis",
+            "flac",
+          ];
+          const orderedCodecs = [
+            ...codecPriority.filter((c) => supportedAudioCodecs.includes(c)),
+            ...supportedAudioCodecs.filter((c) => !codecPriority.includes(c)),
+          ];
+
+          // Try different codec and channel combinations
+          outerLoop: for (const codecToTry of orderedCodecs) {
             for (const channels of channelAttempts) {
               try {
                 // If user specified a preferred audio codec, try it first
-                if (preferredAudioCodec && supportedAudioCodecs.includes(preferredAudioCodec as AudioCodec)) {
-                  const canEncode = await canEncodeAudio(preferredAudioCodec as AudioCodec, {
+                if (preferredAudioCodec && preferredAudioCodec === codecToTry) {
+                  const canEncode = await canEncodeAudio(codecToTry, {
                     sampleRate,
                     numberOfChannels: channels,
                   });
                   if (canEncode) {
-                    audioCodec = preferredAudioCodec as AudioCodec;
+                    audioCodec = codecToTry;
+                    break outerLoop;
                   }
                 }
 
-                // If preferred codec didn't work, try to find any encodable codec
-                if (!audioCodec) {
-                  audioCodec = await getFirstEncodableAudioCodec(
-                    supportedAudioCodecs,
-                    {
-                      sampleRate,
-                      numberOfChannels: channels,
-                    },
-                  );
-                }
-
-                if (audioCodec) {
+                // Try the codec
+                const canEncode = await canEncodeAudio(codecToTry, {
+                  sampleRate,
+                  numberOfChannels: channels,
+                });
+                if (canEncode) {
+                  audioCodec = codecToTry;
                   if (
-                    sampleRate !== audioTrack.sampleRate ||
-                    channels !== audioTrack.numberOfChannels
+                    preferredAudioCodec &&
+                    audioCodec !== preferredAudioCodec
                   ) {
                     console.warn(
-                      `Audio parameters adjusted: ${audioTrack.sampleRate}Hz/${audioTrack.numberOfChannels}ch -> ${sampleRate}Hz/${channels}ch`,
+                      `Requested ${preferredAudioCodec} audio codec not supported, using ${audioCodec}`,
                     );
                   }
-                  if (preferredAudioCodec && audioCodec !== preferredAudioCodec) {
+                  if (channels !== audioTrack.numberOfChannels) {
                     console.warn(
-                      `Requested ${preferredAudioCodec} audio codec not supported, using ${audioCodec}`,
+                      `Audio channels adjusted: ${audioTrack.numberOfChannels}ch -> ${channels}ch`,
                     );
                   }
                   break outerLoop;
                 }
               } catch (e) {
                 console.warn(
-                  `Failed to get audio codec for ${sampleRate}Hz/${channels}ch:`,
+                  `Failed to check audio codec ${codecToTry} for ${sampleRate}Hz/${channels}ch:`,
                   e,
                 );
               }
@@ -586,20 +600,32 @@ export async function render({
                 console.warn(
                   `Failed to add audio track: ${e instanceof Error ? e.message : String(e)}`,
                 );
-                console.warn("Continuing without audio...");
+                postMessage({
+                  type: "error",
+                  message: `Failed to add audio track: ${e instanceof Error ? e.message : String(e)}`,
+                  error: e,
+                });
                 audioSampleSource = null;
               }
             } else {
+              const errorMessage =
+                audioEncoderError instanceof Error
+                  ? audioEncoderError.message
+                  : String(audioEncoderError);
               console.warn(
-                `Failed to create audio encoder with any bitrate: ${audioEncoderError instanceof Error ? audioEncoderError.message : String(audioEncoderError)}`,
+                `Failed to create audio encoder with any bitrate: ${errorMessage}`,
               );
-              console.warn("Continuing without audio...");
+              postMessage({
+                type: "error",
+                message: `Your browser doesn't support encoding audio in a compatible format. Technical details: ${errorMessage}`,
+                error: audioEncoderError,
+              });
             }
 
             // Only start audio processing if we successfully added the track
             if (audioSampleSource) {
-              // Start audio decoding/encoding in parallel
-              (async () => {
+              // Start audio decoding/encoding in parallel, storing the promise to await later
+              audioProcessingPromise = (async () => {
                 try {
                   for await (const audioSample of audioSampleSink.samples()) {
                     try {
@@ -621,25 +647,41 @@ export async function render({
                     "Audio processing error:",
                     audioProcessingError,
                   );
-                  // Don't post error message here - will be handled after video finishes
+                  postMessage({
+                    type: "error",
+                    message: `Audio encoding failed: ${audioProcessingError.message}`,
+                    error: e,
+                  });
                 }
               })();
             }
           } else {
             console.warn(
-              `No compatible audio codec found for any audio parameters. Continuing without audio...`,
+              `No compatible audio codec found for any audio parameters.`,
             );
+            postMessage({
+              type: "error",
+              message: "No compatible audio codec found for your browser.",
+              error: new Error("No compatible audio codec"),
+            });
           }
         } else {
-          console.warn(
-            "Cannot decode audio track. Continuing without audio...",
-          );
+          console.warn("Cannot decode audio track.");
+          postMessage({
+            type: "error",
+            message: "Cannot decode the audio track in this video file.",
+            error: new Error("Cannot decode audio track"),
+          });
         }
       } catch (e) {
         console.warn(
           `Error setting up audio: ${e instanceof Error ? e.message : String(e)}`,
         );
-        console.warn("Continuing without audio...");
+        postMessage({
+          type: "error",
+          message: `Error setting up audio: ${e instanceof Error ? e.message : String(e)}`,
+          error: e,
+        });
       }
     }
 
@@ -660,7 +702,12 @@ export async function render({
 
     let rendererCtx;
     try {
-      rendererCtx = createCtx(videoDecoderConfig, canvas, style, wordAnimationData);
+      rendererCtx = createCtx(
+        videoDecoderConfig,
+        canvas,
+        style,
+        wordAnimationData,
+      );
     } catch (e) {
       throw new Error(
         `Failed to create subtitle renderer: ${e instanceof Error ? e.message : String(e)}`,
@@ -736,6 +783,15 @@ export async function render({
       canvasSource.close();
     } catch (e) {
       console.warn("Error closing canvas source:", e);
+    }
+
+    // Wait for audio processing to complete before finalizing
+    if (audioProcessingPromise) {
+      try {
+        await audioProcessingPromise;
+      } catch (e) {
+        console.warn("Error waiting for audio processing:", e);
+      }
     }
 
     // Finalize output
@@ -912,16 +968,19 @@ export async function validateFile({ dataUri }: ValidateMessage) {
   }
 }
 
-export async function querySupportedCodecs({ width = 1920, height = 1080 }: QueryCodecsMessage = {}) {
+export async function querySupportedCodecs({
+  width = 1920,
+  height = 1080,
+}: QueryCodecsMessage = {}) {
   try {
     const supportedVideoCodecs = await getEncodableVideoCodecs(
       [...VIDEO_CODECS],
-      { width, height }
+      { width, height },
     );
 
     const supportedAudioCodecs = await getEncodableAudioCodecs(
       [...NON_PCM_AUDIO_CODECS],
-      { sampleRate: 48000, numberOfChannels: 2 }
+      { sampleRate: 48000, numberOfChannels: 2 },
     );
 
     postMessage({
