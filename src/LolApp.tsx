@@ -652,7 +652,7 @@ export default function LolApp() {
               <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
                 You'll find your video in the location you selected a moment
                 before. Time for publishing but before you do that ... just know
-                ... 👉👈 your video is amazing!
+                ... your video is amazing!
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">

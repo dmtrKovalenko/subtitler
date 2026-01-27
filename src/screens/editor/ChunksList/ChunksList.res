@@ -448,7 +448,7 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
           />
         </>
       | TranscriptionInProgress =>
-        <p className="text-center px-2 text-balance text-sm text-gray-500">
+        <p className="text-center pb-4 px-2 text-balance text-sm text-gray-500">
           {"Transcription in progress. Once finished you'll be able to edit and resize generated subtitles."->React.string}
         </p>
       }}
