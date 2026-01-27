@@ -1,5 +1,6 @@
 // Word-level timestamp preservation with stable pause boundaries
 
+@genType
 type transcriptionState =
   | TranscriptionInProgress
   | SubtitlesReady({
@@ -13,6 +14,7 @@ type transcriptionState =
       size: int,
     })
 
+@genType
 type subtitlesManager = {
   activeSubtitles: array<Subtitles.subtitleCue>,
   transcriptionState: transcriptionState,
@@ -21,6 +23,7 @@ type subtitlesManager = {
   removeChunk: (int, ~joinSiblingsTimestamps: bool) => unit,
   editText: (int, string) => unit,
   editTimestamp: (int, Subtitles.timestamp) => unit,
+  getWordChunksForCue: int => option<array<WordTimestamps.wordChunk>>,
 }
 
 let subtitleCueToWordChunk = (cue: Subtitles.subtitleCue): WordTimestamps.wordChunk => {
@@ -407,6 +410,17 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
       | TranscriptionInProgress => ()
       }
     },
+    getWordChunksForCue: cueIndex => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, cueRanges}) =>
+        switch cueRanges->Array.get(cueIndex) {
+        | Some((startIdx, endIdx)) =>
+          Some(wordChunks->Array.slice(~start=startIdx, ~end=endIdx + 1))
+        | None => None
+        }
+      | TranscriptionInProgress => None
+      }
+    },
   }, (transcriptionState, subtitles))
 }
 
@@ -416,8 +430,7 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
   let (player, _) = ctx.usePlayer()
 
   <>
-    <div
-      className="sticky top-0 z-10 bg-zinc-900 pb-4 flex flex-col w-full border-b border-zinc-700">
+    <div className="sticky top-0 z-10 px-2 bg-zinc-900 flex flex-col w-full">
       <h2 className="mx-auto text-xl pb-2"> {title} </h2>
       {switch subtitlesManager.transcriptionState {
       | SubtitlesReady({size}) =>
@@ -440,7 +453,7 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
         </p>
       }}
     </div>
-    <div className="flex flex-1 pb-4 min-h-0 flex-col gap-6">
+    <div className="flex flex-1 ml-1.5 pb-4 min-h-0 flex-col gap-6">
       {subtitlesManager.activeSubtitles
       ->Array.mapWithIndex((chunk, index) =>
         <ChunkEditor

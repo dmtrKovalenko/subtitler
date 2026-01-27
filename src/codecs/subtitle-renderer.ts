@@ -4,10 +4,19 @@ import {
   subtitleCue,
 } from "../screens/editor/Subtitles.gen";
 import { style } from "../screens/editor/Style.gen";
+import { wordChunk } from "../screens/editor/WordTimestamps.gen";
 import KonvaCore from "konva/lib/Core";
 import type Konva from "konva";
 import { Text } from "konva/lib/shapes/Text";
 import { Rect } from "konva/lib/shapes/Rect";
+import { Group } from "konva/lib/Group";
+
+// Word animation data for export
+export type WordAnimationData = {
+  wordChunks: wordChunk[];
+  cueRanges: Array<[number, number]>;
+};
+
 export type RendererContext = {
   stage: Konva.Stage;
   layer: Konva.Layer;
@@ -16,6 +25,15 @@ export type RendererContext = {
   lastPlayedCue: currentPlayingCue | undefined;
   style: style;
   videoCanvasContext: OffscreenCanvasRenderingContext2D | null;
+  // Word animation support
+  wordAnimationData?: WordAnimationData;
+  wordGroup?: Konva.Group;
+  wordTexts?: Konva.Text[];
+  wordBackgrounds?: Konva.Rect[];
+  lastActiveWordIndex?: number;
+  // For smooth background animation
+  prevWordPosition?: { x: number; y: number; width: number };
+  animatedBgRect?: Konva.Rect;
 };
 
 // monkeypatch Konva for offscreen canvas usage
@@ -63,10 +81,126 @@ export async function loadGoogleFont(
   await self.fonts.ready;
 }
 
+function findActiveWordIndex(
+  wordChunks: wordChunk[],
+  currentTs: number,
+): number {
+  for (let i = 0; i < wordChunks.length; i++) {
+    const [start, end] = wordChunks[i].timestamp;
+    const endTs = end ?? wordChunks[i + 1]?.timestamp[0] ?? start + 0.5;
+    if (currentTs >= start && currentTs < endTs) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function getWordChunksForCue(
+  wordAnimationData: WordAnimationData,
+  cueIndex: number,
+): wordChunk[] | null {
+  const cueRange = wordAnimationData.cueRanges[cueIndex];
+  if (!cueRange) return null;
+  const [startIdx, endIdx] = cueRange;
+  return wordAnimationData.wordChunks.slice(startIdx, endIdx + 1);
+}
+
+type WordPosition = {
+  word: wordChunk;
+  x: number;
+  y: number;
+  width: number;
+  index: number;
+};
+
+function measureTextWidth(text: string, style: style): number {
+  const tempText = new Text({
+    text,
+    fontSize: style.fontSizePx,
+    fontFamily: style.fontFamily,
+    fontStyle: style.fontWeight >= 700 ? "bold" : "normal",
+  });
+  return tempText.width();
+}
+
+function calculateWordPositions(
+  wordChunks: wordChunk[],
+  style: style,
+): WordPosition[] {
+  const positions: WordPosition[] = [];
+  const blockWidth = style.blockSize.width;
+  const lineHeight = style.fontSizePx * 1.2;
+
+  const spaceWidth = measureTextWidth(" ", style);
+  let lineWords: { word: wordChunk; width: number; index: number }[] = [];
+  let lineWidth = 0;
+
+  // First pass: group words into lines
+  const lines: { word: wordChunk; width: number; index: number }[][] = [];
+
+  for (let i = 0; i < wordChunks.length; i++) {
+    const word = wordChunks[i];
+    const wordText = word.text.trim();
+    const wordWidth = measureTextWidth(wordText, style);
+
+    const neededWidth =
+      lineWords.length > 0 ? spaceWidth + wordWidth : wordWidth;
+
+    if (lineWidth + neededWidth > blockWidth && lineWords.length > 0) {
+      // start new line
+      lines.push(lineWords);
+      lineWords = [{ word, width: wordWidth, index: i }];
+      lineWidth = wordWidth;
+    } else {
+      lineWords.push({ word, width: wordWidth, index: i });
+      lineWidth += neededWidth;
+    }
+  }
+
+  // last line
+  if (lineWords.length > 0) {
+    lines.push(lineWords);
+  }
+
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const line = lines[lineIdx];
+    const lineY = lineIdx * lineHeight;
+
+    let totalLineWidth = 0;
+    for (let i = 0; i < line.length; i++) {
+      totalLineWidth += line[i].width;
+      if (i < line.length - 1) totalLineWidth += spaceWidth;
+    }
+
+    // Calculate starting X based on alignment
+    let startX = 0;
+    if (style.align === "Center") {
+      startX = (blockWidth - totalLineWidth) / 2;
+    } else if (style.align === "Right") {
+      startX = blockWidth - totalLineWidth;
+    }
+
+    let currentX = startX;
+    for (const { word, width, index } of line) {
+      positions.push({
+        word,
+        x: currentX,
+        y: lineY,
+        width,
+        index,
+      });
+      currentX += width + spaceWidth;
+    }
+  }
+
+  return positions;
+}
+
 export function createCtx(
   videoConfig: VideoDecoderConfig,
   canvas: OffscreenCanvas,
   style: style,
+  wordAnimationData?: WordAnimationData,
 ): RendererContext {
   let stage = new KonvaCore.Stage({
     width: videoConfig.codedWidth,
@@ -88,21 +222,23 @@ export function createCtx(
     strokeEnabled: style.strokeColor !== style.color,
   });
 
-  let background = style.showBackground ? new Rect({
-    fill: style.background.color,
-    stroke: style.background.strokeColor,
-    strokeWidth: style.background.strokeWidth,
-    opacity: style.background.opacity,
-    shadowForStrokeEnabled: false,
-    perfectDrawEnabled: false,
-    cornerRadius: style.background.borderRadius,
-    fillAfterStrokeEnabled: true,
-    visible: style.showBackground,
-    x: text.x() - style.background.paddingX,
-    y: text.y() - style.background.paddingY,
-    width: text.width() + (style.background.paddingX * 2),
-    height: text.height() + (style.background.paddingY * 2),
-  }) : null;
+  let background = style.showBackground
+    ? new Rect({
+        fill: style.background.color,
+        stroke: style.background.strokeColor,
+        strokeWidth: style.background.strokeWidth,
+        opacity: style.background.opacity,
+        shadowForStrokeEnabled: false,
+        perfectDrawEnabled: false,
+        cornerRadius: style.background.borderRadius,
+        fillAfterStrokeEnabled: true,
+        visible: style.showBackground,
+        x: text.x() - style.background.paddingX,
+        y: text.y() - style.background.paddingY,
+        width: text.width() + style.background.paddingX * 2,
+        height: text.height() + style.background.paddingY * 2,
+      })
+    : null;
 
   let layer = new KonvaCore.Layer();
   if (background) {
@@ -112,6 +248,25 @@ export function createCtx(
   layer.add(text);
   stage.add(layer);
 
+  let wordGroup: Konva.Group | undefined;
+  let wordTexts: Konva.Text[] | undefined;
+  let wordBackgrounds: Konva.Rect[] | undefined;
+
+  if (style.wordAnimation && wordAnimationData) {
+    wordGroup = new Group({
+      x: style.x,
+      y: style.y,
+      visible: false,
+    });
+
+    wordTexts = [];
+    wordBackgrounds = [];
+
+    // Pre-create text and background elements for word animation
+    // These will be repositioned and shown/hidden dynamically
+    layer.add(wordGroup);
+  }
+
   return {
     stage,
     layer,
@@ -120,6 +275,11 @@ export function createCtx(
     background,
     lastPlayedCue: undefined,
     videoCanvasContext: canvas.getContext("2d"),
+    wordAnimationData,
+    wordGroup,
+    wordTexts,
+    wordBackgrounds,
+    lastActiveWordIndex: -1,
   };
 }
 
@@ -148,6 +308,195 @@ function updateTextLayer(
     });
   }
 
+  ctx.layer.draw();
+}
+
+function updateWordAnimationLayer(
+  ctx: RendererContext,
+  currentCue: currentPlayingCue | undefined,
+  timestamp: number,
+): void {
+  if (
+    !ctx.wordAnimationData ||
+    !ctx.style.showWordAnimation ||
+    !ctx.wordGroup
+  ) {
+    return;
+  }
+
+  const wordAnim = ctx.style.wordAnimation;
+
+  // If no current cue, hide the word group
+  if (!currentCue) {
+    ctx.wordGroup.hide();
+    ctx.text.show();
+    ctx.layer.draw();
+    return;
+  }
+
+  const cueWordChunks = getWordChunksForCue(
+    ctx.wordAnimationData,
+    currentCue.currentIndex,
+  );
+
+  if (!cueWordChunks || cueWordChunks.length === 0) {
+    ctx.wordGroup.hide();
+    ctx.text.show();
+    ctx.layer.draw();
+    return;
+  }
+
+  // if we need to render a group just show the layer
+  ctx.text.hide();
+  ctx.wordGroup.show();
+
+  const positions = calculateWordPositions(cueWordChunks, ctx.style);
+
+  const activeWordIndex = findActiveWordIndex(cueWordChunks, timestamp);
+  const activePos =
+    activeWordIndex >= 0
+      ? positions.find((p) => p.index === activeWordIndex)
+      : null;
+
+  // Calculate animation progress within current word (0-1)
+  let animationProgress = 0;
+  if (activeWordIndex >= 0) {
+    const word = cueWordChunks[activeWordIndex];
+    const [start, end] = word.timestamp;
+    const endTs =
+      end ?? cueWordChunks[activeWordIndex + 1]?.timestamp[0] ?? start + 0.5;
+    const duration = endTs - start;
+    if (duration > 0) {
+      animationProgress = Math.min(
+        1,
+        Math.max(0, (timestamp - start) / duration),
+      );
+    }
+  }
+
+  ctx.wordGroup.destroyChildren();
+
+  let popScale = 1;
+  if (wordAnim.showPop && activePos) {
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const popProgress = animationProgress;
+
+    if (popProgress < 0.2) {
+      const t = popProgress / 0.2;
+      popScale = 1 + (wordAnim.pop.scale - 1) * easeOutCubic(t);
+    } else if (popProgress > 0.8) {
+      const t = (popProgress - 0.8) / 0.2;
+      popScale =
+        wordAnim.pop.scale - (wordAnim.pop.scale - 1) * easeOutCubic(t);
+    } else {
+      popScale = wordAnim.pop.scale;
+    }
+  }
+
+  // for background calcualte interpolated position
+  if (activePos && wordAnim.showBackground) {
+    const prevPos = ctx.prevWordPosition;
+    let bgX = activePos.x;
+    let bgY = activePos.y;
+    let bgWidth = activePos.width;
+
+    if (prevPos && ctx.lastActiveWordIndex !== activeWordIndex) {
+      // Smooth transition from previous to current position
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+      const t = easeOutCubic(Math.min(animationProgress * 3, 1)); // Complete in ~33% of word duration
+
+      bgX = prevPos.x + (activePos.x - prevPos.x) * t;
+      bgY = prevPos.y + (activePos.y - prevPos.y) * t;
+      bgWidth = prevPos.width + (activePos.width - prevPos.width) * t;
+    }
+
+    // Calculate scaled background dimensions
+    const bgPadX = wordAnim.background.paddingX;
+    const bgPadY = wordAnim.background.paddingY;
+    const bgBaseWidth = bgWidth + bgPadX * 2;
+    const bgBaseHeight = ctx.style.fontSizePx + bgPadY * 2;
+    const bgScaledWidth = bgBaseWidth * popScale;
+    const bgScaledHeight = bgBaseHeight * popScale;
+    // Offset to scale from center
+    const bgOffsetX = (bgScaledWidth - bgBaseWidth) / 2;
+    const bgOffsetY = (bgScaledHeight - bgBaseHeight) / 2;
+
+    const bgRect = new Rect({
+      x: bgX - bgPadX - bgOffsetX,
+      y: bgY - bgPadY - bgOffsetY,
+      width: bgScaledWidth,
+      height: bgScaledHeight,
+      fill: wordAnim.background.color,
+      opacity: wordAnim.background.opacity,
+      cornerRadius: wordAnim.background.borderRadius,
+    });
+    ctx.wordGroup.add(bgRect);
+
+    ctx.prevWordPosition = {
+      x: activePos.x,
+      y: activePos.y,
+      width: activePos.width,
+    };
+  }
+
+  for (const pos of positions) {
+    const isActive = pos.index === activeWordIndex;
+
+    let fillColor = ctx.style.color;
+    let fontWeight = ctx.style.fontWeight;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (isActive) {
+      // Font effect: change text color and/or font weight (fallback to main style)
+      if (wordAnim.showFont) {
+        fillColor = wordAnim.font.color ?? ctx.style.color;
+        fontWeight = wordAnim.font.fontWeight ?? ctx.style.fontWeight;
+      }
+
+      if (wordAnim.showPop) {
+        // Offset to scale from center of the word
+        offsetX = (pos.width * (popScale - 1)) / 2;
+        offsetY = (ctx.style.fontSizePx * (popScale - 1)) / 2;
+      }
+    }
+
+    const wordText = new Text({
+      x: pos.x - offsetX,
+      y: pos.y - offsetY,
+      scaleX: popScale,
+      scaleY: popScale,
+      text: pos.word.text.trim(),
+      fill: fillColor,
+      fontSize: ctx.style.fontSizePx,
+      fontStyle: fontWeight >= 700 ? "bold" : "normal",
+      fontFamily: ctx.style.fontFamily,
+      stroke: ctx.style.strokeColor,
+      strokeWidth: ctx.style.strokeWidth,
+      strokeEnabled: ctx.style.strokeColor !== ctx.style.color,
+      fillAfterStrokeEnabled: true,
+    });
+    ctx.wordGroup.add(wordText);
+  }
+
+  // redraw background for the whole block
+  if (ctx.background) {
+    const lineHeight = ctx.style.fontSizePx * 1.2;
+    const totalHeight =
+      positions.length > 0
+        ? Math.max(...positions.map((p) => p.y)) + lineHeight
+        : lineHeight;
+
+    ctx.background.setAttrs({
+      x: ctx.style.x - ctx.style.background.paddingX,
+      y: ctx.style.y - ctx.style.background.paddingY,
+      width: ctx.style.blockSize.width + ctx.style.background.paddingX * 2,
+      height: totalHeight + ctx.style.background.paddingY * 2,
+    });
+    ctx.background.show();
+  }
+
+  ctx.lastActiveWordIndex = activeWordIndex;
   ctx.layer.draw();
 }
 
@@ -187,18 +536,25 @@ export function renderCue(
   );
   frame.close();
 
+  const timestampSeconds = timestamp / 1e6;
   const currentCue = getOrLookupCurrentCue(
-    timestamp / 1e6,
+    timestampSeconds,
     cues,
     ctx.lastPlayedCue,
   );
 
-  // update the text layer canvas if needed
-  if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
+  const useWordAnimation = ctx.style.showWordAnimation && ctx.wordAnimationData;
+
+  // when we do word aniamtion we rerender on every frame just because we never know
+  // if we need to animate withing a word group or not so we just render on every frame
+  if (useWordAnimation) {
+    updateWordAnimationLayer(ctx, currentCue, timestampSeconds);
+  } else if (
+    currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text
+  ) {
     updateTextLayer(ctx, currentCue);
   }
 
-  // render text layer if current cue is not empty
   if (hasVisibleCue(currentCue)) {
     ctx.videoCanvasContext.drawImage(
       ctx.layer.getCanvas()._canvas,
@@ -241,15 +597,19 @@ export function renderCueOnCanvas(
     canvas.height,
   );
 
-  const currentCue = getOrLookupCurrentCue(
-    timestamp,
-    cues,
-    ctx.lastPlayedCue,
-  );
+  const currentCue = getOrLookupCurrentCue(timestamp, cues, ctx.lastPlayedCue);
 
-  // Update the text layer canvas if needed
-  if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
-    updateTextLayer(ctx, currentCue);
+  // Check if we should use word animation
+  const useWordAnimation = ctx.style.showWordAnimation && ctx.wordAnimationData;
+
+  if (useWordAnimation) {
+    // Word animation mode - need to update on every frame for word highlighting
+    updateWordAnimationLayer(ctx, currentCue, timestamp);
+  } else {
+    // Standard mode - only update when cue changes
+    if (currentCue?.currentCue?.text !== ctx.lastPlayedCue?.currentCue?.text) {
+      updateTextLayer(ctx, currentCue);
+    }
   }
 
   // Render text layer if current cue is not empty

@@ -60,464 +60,885 @@ var make = Utils.neverRerender(function (props) {
       var match = editorContext.useStyle();
       var dispatch = match[1];
       var style = match[0];
-      return JsxRuntime.jsxs("div", {
-                  children: [
-                    JsxRuntime.jsxs("div", {
-                          children: [
-                            JsxRuntime.jsx(Input.make, {
-                                  step: 1.0,
-                                  label: "Y coordinate",
-                                  value: String(style.x),
-                                  type_: "number",
-                                  className: "w-full",
-                                  labelHidden: true,
-                                  adornment: "X",
-                                  adornmentClassName: adornmentClassName,
-                                  onChange: (function (value) {
-                                      Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                  return {
-                                                          TAG: "SetPosition",
-                                                          _0: val,
-                                                          _1: style.y
-                                                        };
-                                                })), dispatch);
-                                    }),
-                                  min: "0",
-                                  max: "999"
-                                }),
-                            JsxRuntime.jsx(Input.make, {
-                                  step: 1.0,
-                                  label: "X coordinate",
-                                  value: String(style.y),
-                                  type_: "number",
-                                  className: "w-full",
-                                  labelHidden: true,
-                                  adornment: "Y",
-                                  adornmentClassName: adornmentClassName,
-                                  onChange: (function (value) {
-                                      Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                  return {
-                                                          TAG: "SetPosition",
-                                                          _0: style.x,
-                                                          _1: val
-                                                        };
-                                                })), dispatch);
-                                    }),
-                                  min: "0",
-                                  max: "999"
-                                }),
-                            JsxRuntime.jsx(Input.make, {
-                                  step: 1.0,
-                                  label: "Width",
-                                  value: String(style.blockSize.width),
-                                  type_: "number",
-                                  className: "w-full",
-                                  labelHidden: true,
-                                  adornment: "W",
-                                  adornmentClassName: adornmentClassName,
-                                  onChange: (function (value) {
-                                      Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                  return {
-                                                          TAG: "SetBlockWidth",
-                                                          _0: val
-                                                        };
-                                                })), dispatch);
-                                    }),
-                                  min: "0",
-                                  max: "999"
-                                }),
-                            JsxRuntime.jsx(Input.make, {
-                                  step: 1.0,
-                                  label: "Height",
-                                  value: String(style.blockSize.height),
-                                  type_: "number",
-                                  className: "w-full",
-                                  labelHidden: true,
-                                  adornment: "H",
-                                  adornmentClassName: adornmentClassName,
-                                  onChange: (function (value) {
-                                      Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                  return {
-                                                          TAG: "SetBlockHeight",
-                                                          _0: val
-                                                        };
-                                                })), dispatch);
-                                    }),
-                                  min: "0",
-                                  max: "999"
-                                })
-                          ],
-                          className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full"
-                        }),
-                    JsxRuntime.jsxs("div", {
-                          children: [
-                            JsxRuntime.jsxs(React$1.Field, {
-                                  className: "col-span-3",
-                                  children: [
-                                    JsxRuntime.jsx(Input.Label.make, {
-                                          forId: "font-picker" + id,
-                                          children: "Font",
-                                          className: "whitespace-nowrap"
-                                        }),
-                                    JsxRuntime.jsx(ReactFontPicker.make, {
-                                          inputId: "font-picker" + id,
-                                          onFontLoad: Hooks.useEvent(function (val) {
-                                                dispatch({
-                                                      TAG: "SetFontFamily",
-                                                      _0: val
-                                                    });
+      return JsxRuntime.jsx("div", {
+                  children: JsxRuntime.jsxs("div", {
+                        children: [
+                          JsxRuntime.jsxs("div", {
+                                children: [
+                                  JsxRuntime.jsx(Input.make, {
+                                        step: 1.0,
+                                        label: "Y coordinate",
+                                        value: String(style.x),
+                                        type_: "number",
+                                        className: "w-full",
+                                        labelHidden: true,
+                                        adornment: "X",
+                                        adornmentClassName: adornmentClassName,
+                                        onChange: (function (value) {
+                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
+                                                        return {
+                                                                TAG: "SetPosition",
+                                                                _0: val,
+                                                                _1: style.y
+                                                              };
+                                                      })), dispatch);
+                                          }),
+                                        min: "0",
+                                        max: "999"
+                                      }),
+                                  JsxRuntime.jsx(Input.make, {
+                                        step: 1.0,
+                                        label: "X coordinate",
+                                        value: String(style.y),
+                                        type_: "number",
+                                        className: "w-full",
+                                        labelHidden: true,
+                                        adornment: "Y",
+                                        adornmentClassName: adornmentClassName,
+                                        onChange: (function (value) {
+                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
+                                                        return {
+                                                                TAG: "SetPosition",
+                                                                _0: style.x,
+                                                                _1: val
+                                                              };
+                                                      })), dispatch);
+                                          }),
+                                        min: "0",
+                                        max: "999"
+                                      }),
+                                  JsxRuntime.jsx(Input.make, {
+                                        step: 1.0,
+                                        label: "Width",
+                                        value: String(style.blockSize.width),
+                                        type_: "number",
+                                        className: "w-full",
+                                        labelHidden: true,
+                                        adornment: "W",
+                                        adornmentClassName: adornmentClassName,
+                                        onChange: (function (value) {
+                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
+                                                        return {
+                                                                TAG: "SetBlockWidth",
+                                                                _0: val
+                                                              };
+                                                      })), dispatch);
+                                          }),
+                                        min: "0",
+                                        max: "999"
+                                      }),
+                                  JsxRuntime.jsx(Input.make, {
+                                        step: 1.0,
+                                        label: "Height",
+                                        value: String(style.blockSize.height),
+                                        type_: "number",
+                                        className: "w-full",
+                                        labelHidden: true,
+                                        adornment: "H",
+                                        adornmentClassName: adornmentClassName,
+                                        onChange: (function (value) {
+                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
+                                                        return {
+                                                                TAG: "SetBlockHeight",
+                                                                _0: val
+                                                              };
+                                                      })), dispatch);
+                                          }),
+                                        min: "0",
+                                        max: "999"
+                                      })
+                                ],
+                                className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full"
+                              }),
+                          JsxRuntime.jsxs("div", {
+                                children: [
+                                  JsxRuntime.jsxs(React$1.Field, {
+                                        className: "col-span-3",
+                                        children: [
+                                          JsxRuntime.jsx(Input.Label.make, {
+                                                forId: "font-picker" + id,
+                                                children: "Font",
+                                                className: "whitespace-nowrap"
                                               }),
-                                          onFontVariantInfo: Hooks.useEvent(function (variants) {
-                                                dispatch(variants.length > 0 ? ({
-                                                          TAG: "SetFontVariants",
-                                                          _0: variants
-                                                        }) : "ResetFontVariants");
+                                          JsxRuntime.jsx(ReactFontPicker.make, {
+                                                inputId: "font-picker" + id,
+                                                initialFont: style.fontFamily,
+                                                onFontLoad: Hooks.useEvent(function (val) {
+                                                      dispatch({
+                                                            TAG: "SetFontFamily",
+                                                            _0: val
+                                                          });
+                                                    }),
+                                                onFontVariantInfo: Hooks.useEvent(function (variants) {
+                                                      dispatch(variants.length > 0 ? ({
+                                                                TAG: "SetFontVariants",
+                                                                _0: variants
+                                                              }) : "ResetFontVariants");
+                                                    })
                                               })
-                                        })
-                                  ]
-                                }),
-                            JsxRuntime.jsxs("div", {
-                                  children: [
-                                    JsxRuntime.jsx(Input.make, {
-                                          label: "Fill",
-                                          value: style.color,
-                                          type_: "color",
-                                          className: "w-full col-span-1 flex-1",
-                                          onChange: (function (value) {
-                                              dispatch({
-                                                    TAG: "SetColor",
-                                                    _0: value
-                                                  });
-                                            })
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          label: "Stroke",
-                                          value: Core__Option.getOr(style.strokeColor, style.color),
-                                          type_: "color",
-                                          className: "w-full col-span-1 flex-1",
-                                          onChange: (function (value) {
-                                              dispatch({
-                                                    TAG: "SetStrokeColor",
-                                                    _0: value
-                                                  });
-                                            })
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 1.0,
-                                          label: "width",
-                                          value: String(style.strokeWidth),
-                                          type_: "number",
-                                          adornmentClassName: adornmentClassName,
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
-                                                      dispatch({
-                                                            TAG: "SetStrokeWidth",
-                                                            _0: strokeWidth
-                                                          });
-                                                    }));
-                                            }),
-                                          min: "0",
-                                          max: "999"
-                                        })
-                                  ],
-                                  className: "flex gap-2 col-span-3"
-                                }),
-                            JsxRuntime.jsxs(React$1.Field, {
-                                  className: "col-span-3",
-                                  children: [
-                                    JsxRuntime.jsx(Input.Label.make, {
-                                          children: "Font weight",
-                                          className: "whitespace-nowrap"
-                                        }),
-                                    JsxRuntime.jsx(Combobox.make, {
-                                          options: style.fontVariants,
-                                          selected: style.fontWeight,
-                                          formatValue: formatFontWeight,
-                                          setSelected: (function (value) {
-                                              Core__Option.forEach(value, (function (value) {
-                                                      dispatch({
-                                                            TAG: "SetFontWeight",
-                                                            _0: value
-                                                          });
-                                                    }));
-                                            }),
-                                          filter: (function (value) {
-                                              return function (item) {
-                                                return formatFontWeight(item).toLowerCase().includes(value);
-                                              };
-                                            })
-                                        })
-                                  ]
-                                }),
-                            JsxRuntime.jsx(Input.make, {
-                                  label: "Size",
-                                  value: String(style.fontSizePx),
-                                  type_: "number",
-                                  className: "min-w-[4ch]",
-                                  onChange: (function (value) {
-                                      Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                  return {
-                                                          TAG: "SetFontSizePx",
-                                                          _0: val
-                                                        };
-                                                })), dispatch);
-                                    }),
-                                  min: "0",
-                                  max: "999"
-                                }),
-                            JsxRuntime.jsxs(React$1.Field, {
-                                  className: "col-span-2",
-                                  children: [
-                                    JsxRuntime.jsx(Input.Label.make, {
-                                          forId: "",
-                                          children: "Text align",
-                                          className: "whitespace-nowrap"
-                                        }),
-                                    JsxRuntime.jsxs(ToggleButton.Group.make, {
-                                          children: [
-                                            JsxRuntime.jsx(ToggleButton.Button.make, {
-                                                  children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomLeftIcon, {
-                                                            className: "size-4"
-                                                          })),
-                                                  value: "Left"
-                                                }),
-                                            JsxRuntime.jsx(ToggleButton.Button.make, {
-                                                  children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3Icon, {
-                                                            className: "size-4"
-                                                          })),
-                                                  value: "Center"
-                                                }),
-                                            JsxRuntime.jsx(ToggleButton.Button.make, {
-                                                  children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomRightIcon, {
-                                                            className: "size-4"
-                                                          })),
-                                                  value: "Right"
-                                                })
-                                          ],
-                                          onChange: (function (value) {
-                                              dispatch({
-                                                    TAG: "SetAlign",
-                                                    _0: value
-                                                  });
-                                            }),
-                                          value: style.align
-                                        })
-                                  ]
-                                })
-                          ],
-                          className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full"
-                        }),
-                    JsxRuntime.jsxs("div", {
-                          children: [
-                            JsxRuntime.jsxs("div", {
-                                  children: [
-                                    JsxRuntime.jsx(ToggleSwitch.make, {
-                                          labelId: "background-title",
-                                          enabled: style.showBackground,
-                                          onChange: (function (param) {
-                                              dispatch("ToggleBackground");
-                                            })
-                                        }),
-                                    JsxRuntime.jsx("h3", {
-                                          children: "Background",
-                                          id: "background-title"
-                                        })
-                                  ],
-                                  className: "flex items-center gap-4"
-                                }),
-                            JsxRuntime.jsxs("div", {
-                                  children: [
-                                    JsxRuntime.jsx(Input.make, {
-                                          label: "Fill",
-                                          value: style.background.color,
-                                          type_: "color",
-                                          className: "w-full col-span-1 flex-1",
-                                          onChange: (function (value) {
-                                              var init = style.background;
-                                              dispatch({
-                                                    TAG: "SetBackground",
-                                                    _0: {
-                                                      color: value,
-                                                      strokeColor: init.strokeColor,
-                                                      strokeWidth: init.strokeWidth,
-                                                      opacity: init.opacity,
-                                                      paddingX: init.paddingX,
-                                                      paddingY: init.paddingY,
-                                                      borderRadius: init.borderRadius
-                                                    }
-                                                  });
-                                            })
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 0.1,
-                                          label: "Opacity",
-                                          value: String(style.background.opacity),
-                                          type_: "number",
-                                          className: "w-full col-span-1 flex-1",
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Option.map(Core__Float.fromString(value), (function (val) {
-                                                          var init = style.background;
-                                                          return {
+                                        ]
+                                      }),
+                                  JsxRuntime.jsxs("div", {
+                                        children: [
+                                          JsxRuntime.jsx(Input.make, {
+                                                label: "Fill",
+                                                value: style.color,
+                                                type_: "color",
+                                                className: "w-full col-span-1 flex-1",
+                                                onChange: (function (value) {
+                                                    dispatch({
+                                                          TAG: "SetColor",
+                                                          _0: value
+                                                        });
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                label: "Stroke",
+                                                value: Core__Option.getOr(style.strokeColor, style.color),
+                                                type_: "color",
+                                                className: "w-full col-span-1 flex-1",
+                                                onChange: (function (value) {
+                                                    dispatch({
+                                                          TAG: "SetStrokeColor",
+                                                          _0: value
+                                                        });
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 1.0,
+                                                label: "width",
+                                                value: String(style.strokeWidth),
+                                                type_: "number",
+                                                adornmentClassName: adornmentClassName,
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
+                                                            dispatch({
+                                                                  TAG: "SetStrokeWidth",
+                                                                  _0: strokeWidth
+                                                                });
+                                                          }));
+                                                  }),
+                                                min: "0",
+                                                max: "999"
+                                              })
+                                        ],
+                                        className: "flex gap-2 col-span-3"
+                                      }),
+                                  JsxRuntime.jsxs(React$1.Field, {
+                                        className: "col-span-3",
+                                        children: [
+                                          JsxRuntime.jsx(Input.Label.make, {
+                                                children: "Font weight",
+                                                className: "whitespace-nowrap"
+                                              }),
+                                          JsxRuntime.jsx(Combobox.make, {
+                                                options: style.fontVariants,
+                                                selected: style.fontWeight,
+                                                formatValue: formatFontWeight,
+                                                setSelected: (function (value) {
+                                                    Core__Option.forEach(value, (function (value) {
+                                                            dispatch({
+                                                                  TAG: "SetFontWeight",
+                                                                  _0: value
+                                                                });
+                                                          }));
+                                                  }),
+                                                filter: (function (value) {
+                                                    return function (item) {
+                                                      return formatFontWeight(item).toLowerCase().includes(value);
+                                                    };
+                                                  })
+                                              })
+                                        ]
+                                      }),
+                                  JsxRuntime.jsx(Input.make, {
+                                        label: "Size",
+                                        value: String(style.fontSizePx),
+                                        type_: "number",
+                                        className: "min-w-[4ch]",
+                                        onChange: (function (value) {
+                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
+                                                        return {
+                                                                TAG: "SetFontSizePx",
+                                                                _0: val
+                                                              };
+                                                      })), dispatch);
+                                          }),
+                                        min: "0",
+                                        max: "999"
+                                      }),
+                                  JsxRuntime.jsxs(React$1.Field, {
+                                        className: "col-span-2",
+                                        children: [
+                                          JsxRuntime.jsx(Input.Label.make, {
+                                                forId: "",
+                                                children: "Text align",
+                                                className: "whitespace-nowrap"
+                                              }),
+                                          JsxRuntime.jsxs(ToggleButton.Group.make, {
+                                                children: [
+                                                  JsxRuntime.jsx(ToggleButton.Button.make, {
+                                                        children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomLeftIcon, {
+                                                                  className: "size-4"
+                                                                })),
+                                                        value: "Left"
+                                                      }),
+                                                  JsxRuntime.jsx(ToggleButton.Button.make, {
+                                                        children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3Icon, {
+                                                                  className: "size-4"
+                                                                })),
+                                                        value: "Center"
+                                                      }),
+                                                  JsxRuntime.jsx(ToggleButton.Button.make, {
+                                                        children: Caml_option.some(JsxRuntime.jsx(Outline.Bars3BottomRightIcon, {
+                                                                  className: "size-4"
+                                                                })),
+                                                        value: "Right"
+                                                      })
+                                                ],
+                                                onChange: (function (value) {
+                                                    dispatch({
+                                                          TAG: "SetAlign",
+                                                          _0: value
+                                                        });
+                                                  }),
+                                                value: style.align
+                                              })
+                                        ]
+                                      })
+                                ],
+                                className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full"
+                              }),
+                          JsxRuntime.jsxs("div", {
+                                children: [
+                                  JsxRuntime.jsxs("div", {
+                                        children: [
+                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                labelId: "background-title",
+                                                enabled: style.showBackground,
+                                                onChange: (function (param) {
+                                                    dispatch("ToggleBackground");
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx("h3", {
+                                                children: "Background",
+                                                id: "background-title"
+                                              })
+                                        ],
+                                        className: "flex items-center gap-4"
+                                      }),
+                                  JsxRuntime.jsxs("div", {
+                                        children: [
+                                          JsxRuntime.jsx(Input.make, {
+                                                label: "Fill",
+                                                value: style.background.color,
+                                                type_: "color",
+                                                className: "w-full col-span-1 flex-1",
+                                                onChange: (function (value) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: value,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 0.1,
+                                                label: "Opacity",
+                                                value: String(style.background.opacity),
+                                                type_: "number",
+                                                className: "w-full col-span-1 flex-1",
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Option.map(Core__Float.fromString(value), (function (val) {
+                                                                var init = style.background;
+                                                                return {
+                                                                        TAG: "SetBackground",
+                                                                        _0: {
+                                                                          color: init.color,
+                                                                          strokeColor: init.strokeColor,
+                                                                          strokeWidth: init.strokeWidth,
+                                                                          opacity: val,
+                                                                          paddingX: init.paddingX,
+                                                                          paddingY: init.paddingY,
+                                                                          borderRadius: init.borderRadius
+                                                                        }
+                                                                      };
+                                                              })), dispatch);
+                                                  }),
+                                                min: "0",
+                                                max: "1"
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                label: "Stroke",
+                                                value: style.background.color,
+                                                type_: "color",
+                                                className: "w-full col-span-1 flex-1",
+                                                onChange: (function (value) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: value,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 1.0,
+                                                label: "width",
+                                                value: String(style.background.strokeWidth),
+                                                type_: "number",
+                                                className: "w-full",
+                                                adornmentClassName: adornmentClassName,
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
+                                                            var init = style.background;
+                                                            dispatch({
+                                                                  TAG: "SetBackground",
+                                                                  _0: {
+                                                                    color: init.color,
+                                                                    strokeColor: init.strokeColor,
+                                                                    strokeWidth: strokeWidth,
+                                                                    opacity: init.opacity,
+                                                                    paddingX: init.paddingX,
+                                                                    paddingY: init.paddingY,
+                                                                    borderRadius: init.borderRadius
+                                                                  }
+                                                                });
+                                                          }));
+                                                  }),
+                                                min: "0",
+                                                max: "999"
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 1.0,
+                                                label: "Border radius",
+                                                value: style.background.borderRadius.toString(),
+                                                type_: "number",
+                                                className: "w-full col-span-2",
+                                                adornment: Caml_option.some(JsxRuntime.jsx(Icons.BorderRadiusIcon.make, {
+                                                          color: "white",
+                                                          className: "size-4"
+                                                        })),
+                                                adornmentClassName: "font-mono rounded-md   bg-zinc-500 px-2.5 inset-y-0",
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (borderRadius) {
+                                                            var init = style.background;
+                                                            dispatch({
                                                                   TAG: "SetBackground",
                                                                   _0: {
                                                                     color: init.color,
                                                                     strokeColor: init.strokeColor,
                                                                     strokeWidth: init.strokeWidth,
-                                                                    opacity: val,
+                                                                    opacity: init.opacity,
                                                                     paddingX: init.paddingX,
+                                                                    paddingY: init.paddingY,
+                                                                    borderRadius: borderRadius
+                                                                  }
+                                                                });
+                                                          }));
+                                                  }),
+                                                min: "0",
+                                                max: "999"
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 1.0,
+                                                label: "Padding X",
+                                                value: String(style.background.paddingX),
+                                                type_: "number",
+                                                className: "w-full",
+                                                adornmentClassName: adornmentClassName,
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingX) {
+                                                            var init = style.background;
+                                                            dispatch({
+                                                                  TAG: "SetBackground",
+                                                                  _0: {
+                                                                    color: init.color,
+                                                                    strokeColor: init.strokeColor,
+                                                                    strokeWidth: init.strokeWidth,
+                                                                    opacity: init.opacity,
+                                                                    paddingX: paddingX,
                                                                     paddingY: init.paddingY,
                                                                     borderRadius: init.borderRadius
                                                                   }
-                                                                };
-                                                        })), dispatch);
-                                            }),
-                                          min: "0",
-                                          max: "1"
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          label: "Stroke",
-                                          value: style.background.color,
-                                          type_: "color",
-                                          className: "w-full col-span-1 flex-1",
-                                          onChange: (function (value) {
-                                              var init = style.background;
-                                              dispatch({
-                                                    TAG: "SetBackground",
-                                                    _0: {
-                                                      color: init.color,
-                                                      strokeColor: value,
-                                                      strokeWidth: init.strokeWidth,
-                                                      opacity: init.opacity,
-                                                      paddingX: init.paddingX,
-                                                      paddingY: init.paddingY,
-                                                      borderRadius: init.borderRadius
-                                                    }
-                                                  });
-                                            })
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 1.0,
-                                          label: "width",
-                                          value: String(style.background.strokeWidth),
-                                          type_: "number",
-                                          className: "w-full",
-                                          adornmentClassName: adornmentClassName,
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
-                                                      var init = style.background;
-                                                      dispatch({
-                                                            TAG: "SetBackground",
-                                                            _0: {
-                                                              color: init.color,
-                                                              strokeColor: init.strokeColor,
-                                                              strokeWidth: strokeWidth,
-                                                              opacity: init.opacity,
-                                                              paddingX: init.paddingX,
-                                                              paddingY: init.paddingY,
-                                                              borderRadius: init.borderRadius
-                                                            }
-                                                          });
-                                                    }));
-                                            }),
-                                          min: "0",
-                                          max: "999"
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 1.0,
-                                          label: "Border radius",
-                                          value: style.background.borderRadius.toString(),
-                                          type_: "number",
-                                          className: "w-full col-span-2",
-                                          adornment: Caml_option.some(JsxRuntime.jsx(Icons.BorderRadiusIcon.make, {
-                                                    color: "white",
-                                                    className: "size-4"
-                                                  })),
-                                          adornmentClassName: "font-mono rounded-md   bg-zinc-500 px-2.5 inset-y-0",
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Int.fromString(value, undefined), (function (borderRadius) {
-                                                      var init = style.background;
-                                                      dispatch({
-                                                            TAG: "SetBackground",
-                                                            _0: {
-                                                              color: init.color,
-                                                              strokeColor: init.strokeColor,
-                                                              strokeWidth: init.strokeWidth,
-                                                              opacity: init.opacity,
-                                                              paddingX: init.paddingX,
-                                                              paddingY: init.paddingY,
-                                                              borderRadius: borderRadius
-                                                            }
-                                                          });
-                                                    }));
-                                            }),
-                                          min: "0",
-                                          max: "999"
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 1.0,
-                                          label: "Padding X",
-                                          value: String(style.background.paddingX),
-                                          type_: "number",
-                                          className: "w-full",
-                                          adornmentClassName: adornmentClassName,
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingX) {
-                                                      var init = style.background;
-                                                      dispatch({
-                                                            TAG: "SetBackground",
-                                                            _0: {
-                                                              color: init.color,
-                                                              strokeColor: init.strokeColor,
-                                                              strokeWidth: init.strokeWidth,
-                                                              opacity: init.opacity,
-                                                              paddingX: paddingX,
-                                                              paddingY: init.paddingY,
-                                                              borderRadius: init.borderRadius
-                                                            }
-                                                          });
-                                                    }));
-                                            }),
-                                          min: "0",
-                                          max: "999"
-                                        }),
-                                    JsxRuntime.jsx(Input.make, {
-                                          step: 1.0,
-                                          label: "Padding Y",
-                                          value: String(style.background.paddingY),
-                                          type_: "number",
-                                          className: "w-full",
-                                          adornmentClassName: adornmentClassName,
-                                          onChange: (function (value) {
-                                              Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingY) {
-                                                      var init = style.background;
-                                                      dispatch({
-                                                            TAG: "SetBackground",
-                                                            _0: {
-                                                              color: init.color,
-                                                              strokeColor: init.strokeColor,
-                                                              strokeWidth: init.strokeWidth,
-                                                              opacity: init.opacity,
-                                                              paddingX: init.paddingX,
-                                                              paddingY: paddingY,
-                                                              borderRadius: init.borderRadius
-                                                            }
-                                                          });
-                                                    }));
-                                            }),
-                                          min: "0",
-                                          max: "999"
-                                        })
-                                  ],
-                                  className: Cx.cx([
-                                        "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-4 gap-2 bg-white/5 p-3 w-full",
-                                        style.showBackground ? "brightness-100" : "brightness-50 pointer-events-none"
-                                      ])
-                                })
-                          ],
-                          className: "flex flex-col gap-1.5"
-                        })
-                  ],
-                  className: "flex flex-col gap-6"
+                                                                });
+                                                          }));
+                                                  }),
+                                                min: "0",
+                                                max: "999"
+                                              }),
+                                          JsxRuntime.jsx(Input.make, {
+                                                step: 1.0,
+                                                label: "Padding Y",
+                                                value: String(style.background.paddingY),
+                                                type_: "number",
+                                                className: "w-full",
+                                                adornmentClassName: adornmentClassName,
+                                                onChange: (function (value) {
+                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingY) {
+                                                            var init = style.background;
+                                                            dispatch({
+                                                                  TAG: "SetBackground",
+                                                                  _0: {
+                                                                    color: init.color,
+                                                                    strokeColor: init.strokeColor,
+                                                                    strokeWidth: init.strokeWidth,
+                                                                    opacity: init.opacity,
+                                                                    paddingX: init.paddingX,
+                                                                    paddingY: paddingY,
+                                                                    borderRadius: init.borderRadius
+                                                                  }
+                                                                });
+                                                          }));
+                                                  }),
+                                                min: "0",
+                                                max: "999"
+                                              })
+                                        ],
+                                        className: Cx.cx([
+                                              "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-4 gap-2 bg-white/5 p-3 w-full",
+                                              style.showBackground ? "brightness-100" : "brightness-50 pointer-events-none"
+                                            ])
+                                      })
+                                ],
+                                className: "flex flex-col gap-1.5"
+                              }),
+                          JsxRuntime.jsxs("div", {
+                                children: [
+                                  JsxRuntime.jsxs("div", {
+                                        children: [
+                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                labelId: "word-animation-title",
+                                                enabled: style.showWordAnimation,
+                                                onChange: (function (param) {
+                                                    dispatch("ToggleWordAnimation");
+                                                  })
+                                              }),
+                                          JsxRuntime.jsx("h3", {
+                                                children: "Current word highlight",
+                                                id: "word-animation-title"
+                                              })
+                                        ],
+                                        className: "flex items-center gap-4"
+                                      }),
+                                  JsxRuntime.jsxs("div", {
+                                        children: [
+                                          JsxRuntime.jsxs("div", {
+                                                children: [
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("label", {
+                                                                children: [
+                                                                  JsxRuntime.jsx(Outline.PaintBrushIcon, {
+                                                                        className: "size-5"
+                                                                      }),
+                                                                  "Background"
+                                                                ],
+                                                                className: "text-base text-white flex items-center gap-2",
+                                                                id: "word-anim-background"
+                                                              }),
+                                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                                labelId: "word-anim-background",
+                                                                enabled: style.wordAnimation.showBackground,
+                                                                onChange: (function (showBackground) {
+                                                                    var init = style.wordAnimation;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: showBackground,
+                                                                            background: init.background,
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  })
+                                                              })
+                                                        ],
+                                                        className: "flex items-center justify-between"
+                                                      }),
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                label: "Fill",
+                                                                value: style.wordAnimation.background.color,
+                                                                type_: "color",
+                                                                className: "w-full col-span-1 flex-1",
+                                                                onChange: (function (value) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.background;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: {
+                                                                              color: value,
+                                                                              opacity: init$1.opacity,
+                                                                              paddingX: init$1.paddingX,
+                                                                              paddingY: init$1.paddingY,
+                                                                              borderRadius: init$1.borderRadius
+                                                                            },
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  })
+                                                              }),
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                step: 0.1,
+                                                                label: "Opacity",
+                                                                value: String(style.wordAnimation.background.opacity),
+                                                                type_: "number",
+                                                                className: "w-full col-span-1 flex-1",
+                                                                onChange: (function (value) {
+                                                                    Core__Option.forEach(Core__Float.fromString(value), (function (opacity) {
+                                                                            var init = style.wordAnimation;
+                                                                            var init$1 = style.wordAnimation.background;
+                                                                            dispatch({
+                                                                                  TAG: "SetWordAnimation",
+                                                                                  _0: {
+                                                                                    showBackground: init.showBackground,
+                                                                                    background: {
+                                                                                      color: init$1.color,
+                                                                                      opacity: opacity,
+                                                                                      paddingX: init$1.paddingX,
+                                                                                      paddingY: init$1.paddingY,
+                                                                                      borderRadius: init$1.borderRadius
+                                                                                    },
+                                                                                    showFont: init.showFont,
+                                                                                    font: init.font,
+                                                                                    showPop: init.showPop,
+                                                                                    pop: init.pop
+                                                                                  }
+                                                                                });
+                                                                          }));
+                                                                  }),
+                                                                min: "0",
+                                                                max: "1"
+                                                              }),
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                step: 1.0,
+                                                                label: "Radius",
+                                                                value: style.wordAnimation.background.borderRadius.toString(),
+                                                                type_: "number",
+                                                                className: "w-full col-span-1",
+                                                                adornment: Caml_option.some(JsxRuntime.jsx(Icons.BorderRadiusIcon.make, {
+                                                                          color: "white",
+                                                                          className: "size-4"
+                                                                        })),
+                                                                adornmentClassName: "font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0",
+                                                                onChange: (function (value) {
+                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (borderRadius) {
+                                                                            var init = style.wordAnimation;
+                                                                            var init$1 = style.wordAnimation.background;
+                                                                            dispatch({
+                                                                                  TAG: "SetWordAnimation",
+                                                                                  _0: {
+                                                                                    showBackground: init.showBackground,
+                                                                                    background: {
+                                                                                      color: init$1.color,
+                                                                                      opacity: init$1.opacity,
+                                                                                      paddingX: init$1.paddingX,
+                                                                                      paddingY: init$1.paddingY,
+                                                                                      borderRadius: borderRadius
+                                                                                    },
+                                                                                    showFont: init.showFont,
+                                                                                    font: init.font,
+                                                                                    showPop: init.showPop,
+                                                                                    pop: init.pop
+                                                                                  }
+                                                                                });
+                                                                          }));
+                                                                  }),
+                                                                min: "0",
+                                                                max: "99"
+                                                              }),
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                step: 1.0,
+                                                                label: "Padding X",
+                                                                value: String(style.wordAnimation.background.paddingX),
+                                                                type_: "number",
+                                                                className: "w-full col-span-2",
+                                                                adornmentClassName: adornmentClassName,
+                                                                onChange: (function (value) {
+                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingX) {
+                                                                            var init = style.wordAnimation;
+                                                                            var init$1 = style.wordAnimation.background;
+                                                                            dispatch({
+                                                                                  TAG: "SetWordAnimation",
+                                                                                  _0: {
+                                                                                    showBackground: init.showBackground,
+                                                                                    background: {
+                                                                                      color: init$1.color,
+                                                                                      opacity: init$1.opacity,
+                                                                                      paddingX: paddingX,
+                                                                                      paddingY: init$1.paddingY,
+                                                                                      borderRadius: init$1.borderRadius
+                                                                                    },
+                                                                                    showFont: init.showFont,
+                                                                                    font: init.font,
+                                                                                    showPop: init.showPop,
+                                                                                    pop: init.pop
+                                                                                  }
+                                                                                });
+                                                                          }));
+                                                                  }),
+                                                                min: "0",
+                                                                max: "99"
+                                                              }),
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                step: 1.0,
+                                                                label: "Padding Y",
+                                                                value: String(style.wordAnimation.background.paddingY),
+                                                                type_: "number",
+                                                                className: "w-full col-span-2",
+                                                                adornmentClassName: adornmentClassName,
+                                                                onChange: (function (value) {
+                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingY) {
+                                                                            var init = style.wordAnimation;
+                                                                            var init$1 = style.wordAnimation.background;
+                                                                            dispatch({
+                                                                                  TAG: "SetWordAnimation",
+                                                                                  _0: {
+                                                                                    showBackground: init.showBackground,
+                                                                                    background: {
+                                                                                      color: init$1.color,
+                                                                                      opacity: init$1.opacity,
+                                                                                      paddingX: init$1.paddingX,
+                                                                                      paddingY: paddingY,
+                                                                                      borderRadius: init$1.borderRadius
+                                                                                    },
+                                                                                    showFont: init.showFont,
+                                                                                    font: init.font,
+                                                                                    showPop: init.showPop,
+                                                                                    pop: init.pop
+                                                                                  }
+                                                                                });
+                                                                          }));
+                                                                  }),
+                                                                min: "0",
+                                                                max: "99"
+                                                              })
+                                                        ],
+                                                        className: Cx.cx([
+                                                              "grid grid-cols-4 gap-2 pl-7",
+                                                              style.wordAnimation.showBackground ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                            ])
+                                                      })
+                                                ],
+                                                className: "flex flex-col gap-1.5"
+                                              }),
+                                          JsxRuntime.jsxs("div", {
+                                                children: [
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("label", {
+                                                                children: [
+                                                                  JsxRuntime.jsx(Outline.LanguageIcon, {
+                                                                        className: "size-5"
+                                                                      }),
+                                                                  "Font"
+                                                                ],
+                                                                className: "text-base text-white flex items-center gap-2",
+                                                                id: "word-anim-font"
+                                                              }),
+                                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                                labelId: "word-anim-font",
+                                                                enabled: style.wordAnimation.showFont,
+                                                                onChange: (function (showFont) {
+                                                                    var init = style.wordAnimation;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: init.background,
+                                                                            showFont: showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  })
+                                                              })
+                                                        ],
+                                                        className: "flex items-center justify-between"
+                                                      }),
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsx(Input.make, {
+                                                                label: "Color",
+                                                                value: Core__Option.getOr(style.wordAnimation.font.color, style.color),
+                                                                type_: "color",
+                                                                className: "w-full col-span-2 flex-1",
+                                                                onChange: (function (value) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.font;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: init.background,
+                                                                            showFont: init.showFont,
+                                                                            font: {
+                                                                              color: value,
+                                                                              fontWeight: init$1.fontWeight
+                                                                            },
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  })
+                                                              }),
+                                                          JsxRuntime.jsxs(React$1.Field, {
+                                                                className: "col-span-2",
+                                                                children: [
+                                                                  JsxRuntime.jsx(Input.Label.make, {
+                                                                        children: "Weight",
+                                                                        className: "whitespace-nowrap"
+                                                                      }),
+                                                                  JsxRuntime.jsx(Combobox.make, {
+                                                                        options: style.fontVariants,
+                                                                        selected: Core__Option.getOr(style.wordAnimation.font.fontWeight, style.fontWeight),
+                                                                        formatValue: formatFontWeight,
+                                                                        setSelected: (function (value) {
+                                                                            Core__Option.forEach(value, (function (fontWeight) {
+                                                                                    var init = style.wordAnimation;
+                                                                                    var init$1 = style.wordAnimation.font;
+                                                                                    dispatch({
+                                                                                          TAG: "SetWordAnimation",
+                                                                                          _0: {
+                                                                                            showBackground: init.showBackground,
+                                                                                            background: init.background,
+                                                                                            showFont: init.showFont,
+                                                                                            font: {
+                                                                                              color: init$1.color,
+                                                                                              fontWeight: fontWeight
+                                                                                            },
+                                                                                            showPop: init.showPop,
+                                                                                            pop: init.pop
+                                                                                          }
+                                                                                        });
+                                                                                  }));
+                                                                          }),
+                                                                        filter: (function (value) {
+                                                                            return function (item) {
+                                                                              return formatFontWeight(item).toLowerCase().includes(value);
+                                                                            };
+                                                                          })
+                                                                      })
+                                                                ]
+                                                              })
+                                                        ],
+                                                        className: Cx.cx([
+                                                              "grid grid-cols-4 gap-2 pl-7",
+                                                              style.wordAnimation.showFont ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                            ])
+                                                      })
+                                                ],
+                                                className: "flex flex-col gap-1.5"
+                                              }),
+                                          JsxRuntime.jsxs("div", {
+                                                children: [
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("label", {
+                                                                children: [
+                                                                  JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
+                                                                        className: "size-5"
+                                                                      }),
+                                                                  "Pop"
+                                                                ],
+                                                                className: "text-base text-white flex items-center gap-2",
+                                                                id: "word-anim-pop"
+                                                              }),
+                                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                                labelId: "word-anim-pop",
+                                                                enabled: style.wordAnimation.showPop,
+                                                                onChange: (function (showPop) {
+                                                                    var init = style.wordAnimation;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: init.background,
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  })
+                                                              })
+                                                        ],
+                                                        className: "flex items-center justify-between"
+                                                      }),
+                                                  JsxRuntime.jsx("div", {
+                                                        children: JsxRuntime.jsx(Input.make, {
+                                                              step: 0.01,
+                                                              label: "Scale",
+                                                              value: String(style.wordAnimation.pop.scale),
+                                                              type_: "number",
+                                                              className: "w-full col-span-2",
+                                                              onChange: (function (value) {
+                                                                  Core__Option.forEach(Core__Float.fromString(value), (function (scale) {
+                                                                          var init = style.wordAnimation;
+                                                                          dispatch({
+                                                                                TAG: "SetWordAnimation",
+                                                                                _0: {
+                                                                                  showBackground: init.showBackground,
+                                                                                  background: init.background,
+                                                                                  showFont: init.showFont,
+                                                                                  font: init.font,
+                                                                                  showPop: init.showPop,
+                                                                                  pop: {
+                                                                                    scale: scale
+                                                                                  }
+                                                                                }
+                                                                              });
+                                                                        }));
+                                                                }),
+                                                              min: "1.0",
+                                                              max: "1.2"
+                                                            }),
+                                                        className: Cx.cx([
+                                                              "grid grid-cols-4 gap-2 pl-7",
+                                                              style.wordAnimation.showPop ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                            ])
+                                                      })
+                                                ],
+                                                className: "flex flex-col gap-1.5"
+                                              })
+                                        ],
+                                        className: Cx.cx([
+                                              "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent flex flex-col gap-3 bg-white/5 p-2 w-full",
+                                              style.showWordAnimation ? "brightness-100" : "brightness-50 pointer-events-none"
+                                            ])
+                                      })
+                                ],
+                                className: "flex flex-col gap-1.5"
+                              })
+                        ],
+                        className: "flex flex-col gap-6"
+                      }),
+                  className: "overflow-auto -mx-6 px-6 pb-6"
                 });
     });
 

@@ -48,8 +48,9 @@ module ReactFontPicker = {
 }
 
 @react.component
-let make = React.memo((~inputId, ~onFontLoad, ~onFontVariantInfo) => {
-  let (fontToLoad, setFontToLoad) = React.useState(_ => None)
+let make = React.memo((~inputId, ~initialFont="Inter", ~onFontLoad, ~onFontVariantInfo) => {
+  let (fontToLoad, setFontToLoad) = React.useState(_ => Some(initialFont))
+  let isInitialLoadRef = React.useRef(true)
 
   <ReactFontPicker
     inputId={inputId}
@@ -57,9 +58,9 @@ let make = React.memo((~inputId, ~onFontLoad, ~onFontVariantInfo) => {
     autoLoad=false
     loadFonts={fontToLoad->Option.map(font => [font])->Option.getOr([])}
     loading={<div className="py-0.5 pl-3 font-light text-white text-base">
-      {React.string("Inter")}
+      {React.string(initialFont)}
     </div>}
-    defaultValue="Inter"
+    defaultValue={initialFont}
     value={Hooks.useEvent(val => {
       setFontToLoad(_ => Some(val))
     })}
@@ -77,7 +78,19 @@ let make = React.memo((~inputId, ~onFontLoad, ~onFontVariantInfo) => {
       ->onFontVariantInfo
     )}
     fontsLoaded={Hooks.useEvent(_ => {
-      setTimeout(() => fontToLoad->Option.forEach(onFontLoad), 100)->ignore
+      setTimeout(
+        () =>
+          fontToLoad->Option.forEach(
+            font => {
+              // Only call onFontLoad after user changes (not on initial load of persisted font)
+              if isInitialLoadRef.current {
+                isInitialLoadRef.current = false
+              }
+              onFontLoad(font)
+            },
+          ),
+        100,
+      )->ignore
     })}
   />
 })

@@ -383,6 +383,16 @@ function useChunksState(subtitles, transcriptionInProgress, default_chunk_size) 
                                           size: size
                                         };
                                 });
+                          }),
+                        getWordChunksForCue: (function (cueIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return ;
+                            }
+                            var match = transcriptionState.cueRanges[cueIndex];
+                            if (match !== undefined) {
+                              return transcriptionState.wordChunks.slice(match[0], match[1] + 1 | 0);
+                            }
+                            
                           })
                       };
               }), [
@@ -432,7 +442,7 @@ var make = React.memo(function (props) {
                                 }),
                             tmp
                           ],
-                          className: "sticky top-0 z-10 bg-zinc-900 pb-4 flex flex-col w-full border-b border-zinc-700"
+                          className: "sticky top-0 z-10 px-2 bg-zinc-900 flex flex-col w-full"
                         }),
                     JsxRuntime.jsx("div", {
                           children: subtitlesManager.activeSubtitles.map(function (chunk, index) {
@@ -449,7 +459,7 @@ var make = React.memo(function (props) {
                                             onTextChange: subtitlesManager.editText
                                           }, id !== undefined ? id.toString() : index.toString() + "-" + chunk.text);
                               }),
-                          className: "flex flex-1 pb-4 min-h-0 flex-col gap-6"
+                          className: "flex flex-1 ml-1.5 pb-4 min-h-0 flex-col gap-6"
                         })
                   ]
                 });

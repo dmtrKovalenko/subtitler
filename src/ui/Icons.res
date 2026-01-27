@@ -227,6 +227,42 @@ module FilmIcon = {
   ) => React.element = "FilmIcon"
 }
 
+module PaintBrushIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PaintBrushIcon"
+}
+
+module SwatchIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "SwatchIcon"
+}
+
+module ArrowsPointingOutIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowsPointingOutIcon"
+}
+
+module LanguageIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "LanguageIcon"
+}
+
 @genType
 module ProductHuntIcon = {
   @genType.as("ProductHuntIcon") @react.component

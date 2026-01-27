@@ -46,20 +46,23 @@ var ReactFontPicker = {};
 var make = React.memo(function (props) {
       var onFontVariantInfo = props.onFontVariantInfo;
       var onFontLoad = props.onFontLoad;
+      var __initialFont = props.initialFont;
+      var initialFont = __initialFont !== undefined ? __initialFont : "Inter";
       var match = React.useState(function () {
-            
+            return initialFont;
           });
       var setFontToLoad = match[1];
       var fontToLoad = match[0];
+      var isInitialLoadRef = React.useRef(true);
       return JsxRuntime.jsx(ReactFontpickerTs, {
                   inputId: props.inputId,
                   autoLoad: false,
                   loadFonts: Core__Option.getOr(Core__Option.map(fontToLoad, (function (font) {
                               return [font];
                             })), []),
-                  defaultValue: "Inter",
+                  defaultValue: initialFont,
                   loading: Caml_option.some(JsxRuntime.jsx("div", {
-                            children: "Inter",
+                            children: initialFont,
                             className: "py-0.5 pl-3 font-light text-white text-base"
                           })),
                   value: Hooks.useEvent(function (val) {
@@ -70,7 +73,12 @@ var make = React.memo(function (props) {
                   loadAllVariants: true,
                   fontsLoaded: Hooks.useEvent(function (param) {
                         setTimeout((function () {
-                                Core__Option.forEach(fontToLoad, onFontLoad);
+                                Core__Option.forEach(fontToLoad, (function (font) {
+                                        if (isInitialLoadRef.current) {
+                                          isInitialLoadRef.current = false;
+                                        }
+                                        onFontLoad(font);
+                                      }));
                               }), 100);
                       }),
                   localFonts: [{

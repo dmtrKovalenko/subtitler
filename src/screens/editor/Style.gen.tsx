@@ -19,6 +19,27 @@ export type background = {
   readonly borderRadius: number
 };
 
+export type wordAnimationBackground = {
+  readonly color: string; 
+  readonly opacity: number; 
+  readonly paddingX: number; 
+  readonly paddingY: number; 
+  readonly borderRadius: number
+};
+
+export type wordAnimationFont = { readonly color: (undefined | string); readonly fontWeight: (undefined | fontWeight) };
+
+export type wordAnimationPop = { readonly scale: number };
+
+export type wordAnimation = {
+  readonly showBackground: boolean; 
+  readonly background: wordAnimationBackground; 
+  readonly showFont: boolean; 
+  readonly font: wordAnimationFont; 
+  readonly showPop: boolean; 
+  readonly pop: wordAnimationPop
+};
+
 export type style = {
   readonly x: number; 
   readonly y: number; 
@@ -32,12 +53,15 @@ export type style = {
   readonly blockSize: size; 
   readonly fontVariants: fontWeight[]; 
   readonly showBackground: boolean; 
-  readonly background: background
+  readonly background: background; 
+  readonly showWordAnimation: boolean; 
+  readonly wordAnimation: wordAnimation
 };
 
 export type changeStyleAction = 
     "ResetFontVariants"
   | "ToggleBackground"
+  | "ToggleWordAnimation"
   | { TAG: "Resize"; _0: size }
   | { TAG: "SetAlign"; _0: align }
   | { TAG: "SetBackground"; _0: background }
@@ -50,4 +74,19 @@ export type changeStyleAction =
   | { TAG: "SetFontWeight"; _0: fontWeight }
   | { TAG: "SetPosition"; _0: number; _1: number }
   | { TAG: "SetStrokeColor"; _0: string }
-  | { TAG: "SetStrokeWidth"; _0: number };
+  | { TAG: "SetStrokeWidth"; _0: number }
+  | { TAG: "SetWordAnimation"; _0: wordAnimation };
+
+export type stylePreferences = {
+  readonly fontFamily: string; 
+  readonly fontWeight: fontWeight; 
+  readonly fontSizePx: number; 
+  readonly color: string; 
+  readonly strokeColor: (undefined | string); 
+  readonly strokeWidth: number; 
+  readonly align: align; 
+  readonly showBackground: boolean; 
+  readonly background: background; 
+  readonly showWordAnimation: boolean; 
+  readonly wordAnimation: wordAnimation
+};

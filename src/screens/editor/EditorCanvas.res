@@ -6,4 +6,5 @@ external make: (
   ~style: ReactDOM.Style.t,
   ~className: string,
   ~subtitles: array<Subtitles.subtitleCue>,
+  ~subtitlesManager: ChunksList.subtitlesManager=?,
 ) => React.element = "EditorCanvas"

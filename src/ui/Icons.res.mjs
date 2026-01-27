@@ -91,6 +91,14 @@ var CheckIcon = {};
 
 var FilmIcon = {};
 
+var PaintBrushIcon = {};
+
+var SwatchIcon = {};
+
+var ArrowsPointingOutIcon = {};
+
+var LanguageIcon = {};
+
 function Icons$ProductHuntIcon(props) {
   var __className = props.className;
   var __color = props.color;
@@ -143,6 +151,10 @@ export {
   ChatBubbleIcon ,
   CheckIcon ,
   FilmIcon ,
+  PaintBrushIcon ,
+  SwatchIcon ,
+  ArrowsPointingOutIcon ,
+  LanguageIcon ,
   ProductHuntIcon ,
 }
 /* react/jsx-runtime Not a pure module */
