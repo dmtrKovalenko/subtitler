@@ -20,6 +20,7 @@ type size = {
   height: int,
 }
 
+@genType
 type background = {
   color: string,
   strokeColor: option<string>,
@@ -28,6 +29,37 @@ type background = {
   paddingX: int,
   paddingY: int,
   borderRadius: int,
+}
+
+@genType
+type wordAnimationBackground = {
+  color: string,
+  opacity: float,
+  paddingX: int,
+  paddingY: int,
+  borderRadius: int,
+}
+
+@genType
+type wordAnimationFont = {
+  color: option<string>,
+  fontWeight: option<fontWeight>,
+}
+
+@genType
+type wordAnimationPop = {scale: float} // 1.0 - 1.2 range
+
+@genType
+type wordAnimation = {
+  // Background highlight for active word
+  showBackground: bool,
+  background: wordAnimationBackground,
+  // Font styling for active word
+  showFont: bool,
+  font: wordAnimationFont,
+  // Pop/scale effect for active word
+  showPop: bool,
+  pop: wordAnimationPop,
 }
 
 @genType
@@ -45,6 +77,8 @@ type style = {
   fontVariants: array<fontWeight>,
   showBackground: bool,
   background: background,
+  showWordAnimation: bool,
+  wordAnimation: wordAnimation,
 }
 
 @genType
@@ -64,6 +98,8 @@ type changeStyleAction =
   | SetStrokeColor(string)
   | SetStrokeWidth(int)
   | ToggleBackground
+  | ToggleWordAnimation
+  | SetWordAnimation(wordAnimation)
 
 let defaultBackground: background = {
   color: "#000000",
@@ -73,6 +109,115 @@ let defaultBackground: background = {
   strokeWidth: 1,
   strokeColor: None,
   borderRadius: 32,
+}
+
+let defaultWordAnimationBackground: wordAnimationBackground = {
+  color: "#f97316", // Orange
+  opacity: 1.0,
+  paddingX: 6,
+  paddingY: 4,
+  borderRadius: 4,
+}
+
+let defaultWordAnimationFont: wordAnimationFont = {
+  color: None,
+  fontWeight: None,
+}
+
+let defaultWordAnimationPop: wordAnimationPop = {
+  scale: 1.15,
+}
+
+let defaultWordAnimation: wordAnimation = {
+  // Background - enabled by default
+  showBackground: true,
+  background: defaultWordAnimationBackground,
+  // Font - enabled by default (to show white text on orange bg)
+  showFont: true,
+  font: defaultWordAnimationFont,
+  // Pop - disabled by default
+  showPop: false,
+  pop: defaultWordAnimationPop,
+}
+
+// Persistable style preferences (excludes video-dependent properties like x, y, blockSize)
+@genType
+type stylePreferences = {
+  fontFamily: string,
+  fontWeight: fontWeight,
+  fontSizePx: int,
+  color: string,
+  strokeColor: option<string>,
+  strokeWidth: int,
+  align: align,
+  showBackground: bool,
+  background: background,
+  showWordAnimation: bool,
+  wordAnimation: wordAnimation,
+}
+
+let defaultPreferences: stylePreferences = {
+  fontFamily: "Inter",
+  fontWeight: Regular,
+  fontSizePx: 0, // Will be overridden by video-dependent calculation
+  color: "#ffffff",
+  strokeColor: None,
+  strokeWidth: 1,
+  align: Center,
+  showBackground: false,
+  background: defaultBackground,
+  showWordAnimation: false,
+  wordAnimation: defaultWordAnimation,
+}
+
+let stylePreferencesStorageKey = "subtitler.stylePreferences"
+let stylePreferencesVersion = 2
+
+let loadStylePreferences = (): option<stylePreferences> => {
+  open Dom.Storage2
+
+  let storedState = localStorage->getItem(stylePreferencesStorageKey)
+  let storedVersion =
+    localStorage
+    ->getItem(stylePreferencesStorageKey ++ ".version")
+    ->Option.flatMap(val => Int.fromString(val, ~radix=10))
+
+  switch (storedState, storedVersion) {
+  | (Some(storedState), Some(storedVersion)) if storedVersion == stylePreferencesVersion =>
+    try {
+      Some(storedState->JSON.parseExn->Obj.magic)
+    } catch {
+    | _ => None
+    }
+  | _ => None
+  }
+}
+
+let saveStylePreferences = (style: style) => {
+  open Dom.Storage2
+
+  let prefs: stylePreferences = {
+    fontFamily: style.fontFamily,
+    fontWeight: style.fontWeight,
+    fontSizePx: style.fontSizePx,
+    color: style.color,
+    strokeColor: style.strokeColor,
+    strokeWidth: style.strokeWidth,
+    align: style.align,
+    showBackground: style.showBackground,
+    background: style.background,
+    showWordAnimation: style.showWordAnimation,
+    wordAnimation: style.wordAnimation,
+  }
+
+  localStorage->setItem(
+    stylePreferencesStorageKey,
+    prefs->Obj.magic->JSON.stringifyAny->Option.getOr(""),
+  )
+  localStorage->setItem(
+    stylePreferencesStorageKey ++ ".version",
+    string_of_int(stylePreferencesVersion),
+  )
 }
 
 module type StyleObservable = UseObservable.Observable
@@ -90,30 +235,44 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
   }
 
   let center = Ctx.videoMeta.width / 2 - width / 2
-  let fontSizePx = Ctx.videoMeta.height / 30
+  let defaultFontSizePx = Ctx.videoMeta.height / 30
+
+  // Load persisted preferences
+  let savedPrefs = loadStylePreferences()
 
   let initial = {
+    // Video-dependent properties (always calculated fresh)
     x: center,
     y: if Ctx.videoMeta.width > Ctx.videoMeta.height {
       Ctx.videoMeta.height - Ctx.videoMeta.height / 6
     } else {
       Ctx.videoMeta.height / 7
     },
-    fontFamily: "Inter",
-    fontWeight: Regular,
-    fontSizePx,
-    color: "#ffffff",
-    strokeColor: None,
-    blockSize: {width, height: fontSizePx},
-    align: Center,
+    blockSize: {width, height: defaultFontSizePx},
     fontVariants: all_font_weights,
-    showBackground: false,
-    background: defaultBackground,
-    strokeWidth: 1,
+    // User preferences (loaded from storage or defaults)
+    fontFamily: savedPrefs->Option.mapOr(defaultPreferences.fontFamily, p => p.fontFamily),
+    fontWeight: savedPrefs->Option.mapOr(defaultPreferences.fontWeight, p => p.fontWeight),
+    fontSizePx: savedPrefs
+    ->Option.map(p => p.fontSizePx)
+    ->Option.filter(size => size > 0)
+    ->Option.getOr(defaultFontSizePx),
+    color: savedPrefs->Option.mapOr(defaultPreferences.color, p => p.color),
+    strokeColor: savedPrefs->Option.flatMap(p => p.strokeColor),
+    strokeWidth: savedPrefs->Option.mapOr(defaultPreferences.strokeWidth, p => p.strokeWidth),
+    align: savedPrefs->Option.mapOr(defaultPreferences.align, p => p.align),
+    showBackground: savedPrefs->Option.mapOr(defaultPreferences.showBackground, p =>
+      p.showBackground
+    ),
+    background: savedPrefs->Option.mapOr(defaultPreferences.background, p => p.background),
+    showWordAnimation: savedPrefs->Option.mapOr(defaultPreferences.showWordAnimation, p =>
+      p.showWordAnimation
+    ),
+    wordAnimation: savedPrefs->Option.mapOr(defaultPreferences.wordAnimation, p => p.wordAnimation),
   }
 
-  let reducer = (state, action) =>
-    switch action {
+  let reducer = (state, action) => {
+    let newState = switch action {
     | SetPosition(x, y) => {...state, x, y}
     | SetFontFamily(fontFamily) => {...state, fontFamily}
     | SetFontWeight(fontWeight) => {...state, fontWeight}
@@ -142,5 +301,13 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     | ToggleBackground => {...state, showBackground: !state.showBackground}
     | SetBackground(background) => {...state, background}
     | SetStrokeWidth(strokeWidth) => {...state, strokeWidth}
+    | ToggleWordAnimation => {...state, showWordAnimation: !state.showWordAnimation}
+    | SetWordAnimation(wordAnimation) => {...state, wordAnimation}
     }
+
+    // Persist preferences on every change
+    saveStylePreferences(newState)
+
+    newState
+  }
 })

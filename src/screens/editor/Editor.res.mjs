@@ -79,7 +79,7 @@ var make = React.memo(function (props) {
                                                                   ],
                                                                   defaultIndex: 0
                                                                 }),
-                                                            className: "@2xl:hidden overflow-auto flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2"
+                                                            className: "@2xl:hidden flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2"
                                                           }),
                                                       JsxRuntime.jsxs("div", {
                                                             children: [
@@ -101,7 +101,7 @@ var make = React.memo(function (props) {
                                                                     className: "pl-6 flex-1 flex flex-col gap-y-4"
                                                                   })
                                                             ],
-                                                            className: "hidden @2xl:flex overflow-auto px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700"
+                                                            className: "hidden @2xl:flex overflow-hidden px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700"
                                                           })
                                                     ],
                                                     className: "@container col-span-2 pt-2 h-full flex flex-col border-r border-zinc-800",
@@ -143,7 +143,8 @@ var make = React.memo(function (props) {
                                             transform: "scale(" + layout.preview.scale.toString() + ")"
                                           },
                                           className: "bg-transparent origin-top-left absolute left-0 top-0",
-                                          subtitles: subtitlesManager.activeSubtitles
+                                          subtitles: subtitlesManager.activeSubtitles,
+                                          subtitlesManager: subtitlesManager
                                         })
                                   ],
                                   className: "relative",

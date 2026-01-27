@@ -338,6 +338,13 @@ export default function LolApp() {
             outputFormat: validFormat,
             videoCodec: validVideoCodec,
             audioCodec: validAudioCodec,
+            // Pass word animation data if word animation is enabled
+            wordAnimationData: style.showWordAnimation && subtitlesManager.transcriptionState !== "TranscriptionInProgress"
+              ? {
+                  wordChunks: subtitlesManager.transcriptionState.wordChunks,
+                  cueRanges: subtitlesManager.transcriptionState.cueRanges,
+                }
+              : undefined,
           },
         } as RenderWorkerMessage,
         [offscreenCanvas],

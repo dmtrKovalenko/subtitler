@@ -106,7 +106,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           <p className="mx-16 text-center text-balance mt-4 text-gray-400 text-xl">
             Upload a video to get the automatic transcription or translation and
             get your subtitles rendered back into the video file in just a few
-            clicks — completely for free with no signup required. Everything on
+            clicks completely for free with no signup required. Everything on
             this website is done entirely in your browser, ensuring that{" "}
             <strong>nothing is sent to the server</strong>.
           </p>

@@ -56,8 +56,7 @@ let make = React.memo((
         <div
           style={size->UseEditorLayout.sizeToStyle}
           className="@container col-span-2 pt-2 h-full flex flex-col border-r border-zinc-800">
-          <div
-            className="@2xl:hidden overflow-auto flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2">
+          <div className="@2xl:hidden flex-1 scrol-pb-4 flex items-center flex-col pt-1 px-4 gap-2">
             <Tabs
               defaultIndex=0
               tabs=[
@@ -75,7 +74,7 @@ let make = React.memo((
             />
           </div>
           <div
-            className="hidden @2xl:flex overflow-auto px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700">
+            className="hidden @2xl:flex overflow-hidden px-4 pt-2 flex-1 max-h-full divide-x divide-zinc-700">
             <div
               className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
               <ChunksList subtitlesManager title={subtitlesTitle} />
@@ -119,6 +118,7 @@ let make = React.memo((
         <EditorCanvas
           transcriptionInProgress
           subtitles=subtitlesManager.activeSubtitles
+          subtitlesManager
           width=ctx.videoMeta.width
           height=ctx.videoMeta.height
           style={ReactDOMStyle.make(

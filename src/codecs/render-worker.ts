@@ -29,6 +29,7 @@ import {
   createCtx,
   loadGoogleFont,
   renderCueOnCanvas,
+  WordAnimationData,
 } from "./subtitle-renderer";
 import { style } from "../screens/editor/Style.gen";
 
@@ -75,6 +76,8 @@ export type RenderMessage = {
   outputFormat?: OutputFormat;
   videoCodec?: OutputVideoCodec;
   audioCodec?: OutputAudioCodec;
+  // Word animation data for export
+  wordAnimationData?: WordAnimationData;
 };
 
 export type ValidateMessage = {
@@ -180,6 +183,7 @@ export async function render({
   outputFormat = "mp4",
   videoCodec: preferredVideoCodec,
   audioCodec: preferredAudioCodec,
+  wordAnimationData,
 }: RenderMessage) {
   let canvasSource: CanvasSource | null = null;
   let output: Output | null = null;
@@ -656,7 +660,7 @@ export async function render({
 
     let rendererCtx;
     try {
-      rendererCtx = createCtx(videoDecoderConfig, canvas, style);
+      rendererCtx = createCtx(videoDecoderConfig, canvas, style, wordAnimationData);
     } catch (e) {
       throw new Error(
         `Failed to create subtitle renderer: ${e instanceof Error ? e.message : String(e)}`,
