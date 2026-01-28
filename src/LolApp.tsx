@@ -7,7 +7,6 @@ import Constants from "./transcriber/Constants";
 import { Spinner } from "./ui/Spinner";
 import { LandingDropzone } from "./screens/LandingDropzone";
 import { Progress } from "./ui/Progress";
-import { Editor } from "./screens/editor/Editor.gen";
 import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
 import { Transition } from "@headlessui/react";
 import type {
@@ -24,6 +23,7 @@ import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
 import { log } from "./hooks/useAnalytics";
 import HeartIcon from "@heroicons/react/20/solid/HeartIcon";
 import { ProductHuntIcon } from "./ui/Icons.res.mjs";
+import { Editor } from "./screens/editor/Editor.gen";
 
 type VideoFile = {
   name: string;
@@ -339,12 +339,14 @@ export default function LolApp() {
             videoCodec: validVideoCodec,
             audioCodec: validAudioCodec,
             // Pass word animation data if word animation is enabled
-            wordAnimationData: style.showWordAnimation && subtitlesManager.transcriptionState !== "TranscriptionInProgress"
-              ? {
-                  wordChunks: subtitlesManager.transcriptionState.wordChunks,
-                  cueRanges: subtitlesManager.transcriptionState.cueRanges,
-                }
-              : undefined,
+            wordAnimationData:
+              style.showWordAnimation &&
+              subtitlesManager.transcriptionState !== "TranscriptionInProgress"
+                ? {
+                    wordChunks: subtitlesManager.transcriptionState.wordChunks,
+                    cueRanges: subtitlesManager.transcriptionState.cueRanges,
+                  }
+                : undefined,
           },
         } as RenderWorkerMessage,
         [offscreenCanvas],
@@ -502,7 +504,7 @@ export default function LolApp() {
 
   if (file && !transcriber.output) {
     return (
-      <div className="container mx-auto flex items-center justify-center pt-[25%] flex-col">
+      <div className="container mx-auto flex items-center justify-center px-4 flex-col h-dvh md:h-screen">
         <svg
           className="absolute inset-0 -z-10 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
           aria-hidden="true"
@@ -533,14 +535,19 @@ export default function LolApp() {
           />
         </svg>
 
-        <div className="flex items-center justify-center gap-4">
-          <Spinner sizeRem={3} />
-          <h1 className="text-5xl">{status}</h1>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
+          <div className="md:hidden">
+            <Spinner sizeRem={2} />
+          </div>
+          <div className="hidden md:block">
+            <Spinner sizeRem={3} />
+          </div>
+          <h1 className="text-2xl md:text-5xl text-center">{status}</h1>
         </div>
-        <p className="text-center text-balance text-gray-400 mt-4">
+        <p className="text-center text-balance text-gray-400 text-sm md:text-base mt-4 px-2">
           {description}
         </p>
-        <div className="w-full flex flex-col gap-y-2 mt-12 max-w-[34rem]">
+        <div className="w-full flex flex-col gap-y-2 mt-8 md:mt-12 max-w-[34rem] px-4">
           {progressItems
             ? progressItems.map((item) => (
                 <Progress
@@ -592,23 +599,23 @@ export default function LolApp() {
       <Transition show={renderState !== "idle"}>
         <div
           className={clsx(
-            "transition flex-col absolute z-[60] w-screen h-screen bg-white/10 backdrop-blur-xl inset-0 duration-300 ease-in data-[closed]:opacity-0 flex items-center justify-center",
+            "transition flex-col absolute z-[60] w-screen h-dvh md:h-screen bg-white/10 backdrop-blur-xl inset-0 duration-300 ease-in data-[closed]:opacity-0 flex items-center justify-center px-4",
             renderState === "done" && "!bg-green-600/10 !backdrop-blur-2xl",
             renderState === "error" && "!bg-red-600/10 !backdrop-blur-2xl",
           )}
         >
           {renderState === "rendering" && (
             <>
-              <h2 className="text-5xl tracking-wide font-bold">
+              <h2 className="text-2xl md:text-5xl text-center tracking-wide font-bold">
                 Rendering your video
               </h2>
-              <p className="text-gray-300 text-balance text-center text-lg max-w-screen-sm mt-4">
+              <p className="text-gray-300 text-balance text-center text-sm md:text-lg max-w-screen-sm mt-4">
                 In a moment you'll get your video with subtitles created at the
                 selected location. Feel free to move to the other tab, the
                 render will continue in the background.
               </p>
 
-              <div className="w-full flex flex-col gap-y-2 mt-8 max-w-[34rem]">
+              <div className="w-full flex flex-col gap-y-2 mt-6 md:mt-8 max-w-[34rem]">
                 {progressItems
                   ? progressItems.map((item) => (
                       <Progress
@@ -624,13 +631,13 @@ export default function LolApp() {
 
           {renderState === "error" && (
             <>
-              <h2 className="text-5xl tracking-wide font-bold text-red-400">
+              <h2 className="text-2xl md:text-5xl text-center tracking-wide font-bold text-red-400">
                 Rendering Failed
               </h2>
-              <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
+              <p className="text-gray-200 text-balance text-center max-w-screen-sm text-sm md:text-lg mt-4">
                 {renderError || "An unknown error occurred during rendering."}
               </p>
-              <p className="text-gray-400 text-balance text-center max-w-screen-md text-sm mt-2">
+              <p className="text-gray-400 text-balance text-center max-w-screen-md text-xs md:text-sm mt-2">
                 Try selecting a different video codec or format. Some codec
                 combinations may not be supported by your browser.
               </p>
@@ -646,10 +653,10 @@ export default function LolApp() {
 
           {renderState === "done" && (
             <>
-              <h2 className="text-5xl tracking-wide font-bold">
+              <h2 className="text-2xl md:text-5xl text-center tracking-wide font-bold">
                 Video Rendered!
               </h2>
-              <p className="text-gray-200 text-balance text-center max-w-screen-sm text-lg mt-4">
+              <p className="text-gray-200 text-balance text-center max-w-screen-sm text-sm md:text-lg mt-4">
                 You'll find your video in the location you selected a moment
                 before. Time for publishing but before you do that ... just know
                 ... your video is amazing!
@@ -659,25 +666,25 @@ export default function LolApp() {
                 <a
                   href="https://www.producthunt.com/products/fframes-subtitles/reviews/new"
                   rel="noopener noreferrer"
-                  className="mx-auto outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2 hover:bg-orange-400 transition rounded-lg gap-2 bg-orange-600 inline-flex items-center px-4 py-3 font-medium"
+                  className="mx-auto outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2 hover:bg-orange-400 transition rounded-lg gap-2 bg-orange-600 inline-flex items-center px-4 py-3 font-medium text-sm md:text-base"
                 >
-                  <ProductHuntIcon.make className="size-6 text-orange-500" />
+                  <ProductHuntIcon.make className="size-5 md:size-6 text-orange-500" />
                   Leave a Review
                 </a>
 
                 <a
                   href="https://github.com/sponsors/dmtrKovalenko"
                   rel="noopener noreferrer"
-                  className="mx-auto outline-none focus-visible:ring ring-rose-500 ring-offset-zinc-900 ring-offset-2 hover:bg-rose-400 transition rounded-lg bg-rose-600 gap-2 inline-flex items-center px-4 py-3 font-medium"
+                  className="mx-auto outline-none focus-visible:ring ring-rose-500 ring-offset-zinc-900 ring-offset-2 hover:bg-rose-400 transition rounded-lg bg-rose-600 gap-2 inline-flex items-center px-4 py-3 font-medium text-sm md:text-base"
                 >
-                  <HeartIcon className="size-6" />
+                  <HeartIcon className="size-5 md:size-6" />
                   Support Author
                 </a>
               </div>
 
               <button
                 onClick={handleBackToEditor}
-                className="mt-6 text-gray-300 hover:text-white underline underline-offset-4 transition"
+                className="mt-6 text-gray-300 hover:text-white underline underline-offset-4 transition text-sm md:text-base"
               >
                 ← Back to editor
               </button>

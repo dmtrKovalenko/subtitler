@@ -40,7 +40,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
   });
 
   return (
-    <div className="p-4 flex flex-col w-screen h-screen">
+    <div className="p-2 md:p-4 flex flex-col w-screen h-dvh md:h-screen">
       <div
         {...getRootProps({
           onClick: (e) => {
@@ -53,7 +53,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           },
         })}
         className={clsx(
-          "mt-1 relative isolate flex-1 flex items-center flex-col w-full h-full justify-center rounded-2xl border-2 border-dashed p-6 border-gray-500 transition-colors focus:border-accent-500 focus:outline-none active:border-orange-400 focus:border-orange-400",
+          "mt-1 relative isolate flex-1 flex items-center flex-col w-full h-full justify-center rounded-2xl border-2 border-dashed p-4 md:p-6 border-gray-500 transition-colors focus:border-accent-500 focus:outline-none active:border-orange-400 focus:border-orange-400",
           {
             "border-red-400": isDragReject,
             "border-blue-400": isDragActive,
@@ -93,24 +93,24 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
         </svg>
         {fileRejections.length > 0 && (
           <div className="mb-4 bg-red-200 px-4 py-2 shadow-red-400 shadow rounded-2xl">
-            <p className="text-red-500 font-medium text-lg">
+            <p className="text-red-500 font-medium text-base md:text-lg">
               Please upload a valid video file
             </p>
           </div>
         )}
-        <div className="container flex-1 flex flex-col items-center justify-center">
-          <h1 className="text-2xl text-center font-bold tracking-tight sm:text-6xl">
+        <div className="container flex-1 flex flex-col items-center justify-center px-2 md:px-0">
+          <h1 className="text-4xl text-center font-bold tracking-tight md:text-6xl">
             Free no-signup <span className="sr-only">automatic</span> AI{" "}
             <SubtitlesStrikethrough>captions</SubtitlesStrikethrough> generator
           </h1>
-          <p className="mx-16 text-center text-balance mt-4 text-gray-400 text-xl">
+          <p className="mx-0 md:mx-16 text-center text-balance mt-8 md:mt-4 text-gray-400 text-base md:text-xl">
             Upload a video to get the automatic transcription or translation and
             get your subtitles rendered back into the video file in just a few
             clicks completely for free with no signup required. Everything on
             this website is done entirely in your browser, ensuring that{" "}
             <strong>nothing is sent to the server</strong>.
           </p>
-          <div className="mt-8 flex gap-6 justify-between mx-auto max-w-[34rem]">
+          <div className="mt-6 md:mt-8 flex flex-col md:flex-row gap-3 md:gap-6 w-full md:w-auto md:justify-between mx-auto max-w-[34rem]">
             <Combobox
               options={ALL_LANGUAGES}
               selected={language}
@@ -146,7 +146,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             />
             <button
               onClick={open}
-              className="mx-auto outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2 rounded-lg bg-orange-600 inline-flex items-center px-6 font-medium"
+              className="mx-auto md:mx-0 w-full md:w-auto outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2 rounded-lg bg-orange-600 inline-flex items-center justify-center px-6 py-3 md:py-0 font-medium"
             >
               Let's go!
             </button>
@@ -154,20 +154,20 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
           {!window.showSaveFilePicker && (
             <div
               aria-hidden
-              className="rounded-xl max-w-2xl mt-8 bg-amber-100 p-4"
+              className="rounded-xl max-w-2xl mt-6 md:mt-8 bg-amber-100 p-3 md:p-4 mx-2 md:mx-0"
             >
               <div className="flex">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <ExclamationTriangleIcon
                     aria-hidden="true"
-                    className="size-6 text-amber-500"
+                    className="size-5 md:size-6 text-amber-500"
                   />
                 </div>
                 <div className="ml-3">
-                  <h3 className="font-medium text-yellow-800">
+                  <h3 className="text-sm md:text-base font-medium text-yellow-800">
                     Large file attention
                   </h3>
-                  <div className="mt-1 text-sm text-yellow-700">
+                  <div className="mt-1 text-xs md:text-sm text-yellow-700">
                     <p>
                       Your browser does not support{" "}
                       <a
@@ -189,7 +189,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             </div>
           )}
         </div>
-        <div className="mt-auto flex gap-6">
+        <div className="mt-auto flex gap-6 py-2">
           <a
             target="_blank"
             rel="noopener noreferrer"
@@ -198,7 +198,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <span className="sr-only">Producthunt</span>
-            <ProductHuntIcon.make className="size-7 text-black" />
+            <ProductHuntIcon.make className="size-6 md:size-7 text-black" />
           </a>
 
           <a
@@ -209,7 +209,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <span className="sr-only">Project sources</span>
-            <GithubIcon className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
+            <GithubIcon className="transition size-6 md:size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
           </a>
           <a
             target="_blank"
@@ -219,7 +219,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <span className="sr-only">Follow on twitter</span>
-            <TwitterIcon className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
+            <TwitterIcon className="transition size-6 md:size-7 hover:scale-125 active:scale-90 hover:text-orange-500" />
           </a>
           <a
             target="_blank"
@@ -231,7 +231,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             <span className="sr-only">Support this project developlment</span>
             <HeartIcon
               aria-hidden
-              className="transition size-7 hover:scale-125 active:scale-90 hover:text-orange-500"
+              className="transition size-6 md:size-7 hover:scale-125 active:scale-90 hover:text-orange-500"
             />
           </a>
         </div>

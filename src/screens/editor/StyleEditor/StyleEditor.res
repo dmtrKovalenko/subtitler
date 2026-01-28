@@ -25,7 +25,7 @@ let make = Utils.neverRerender(() => {
   let editorContext = EditorContext.useEditorContext()
   let (style, dispatch) = editorContext.useStyle()
 
-  <div className="overflow-auto -mx-6 px-6 pb-6">
+  <div className="overflow-auto pb-6">
     <div className="flex flex-col gap-6">
       <div
         className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full">
@@ -99,7 +99,7 @@ let make = Utils.neverRerender(() => {
         />
       </div>
       <div
-        className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full">
+        className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-3 md:grid-cols-6 gap-2 bg-white/5 p-3 w-full">
         <Input.Field className="col-span-3">
           <Input.Label forId={"font-picker" ++ id} className="whitespace-nowrap">
             {React.string("Font")}

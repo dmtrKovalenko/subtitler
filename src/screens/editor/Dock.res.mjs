@@ -15,6 +15,7 @@ import * as ChunkEditor from "./ChunksList/ChunkEditor.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as Core__Promise from "@rescript/core/src/Core__Promise.res.mjs";
 import * as EditorContext from "./EditorContext.res.mjs";
+import * as VolumePopover from "../../ui/VolumePopover.res.mjs";
 import * as JsxRuntime from "react/jsx-runtime";
 import DockButton from "../../ui/DockButton";
 import * as Webapi__Dom__Window from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__Window.res.mjs";
@@ -149,7 +150,8 @@ var make$1 = Utils.neverRerender(function (props) {
       return JsxRuntime.jsx("div", {
                   children: JsxRuntime.jsx("hr", {
                         className: "mx-2 h-9 border-gray-600 border bg-none"
-                      })
+                      }),
+                  className: "hidden md:block"
                 });
     });
 
@@ -157,7 +159,7 @@ var DockDivider = {
   make: make$1
 };
 
-var baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300";
+var baseClass = "flex items-center justify-center p-1.5 md:p-2 shadow rounded-lg md:rounded-xl bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300 md:relative md:bottom-3";
 
 var make$2 = React.memo(function (props) {
       var __className = props.className;
@@ -175,6 +177,18 @@ var DockSpace = {
   baseClass: baseClass,
   make: make$2
 };
+
+function volumeIcon(volume) {
+  if (volume !== undefined && volume > 0) {
+    return JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
+                className: "size-5 md:size-7"
+              });
+  } else {
+    return JsxRuntime.jsx(Outline.SpeakerXMarkIcon, {
+                className: "size-5 md:size-7 text-gray-400"
+              });
+  }
+}
 
 function Dock(props) {
   var fullScreenToggler = props.fullScreenToggler;
@@ -271,8 +285,7 @@ function Dock(props) {
             return ;
           }
         }
-        var newIndex = currentOrLastCue.currentIndex + shift | 0;
-        var newCue = subtitlesManager.activeSubtitles[newIndex];
+        var newCue = subtitlesManager.activeSubtitles[currentOrLastCue.currentIndex + shift | 0];
         if (newCue !== undefined) {
           return playerDispatch({
                       TAG: "Seek",
@@ -326,24 +339,23 @@ function Dock(props) {
   switch (match$3) {
     case "Playing" :
         tmp = JsxRuntime.jsx(Solid.PauseIcon, {
-              className: "size-6 mx-0.5"
+              className: "size-6"
             });
         break;
     case "Paused" :
     case "Idle" :
         tmp = JsxRuntime.jsx(Solid.PlayIcon, {
-              className: "size-6 mx-0.5"
+              className: "size-6"
             });
         break;
     case "StoppedForRender" :
         tmp = JsxRuntime.jsx(Spinner.make, {
-              size: 1.5,
-              className: "mx-1"
+              size: 1.25,
+              className: ""
             });
         break;
     
   }
-  var volume = player.volume;
   var match$4 = subtitlesManager.transcriptionState;
   var tmp$1;
   if (typeof match$4 !== "object") {
@@ -361,11 +373,14 @@ function Dock(props) {
                   children: JsxRuntime.jsxs(make, {
                         children: [
                           JsxRuntime.jsx(Outline.ArrowDownTrayIcon, {
-                                className: "mr-2 h-4 w-4"
+                                className: "size-5 md:mr-2 md:size-4"
                               }),
-                          "Export"
+                          JsxRuntime.jsx("span", {
+                                children: "Export",
+                                className: "hidden md:inline"
+                              })
                         ],
-                        label: "Download file as .vtt or .srt file",
+                        label: "Export subtitles",
                         className: "hover:!scale-100"
                       })
                 }),
@@ -384,10 +399,13 @@ function Dock(props) {
                           JsxRuntime.jsx(Outline.RocketLaunchIcon, {
                                 className: "size-5"
                               }),
-                          "Render video"
+                          JsxRuntime.jsx("span", {
+                                children: "Render",
+                                className: "hidden md:inline ml-1"
+                              })
                         ],
-                        label: "Render video file",
-                        className: "whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4",
+                        label: "Render video",
+                        className: "whitespace-nowrap font-medium hover:!scale-100 md:hover:!scale-105 md:hover:!bg-orange-400 px-2 md:px-4",
                         highlight: true
                       })
                 })
@@ -402,43 +420,52 @@ function Dock(props) {
                               children: Utils.Duration.formatSeconds(player.ts)
                             }),
                         JsxRuntime.jsx("span", {
-                              children: " / ",
-                              className: "normal-nums relative bottom-px"
+                              children: "/",
+                              className: "normal-nums"
                             }),
                         JsxRuntime.jsx("span", {
                               children: Utils.Duration.formatSeconds(context.videoMeta.duration)
                             })
                       ],
-                      className: "tabular-nums space-x-1"
+                      className: "tabular-nums text-xs md:text-sm gap-0.5 md:space-x-1 whitespace-nowrap shrink-0"
                     }),
                 JsxRuntime.jsx(make$1, {}),
                 JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Icons.BackwardIcon.make, {
-                            className: "size-5 mx-0.5"
+                            className: "size-5"
                           }),
-                      label: "Play forward 5 seconds",
+                      label: "Seek backward",
                       onClick: handleSeekLeft
                     }),
                 JsxRuntime.jsx(make, {
                       children: tmp,
-                      label: "Play",
+                      label: "Play/Pause",
                       onClick: handlePlayOrPause,
                       highlight: true
                     }),
                 JsxRuntime.jsx(make, {
                       children: JsxRuntime.jsx(Outline.ArrowUturnRightIcon, {
-                            className: "size-5 mx-0.5"
+                            className: "size-5"
                           }),
-                      label: "Play back 5 seconds",
+                      label: "Seek forward",
                       onClick: handleSeekRight
+                    }),
+                JsxRuntime.jsx("div", {
+                      children: JsxRuntime.jsx(VolumePopover.make, {
+                            volume: player.volume,
+                            onVolumeChange: handleSetVolume,
+                            minVolume: Player.min_volume,
+                            maxVolume: Player.max_volume,
+                            children: JsxRuntime.jsx(make, {
+                                  children: volumeIcon(player.volume),
+                                  label: "Volume"
+                                })
+                          }),
+                      className: "md:hidden"
                     }),
                 JsxRuntime.jsxs(make$2, {
                       children: [
-                        volume !== undefined && volume > 0 ? JsxRuntime.jsx(Outline.SpeakerWaveIcon, {
-                                className: "size-7"
-                              }) : JsxRuntime.jsx(Outline.SpeakerXMarkIcon, {
-                                className: "size-7 text-gray-400"
-                              }),
+                        volumeIcon(player.volume),
                         JsxRuntime.jsx(Slider.make, {
                               onValueChange: handleSetVolume,
                               disabled: Core__Option.isNone(player.volume),
@@ -448,28 +475,35 @@ function Dock(props) {
                               step: 1
                             })
                       ],
-                      className: "w-40"
+                      className: "hidden md:flex w-40 shrink-0"
                     }),
                 JsxRuntime.jsx(make$1, {}),
-                JsxRuntime.jsx(make, {
-                      children: JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
-                            className: "size-6 mx-0.5"
+                JsxRuntime.jsx("div", {
+                      children: JsxRuntime.jsx(make, {
+                            children: JsxRuntime.jsx(Outline.ArrowsPointingOutIcon, {
+                                  className: "size-6"
+                                }),
+                            label: "Fullscreen",
+                            onClick: fullScreenToggler.toggle
                           }),
-                      label: "Turn on/off full-screen mode",
-                      onClick: fullScreenToggler.toggle
+                      className: "hidden md:block"
                     }),
-                JsxRuntime.jsx(make, {
-                      children: JsxRuntime.jsx(Outline.PencilSquareIcon, {
-                            className: "size-6 mx-0.5"
+                JsxRuntime.jsx("div", {
+                      children: JsxRuntime.jsx(make, {
+                            children: JsxRuntime.jsx(Outline.PencilSquareIcon, {
+                                  className: "size-6"
+                                }),
+                            label: "Edit subtitle",
+                            onClick: editCurrentSubtitle
                           }),
-                      label: "Edit current subtitle",
-                      onClick: editCurrentSubtitle
+                      className: "hidden md:block"
                     }),
                 tmp$1
               ],
               className: Cx.cx([
-                    "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex flex-row -translate-x-1/2",
-                    match[0] ? "translate-y-16 duration-300" : ""
+                    "flex flex-row items-center gap-1.5 px-2 py-1 overflow-x-auto max-w-full",
+                    "md:absolute md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:px-4 md:pt-1 md:pb-0 md:gap-2 md:bg-zinc-900/30 md:border-t md:border-x md:border-gray-100/20 md:shadow-xl md:rounded-t-lg md:backdrop-blur-lg md:overflow-visible",
+                    match[0] ? "md:translate-y-16 md:duration-300" : ""
                   ])
             });
 }
@@ -483,6 +517,7 @@ export {
   shortcuts ,
   DockDivider ,
   DockSpace ,
+  volumeIcon ,
   make$3 as make,
 }
 /* make Not a pure module */

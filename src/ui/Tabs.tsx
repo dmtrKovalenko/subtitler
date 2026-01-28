@@ -14,13 +14,17 @@ type TabsProps = {
 
 export default function Tabs({ tabs, defaultIndex, className }: TabsProps) {
   return (
-    <TabGroup as={React.Fragment} defaultIndex={defaultIndex}>
-      <TabList className="flex gap-4">
+    <TabGroup className="flex flex-col h-full" defaultIndex={defaultIndex}>
+      <TabList className="flex gap-2 md:gap-4 justify-center px-3 py-2 bg-zinc-900/50 flex-shrink-0">
         {tabs.map(({ name, id }) => (
           <Tab
             key={id}
             className={clsx(
-              "rounded-full transition-all py-2 px-3 text-base/6 data-[selected]:font-semibold text-white focus:outline-none data-[selected]:bg-white/10 data-[hover]:bg-white/5 data-[selected]:data-[hover]:bg-white/10 outline-offset-1 data-[focus]:outline-1 data-[focus]:outline-white",
+              "rounded-full transition-all py-2 px-4 text-sm md:text-base font-medium text-white/70",
+              "focus:outline-none outline-offset-1",
+              "data-[selected]:font-semibold data-[selected]:text-white data-[selected]:bg-white/10",
+              "data-[hover]:bg-white/5 data-[selected]:data-[hover]:bg-white/10",
+              "data-[focus]:outline-1 data-[focus]:outline-white",
               className,
             )}
           >
@@ -28,9 +32,9 @@ export default function Tabs({ tabs, defaultIndex, className }: TabsProps) {
           </Tab>
         ))}
       </TabList>
-      <TabPanels className="mt-3 w-full h-full">
+      <TabPanels className="flex-1 min-h-0 overflow-hidden">
         {tabs.map(({ content, id }) => (
-          <TabPanel as={React.Fragment} key={id}>
+          <TabPanel key={id} className="h-full overflow-auto">
             {content}
           </TabPanel>
         ))}

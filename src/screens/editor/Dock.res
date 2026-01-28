@@ -19,7 +19,6 @@ module DockButton = {
 
 module DocumentEvent = Dom.EventTarget.Impl(Dom.Window)
 
-// didn't found a better way to interop this with gentype to intercept Promise ts type
 module Promise = {
   let catch = Core__Promise.catch
   let resolve = Core__Promise.resolve
@@ -52,14 +51,14 @@ let shortcuts = [
 module DockDivider = {
   @react.component
   let make = Utils.neverRerender(() =>
-    <div>
+    <div className="hidden md:block">
       <hr className="mx-2 h-9 border-gray-600 border bg-none" />
     </div>
   )
 }
 
 module DockSpace = {
-  let baseClass = "flex items-center justify-center p-2 shadow rounded-xl relative bottom-3 bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300"
+  let baseClass = "flex items-center justify-center p-1.5 md:p-2 shadow rounded-lg md:rounded-xl bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 duration-300 md:relative md:bottom-3"
 
   @react.component
   let make = React.memo((~children, ~className="") => {
@@ -68,6 +67,12 @@ module DockSpace = {
 }
 
 @send external focus: Dom.Element.t => unit = "focus"
+
+let volumeIcon = volume =>
+  switch volume {
+  | Some(v) if v > 0 => <VolumeIcon className="size-5 md:size-7" />
+  | _ => <VolumeLowIcon className="size-5 md:size-7 text-gray-400" />
+  }
 
 @react.component
 let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~videoFileName) => {
@@ -78,7 +83,6 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
 
   let handlePlayOrPause = _ => {
     open Player
-
     switch context.getImmediatePlayerState().playState {
     | Playing => Pause
     | _ => Play
@@ -101,25 +105,15 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
     )
   })
 
-  let handleSeekLeft = Hooks.useEvent(() => {
+  let handleSeekLeft = Hooks.useEvent(() =>
     playerDispatch(Seek(context.getImmediatePlayerState().ts -. 2.))
-  })
-
-  let handleSeekRight = Hooks.useEvent(() => {
+  )
+  let handleSeekRight = Hooks.useEvent(() =>
     playerDispatch(Seek(context.getImmediatePlayerState().ts +. 2.))
-  })
-
-  let toggleMute = Hooks.useEvent(() => {
-    playerDispatch(SetVolume(0))
-  })
-
-  let seekToStart = Hooks.useEvent(() => {
-    playerDispatch(Seek(0.))
-  })
-
-  let seekToEnd = Hooks.useEvent(() => {
-    playerDispatch(Seek(context.videoMeta.duration))
-  })
+  )
+  let toggleMute = Hooks.useEvent(() => playerDispatch(SetVolume(0)))
+  let seekToStart = Hooks.useEvent(() => playerDispatch(Seek(0.)))
+  let seekToEnd = Hooks.useEvent(() => playerDispatch(Seek(context.videoMeta.duration)))
 
   let editCurrentSubtitle = Hooks.useEvent(() => {
     setTimeout(() =>
@@ -141,9 +135,7 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
 
     switch currentOrLastCue {
     | Some({currentIndex, _}) =>
-      let newIndex = currentIndex + shift
-
-      switch subtitlesManager.activeSubtitles->Array.get(newIndex) {
+      switch subtitlesManager.activeSubtitles->Array.get(currentIndex + shift) {
       | Some(newCue) => playerDispatch(Seek(newCue->Subtitles.start))
       | None => ()
       }
@@ -186,39 +178,41 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
 
   <div
     className={Cx.cx([
-      "absolute bottom-0 w-auto transition-transform transform-gpu left-1/2 px-4 pt-1 space-x-2 bg-zinc-900/30 border-t border-x border-gray-100/20 shadow-xl rounded-t-lg backdrop-blur-lg flex flex-row -translate-x-1/2",
-      isCollapsed ? "translate-y-16 duration-300" : "",
+      "flex flex-row items-center gap-1.5 px-2 py-1 overflow-x-auto max-w-full",
+      "md:absolute md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:px-4 md:pt-1 md:pb-0 md:gap-2 md:bg-zinc-900/30 md:border-t md:border-x md:border-gray-100/20 md:shadow-xl md:rounded-t-lg md:backdrop-blur-lg md:overflow-visible",
+      isCollapsed ? "md:translate-y-16 md:duration-300" : "",
     ])}>
-    <DockSpace className="tabular-nums space-x-1">
+    <DockSpace
+      className="tabular-nums text-xs md:text-sm gap-0.5 md:space-x-1 whitespace-nowrap shrink-0">
       <span> {player.ts->Utils.Duration.formatSeconds->React.string} </span>
-      <span className="normal-nums relative bottom-px"> {React.string(" / ")} </span>
-      <span>
-        {context.videoMeta.duration
-        ->Utils.Duration.formatSeconds
-        ->React.string}
-      </span>
+      <span className="normal-nums"> {React.string("/")} </span>
+      <span> {context.videoMeta.duration->Utils.Duration.formatSeconds->React.string} </span>
     </DockSpace>
     <DockDivider />
-    <DockButton onClick=handleSeekLeft label="Play forward 5 seconds">
-      <BackwardIcon className="size-5 mx-0.5" />
+    <DockButton onClick=handleSeekLeft label="Seek backward">
+      <BackwardIcon className="size-5" />
     </DockButton>
-    <DockButton onClick=handlePlayOrPause highlight=true label="Play">
+    <DockButton onClick=handlePlayOrPause highlight=true label="Play/Pause">
       {switch player.playState {
-      | StoppedForRender => <Spinner size=1.5 className="mx-1" />
-      | Playing => <PauseIcon className="size-6 mx-0.5" />
-      | Paused
-      | Idle =>
-        <PlayIcon className="size-6 mx-0.5" />
+      | StoppedForRender => <Spinner size=1.25 className="" />
+      | Playing => <PauseIcon className="size-6" />
+      | Paused | Idle => <PlayIcon className="size-6" />
       }}
     </DockButton>
-    <DockButton onClick=handleSeekRight label="Play back 5 seconds">
-      <ForwardIcon className="size-5 mx-0.5" />
+    <DockButton onClick=handleSeekRight label="Seek forward">
+      <ForwardIcon className="size-5" />
     </DockButton>
-    <DockSpace className="w-40">
-      {switch player.volume {
-      | Some(volume) if volume > 0 => <VolumeIcon className="size-7" />
-      | _ => <VolumeLowIcon className="size-7 text-gray-400" />
-      }}
+    <div className="md:hidden">
+      <VolumePopover
+        volume={player.volume}
+        onVolumeChange={handleSetVolume}
+        minVolume={Player.min_volume}
+        maxVolume={Player.max_volume}>
+        <DockButton label="Volume"> {volumeIcon(player.volume)} </DockButton>
+      </VolumePopover>
+    </div>
+    <DockSpace className="hidden md:flex w-40 shrink-0">
+      {volumeIcon(player.volume)}
       <Slider
         disabled={player.volume->Option.isNone}
         min=Player.min_volume
@@ -229,12 +223,16 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
       />
     </DockSpace>
     <DockDivider />
-    <DockButton onClick=fullScreenToggler.toggle label="Turn on/off full-screen mode">
-      <FullScreenIcon className="size-6 mx-0.5" />
-    </DockButton>
-    <DockButton onClick=editCurrentSubtitle label="Edit current subtitle">
-      <EditIcon className="size-6 mx-0.5" />
-    </DockButton>
+    <div className="hidden md:block">
+      <DockButton onClick=fullScreenToggler.toggle label="Fullscreen">
+        <FullScreenIcon className="size-6" />
+      </DockButton>
+    </div>
+    <div className="hidden md:block">
+      <DockButton onClick=editCurrentSubtitle label="Edit subtitle">
+        <EditIcon className="size-6" />
+      </DockButton>
+    </div>
     {switch subtitlesManager.transcriptionState {
     | TranscriptionInProgress => React.null
     | SubtitlesReady(_) =>
@@ -242,9 +240,9 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
       <>
         <DockDivider />
         <SubtitleExportDropdown sideOffset={5} align=#start subtitles videoFileName>
-          <DockButton label="Download file as .vtt or .srt file" className="hover:!scale-100">
-            <DownloadIcon className="mr-2 h-4 w-4" />
-            {React.string("Export")}
+          <DockButton label="Export subtitles" className="hover:!scale-100">
+            <DownloadIcon className="size-5 md:mr-2 md:size-4" />
+            <span className="hidden md:inline"> {React.string("Export")} </span>
           </DockButton>
         </SubtitleExportDropdown>
         <VideoExportFormatDropdown
@@ -255,10 +253,10 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
           align=#end>
           <DockButton
             highlight=true
-            label="Render video file"
-            className="whitespace-nowrap flex font-medium hover:!scale-105 hover:!bg-orange-400 px-4">
+            label="Render video"
+            className="whitespace-nowrap font-medium hover:!scale-100 md:hover:!scale-105 md:hover:!bg-orange-400 px-2 md:px-4">
             <RocketIcon className="size-5" />
-            {React.string("Render video")}
+            <span className="hidden md:inline ml-1"> {React.string("Render")} </span>
           </DockButton>
         </VideoExportFormatDropdown>
       </>
