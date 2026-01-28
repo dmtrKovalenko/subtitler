@@ -8,7 +8,18 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { registerSW } from "virtual:pwa-register";
 import * as Sentry from "@sentry/react";
 
-registerSW({ immediate: false });
+// Only register service worker in production
+if (import.meta.env.PROD) {
+  registerSW({ 
+    immediate: false,
+    onRegisteredSW(swUrl, _registration) {
+      console.log('SW registered:', swUrl);
+    },
+    onRegisterError(error) {
+      console.error('SW registration error:', error);
+    }
+  });
+}
 
 Sentry.init({
   dsn: "https://c0ff8dd14d638c4e77dfa9c25e4bd42d@o464504.ingest.us.sentry.io/4508197084725248",
