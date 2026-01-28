@@ -53,8 +53,9 @@ function SeekBarCanvas(props) {
         player.ts,
         player.playState
       ]);
-  React.useCallback((function (e) {
-          if (editorContext.getImmediatePlayerState().playState !== "Playing" && document.hasFocus()) {
+  var handleMouseMove = React.useCallback((function (e) {
+          var leftButtonPressed = (e.buttons & 1) === 1;
+          if (leftButtonPressed && editorContext.getImmediatePlayerState().playState !== "Playing" && document.hasFocus()) {
             return dispatch({
                         TAG: "NewFrame",
                         _0: calculateFrameFromEvent(e, size)
@@ -97,7 +98,8 @@ function SeekBarCanvas(props) {
               },
               height: Js_math.floor(size.height).toString() + "px",
               width: Js_math.floor(size.width).toString() + "px",
-              onClick: handleClick
+              onClick: handleClick,
+              onMouseMove: handleMouseMove
             });
 }
 

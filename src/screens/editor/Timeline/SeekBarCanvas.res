@@ -3,6 +3,9 @@ open CanvasSize
 module Canvas = Webapi.Canvas
 module Canvas2d = Webapi.Canvas.Canvas2d
 
+// Get which mouse buttons are currently pressed (bitmask: 1=left, 2=right, 4=middle)
+@get external buttons: ReactEvent.Mouse.t => int = "buttons"
+
 let renderSeekBar = (ctx, size, playState: Player.state) => {
   let x = tsToFrame(playState.ts, size)
 
@@ -59,10 +62,12 @@ let make = (~size) => {
     None
   }, (size, player.ts, player.playState))
 
-  let _handleMouseMove = React.useCallback1(e => {
+  let handleMouseMove = React.useCallback1(e => {
+    let leftButtonPressed = land(buttons(e), 1) === 1
     if (
+      leftButtonPressed &&
       editorContext.getImmediatePlayerState().playState !== Playing &&
-        Webapi.Dom.document->Web.Document.hasFocus
+      Webapi.Dom.document->Web.Document.hasFocus
     ) {
       dispatch(NewFrame(calculateFrameFromEvent(e, ~size)))
     }
@@ -77,8 +82,7 @@ let make = (~size) => {
 
   <canvas
     onClick=handleClick
-    // got a user feedback that this is annoying, testing...
-    // onMouseMove=handleMouseMove
+    onMouseMove=handleMouseMove
     className={Cx.cx([
       "absolute inset-0",
       switch player.playState {

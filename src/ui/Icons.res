@@ -218,6 +218,51 @@ module CheckIcon = {
   ) => React.element = "CheckIcon"
 }
 
+module PlusIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "PlusIcon"
+}
+
+module ScissorsIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ScissorsIcon"
+}
+
+module ArrowUpLeftIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowUpLeftIcon"
+}
+
+module ArrowDownLeftIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "ArrowDownLeftIcon"
+}
+
+module AdjustmentsVerticalIcon = {
+  @react.component @module("@heroicons/react/24/outline")
+  external make: (
+    ~color: string=?,
+    ~className: string=?,
+    ~style: ReactDOM.Style.t=?,
+  ) => React.element = "AdjustmentsVerticalIcon"
+}
+
 module FilmIcon = {
   @react.component @module("@heroicons/react/24/outline")
   external make: (

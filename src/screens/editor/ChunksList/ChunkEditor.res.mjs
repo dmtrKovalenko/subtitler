@@ -7,6 +7,7 @@ import * as Input from "../../../ui/Input.res.mjs";
 import * as Utils from "../../../Utils.res.mjs";
 import * as React from "react";
 import * as Js_dict from "rescript/lib/es6/js_dict.js";
+import * as AddCueMenu from "./AddCueMenu.res.mjs";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as EditorContext from "../EditorContext.res.mjs";
@@ -15,6 +16,7 @@ import * as Js_null_undefined from "rescript/lib/es6/js_null_undefined.js";
 import * as JsxRuntime from "react/jsx-runtime";
 import * as Outline from "@heroicons/react/24/outline";
 import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
+import * as Webapi__Dom__HtmlTextAreaElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlTextAreaElement.res.mjs";
 
 function useEditorInputHandler() {
   var ctx = EditorContext.useEditorContext();
@@ -123,7 +125,29 @@ var globalCurrentCueTextAreaRef = {
   contents: undefined
 };
 
+function ChunkEditor$SplitPreviewText(props) {
+  var splitAt = props.splitAt;
+  var wordChunks = props.wordChunks;
+  var words = props.isFirstHalf ? wordChunks.slice(0, splitAt) : wordChunks.slice(splitAt);
+  var text = words.map(function (w) {
+          return w.text.trim();
+        }).join(" ");
+  return JsxRuntime.jsx("div", {
+              children: text === "" ? "(empty)" : text,
+              className: "col-span-2 block w-full rounded-lg border-2 border-dashed border-orange-400/50 bg-orange-500/10 py-1.5 px-3 text-sm/6 text-white/70"
+            });
+}
+
+var SplitPreviewText = {
+  make: ChunkEditor$SplitPreviewText
+};
+
 var make = React.memo(function (props) {
+      var onFocused = props.onFocused;
+      var shouldFocus = props.shouldFocus;
+      var isAnySplitPreviewActive = props.isAnySplitPreviewActive;
+      var splitPreview = props.splitPreview;
+      var wordChunks = props.wordChunks;
       var onTextChange = props.onTextChange;
       var onTimestampChange = props.onTimestampChange;
       var removeChunk = props.removeChunk;
@@ -137,10 +161,12 @@ var make = React.memo(function (props) {
       var ref = React.useRef(null);
       var textAreaRef = React.useRef(null);
       var previousWasCurrentRef = React.useRef(current);
+      var editorInputHandler = useEditorInputHandler();
       React.useEffect((function () {
               if (current && !previousWasCurrentRef.current) {
                 globalCurrentCueTextAreaRef.contents = textAreaRef;
-                if (!Web.isFocusingInteractiveElement()) {
+                var shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement();
+                if (shouldScroll) {
                   Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
                           el.scrollIntoView({
                                 behavior: "smooth",
@@ -151,7 +177,27 @@ var make = React.memo(function (props) {
                 
               }
               previousWasCurrentRef.current = current;
-            }), [current]);
+            }), [
+            current,
+            isAnySplitPreviewActive
+          ]);
+      React.useEffect((function () {
+              if (shouldFocus) {
+                Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
+                        el.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center"
+                            });
+                      }));
+                setTimeout((function () {
+                        Core__Option.forEach(Core__Option.flatMap(Caml_option.nullable_to_opt(textAreaRef.current), Webapi__Dom__HtmlTextAreaElement.ofElement), (function (textarea) {
+                                textarea.focus();
+                              }));
+                      }), 100);
+                onFocused();
+              }
+              
+            }), [shouldFocus]);
       var seekToThisCue = React.useCallback((function (param) {
               if (!readonly) {
                 ctx.playerImmediateDispatch("Pause");
@@ -169,7 +215,11 @@ var make = React.memo(function (props) {
                 return onTextChange(index, newText);
               }
               
-            }), [chunk.text]);
+            }), [
+            chunk.text,
+            index
+          ]);
+      var showSplitPreview = Core__Option.isSome(splitPreview);
       return JsxRuntime.jsxs("div", {
                   children: [
                     JsxRuntime.jsxs("div", {
@@ -212,19 +262,50 @@ var make = React.memo(function (props) {
                           ],
                           className: "flex items-center gap-1"
                         }),
-                    JsxRuntime.jsx("textarea", {
-                          ref: Caml_option.some(textAreaRef),
-                          defaultValue: chunk.text,
-                          className: Cx.cx([
-                                "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
-                                "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
-                              ]),
-                          readOnly: readonly,
-                          rows: chunk.text === "" ? 2 : 3,
-                          onKeyDown: useEditorInputHandler(),
-                          onBlur: handleBlur
-                        }, chunk.text),
-                    chunk.text === "" ? JsxRuntime.jsxs("div", {
+                    splitPreview !== undefined ? JsxRuntime.jsxs("div", {
+                            children: [
+                              JsxRuntime.jsx(ChunkEditor$SplitPreviewText, {
+                                    wordChunks: wordChunks,
+                                    splitAt: splitPreview,
+                                    isFirstHalf: true
+                                  }),
+                              JsxRuntime.jsxs("div", {
+                                    children: [
+                                      JsxRuntime.jsx("div", {
+                                            className: "flex-1 h-px bg-orange-400/30"
+                                          }),
+                                      JsxRuntime.jsx("span", {
+                                            children: JsxRuntime.jsx(Outline.ScissorsIcon, {
+                                                  className: "size-4"
+                                                }),
+                                            className: "px-2 text-xs text-orange-400"
+                                          }),
+                                      JsxRuntime.jsx("div", {
+                                            className: "flex-1 h-px bg-orange-400/30"
+                                          })
+                                    ],
+                                    className: "flex items-center justify-center"
+                                  }),
+                              JsxRuntime.jsx(ChunkEditor$SplitPreviewText, {
+                                    wordChunks: wordChunks,
+                                    splitAt: splitPreview,
+                                    isFirstHalf: false
+                                  })
+                            ],
+                            className: "flex flex-col gap-2"
+                          }) : JsxRuntime.jsx("textarea", {
+                            ref: Caml_option.some(textAreaRef),
+                            defaultValue: chunk.text,
+                            className: Cx.cx([
+                                  "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
+                                  "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
+                                ]),
+                            readOnly: readonly,
+                            rows: chunk.text === "" ? 2 : 3,
+                            onKeyDown: editorInputHandler,
+                            onBlur: handleBlur
+                          }, chunk.text),
+                    chunk.text === "" && !showSplitPreview ? JsxRuntime.jsxs("div", {
                             children: [
                               JsxRuntime.jsx("button", {
                                     children: "Remove cue",
@@ -244,11 +325,20 @@ var make = React.memo(function (props) {
                                   })
                             ],
                             className: "flex gap-2"
-                          }) : null
+                          }) : null,
+                    readonly ? null : JsxRuntime.jsx(AddCueMenu.make, {
+                            hasPauseBefore: props.hasPauseBefore,
+                            hasPauseAfter: props.hasPauseAfter,
+                            wordChunks: wordChunks,
+                            onAddBefore: props.onAddBefore,
+                            onAddAfter: props.onAddAfter,
+                            onSplit: props.onSplit,
+                            onSplitPreviewChange: props.onSplitPreviewChange
+                          })
                   ],
                   ref: Caml_option.some(ref),
                   className: Cx.cx([
-                        "scroll-mt-24 gap-3 flex focus-within:border-orange-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
+                        "group relative overflow-visible scroll-mt-24 gap-3 flex focus-within:border-orange-500 transition-colors flex-col rounded-xl border-2 border-zinc-700 p-2 bg-zinc-900",
                         current ? "!border-orange-500" : ""
                       ]),
                   onFocus: seekToThisCue
@@ -259,6 +349,7 @@ export {
   useEditorInputHandler ,
   TimestampEditor ,
   globalCurrentCueTextAreaRef ,
+  SplitPreviewText ,
   make ,
 }
 /* make Not a pure module */

@@ -24,6 +24,12 @@ type subtitlesManager = {
   editText: (int, string) => unit,
   editTimestamp: (int, Subtitles.timestamp) => unit,
   getWordChunksForCue: int => option<array<WordTimestamps.wordChunk>>,
+  // Functions for adding/splitting cues
+  hasPauseBefore: int => bool,
+  hasPauseAfter: int => bool,
+  addCueBefore: int => unit,
+  addCueAfter: int => unit,
+  splitCue: (int, int) => unit, // (cueIndex, splitAtWordIndex)
 }
 
 let subtitleCueToWordChunk = (cue: Subtitles.subtitleCue): WordTimestamps.wordChunk => {
@@ -216,6 +222,9 @@ let updateRangesAfterEdit = (
     })
   }
 }
+
+// Minimum gap threshold in seconds to consider as a "pause" for adding cues
+let pauseThreshold = 0.1
 
 @genType
 let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size) => {
@@ -421,6 +430,215 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
       | TranscriptionInProgress => None
       }
     },
+    hasPauseBefore: cueIndex => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, cueRanges}) =>
+        switch (cueRanges->Array.get(cueIndex), cueRanges->Array.get(cueIndex - 1)) {
+        | (Some((startIdx, _)), Some((_, prevEndIdx))) =>
+          // Get current cue's first word start time
+          let currentStart =
+            wordChunks->Array.get(startIdx)->Option.map(w => w.timestamp->fst)->Option.getOr(0.0)
+          // Get previous cue's last word end time
+          let prevEnd =
+            wordChunks
+            ->Array.get(prevEndIdx)
+            ->Option.flatMap(w => w.timestamp->snd->Js.Nullable.toOption)
+            ->Option.getOr(0.0)
+          currentStart -. prevEnd > pauseThreshold
+        | (Some((startIdx, _)), None) =>
+          // First cue - check if there's a gap from 0
+          let currentStart =
+            wordChunks->Array.get(startIdx)->Option.map(w => w.timestamp->fst)->Option.getOr(0.0)
+          currentStart > pauseThreshold
+        | _ => false
+        }
+      | TranscriptionInProgress => false
+      }
+    },
+    hasPauseAfter: cueIndex => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, cueRanges}) =>
+        switch (cueRanges->Array.get(cueIndex), cueRanges->Array.get(cueIndex + 1)) {
+        | (Some((_, endIdx)), Some((nextStartIdx, _))) =>
+          // Get current cue's last word end time
+          let currentEnd =
+            wordChunks
+            ->Array.get(endIdx)
+            ->Option.flatMap(w => w.timestamp->snd->Js.Nullable.toOption)
+            ->Option.getOr(0.0)
+          // Get next cue's first word start time
+          let nextStart =
+            wordChunks
+            ->Array.get(nextStartIdx)
+            ->Option.map(w => w.timestamp->fst)
+            ->Option.getOr(0.0)
+          nextStart -. currentEnd > pauseThreshold
+        | (Some((_, endIdx)), None) =>
+          // Last cue - there's always "space" after the last cue
+          // Check if the cue has an end time (if not, we can't add after)
+          wordChunks
+          ->Array.get(endIdx)
+          ->Option.flatMap(w => w.timestamp->snd->Js.Nullable.toOption)
+          ->Option.isSome
+        | _ => false
+        }
+      | TranscriptionInProgress => false
+      }
+    },
+    addCueBefore: cueIndex => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, pauseAfterIndices, cueRanges, size}) =>
+        switch cueRanges->Array.get(cueIndex) {
+        | Some((startIdx, _)) =>
+          // Get the gap timing
+          let currentStart =
+            wordChunks->Array.get(startIdx)->Option.map(w => w.timestamp->fst)->Option.getOr(0.0)
+
+          let gapStart = switch cueRanges->Array.get(cueIndex - 1) {
+          | Some((_, prevEndIdx)) =>
+            wordChunks
+            ->Array.get(prevEndIdx)
+            ->Option.flatMap(w => w.timestamp->snd->Js.Nullable.toOption)
+            ->Option.getOr(0.0)
+          | None => 0.0
+          }
+
+          // Create a new empty word chunk for the gap
+          let newWordChunk: WordTimestamps.wordChunk = {
+            text: "",
+            timestamp: (gapStart, Js.Nullable.return(currentStart)),
+          }
+
+          // Insert the word chunk before the current cue's words
+          let wordsBefore = wordChunks->Array.slice(~start=0, ~end=startIdx)
+          let wordsAfter = wordChunks->Array.sliceToEnd(~start=startIdx)
+          let newWordChunks = wordsBefore->Array.concat([newWordChunk])->Array.concat(wordsAfter)
+
+          // Update pause indices (shift all by 1 that are >= startIdx)
+          let newPauseIndices = pauseAfterIndices->Array.map(idx => idx >= startIdx ? idx + 1 : idx)
+
+          // Update cue ranges - only shift ranges at or after insertion point
+          let newCueRange = (startIdx, startIdx) // Single word cue at insertion point
+          let shiftedRanges = cueRanges->Array.map(((s, e)) => {
+            // Only shift ranges that are at or after the insertion point
+            if s >= startIdx {
+              (s + 1, e + 1)
+            } else {
+              (s, e)
+            }
+          })
+          let newCueRanges =
+            shiftedRanges
+            ->Array.slice(~start=0, ~end=cueIndex)
+            ->Array.concat([newCueRange])
+            ->Array.concat(shiftedRanges->Array.sliceToEnd(~start=cueIndex))
+
+          setTranscriptionState(_ => SubtitlesReady({
+            wordChunks: newWordChunks,
+            pauseAfterIndices: newPauseIndices,
+            cueRanges: newCueRanges,
+            size,
+          }))
+        | None => ()
+        }
+      | TranscriptionInProgress => ()
+      }
+    },
+    addCueAfter: cueIndex => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, pauseAfterIndices, cueRanges, size}) =>
+        switch cueRanges->Array.get(cueIndex) {
+        | Some((_, endIdx)) =>
+          // Get the gap timing
+          let currentEnd =
+            wordChunks
+            ->Array.get(endIdx)
+            ->Option.flatMap(w => w.timestamp->snd->Js.Nullable.toOption)
+            ->Option.getOr(0.0)
+
+          let gapEnd = switch cueRanges->Array.get(cueIndex + 1) {
+          | Some((nextStartIdx, _)) =>
+            wordChunks
+            ->Array.get(nextStartIdx)
+            ->Option.map(w => w.timestamp->fst)
+            ->Option.getOr(0.0)
+          | None =>
+            // Last cue - extend slightly after current end
+            currentEnd +. 1.0
+          }
+
+          // Create a new empty word chunk for the gap
+          let newWordChunk: WordTimestamps.wordChunk = {
+            text: "",
+            timestamp: (currentEnd, Js.Nullable.return(gapEnd)),
+          }
+
+          // Insert the word chunk after the current cue's words
+          let insertIdx = endIdx + 1
+          let wordsBefore = wordChunks->Array.slice(~start=0, ~end=insertIdx)
+          let wordsAfter = wordChunks->Array.sliceToEnd(~start=insertIdx)
+          let newWordChunks = wordsBefore->Array.concat([newWordChunk])->Array.concat(wordsAfter)
+
+          // Update pause indices (shift all by 1 that are >= insertIdx)
+          let newPauseIndices =
+            pauseAfterIndices->Array.map(idx => idx >= insertIdx ? idx + 1 : idx)
+
+          // Update cue ranges - add new cue after current, shift only subsequent ranges
+          let newCueRange = (insertIdx, insertIdx) // Single word cue
+          let rangesBefore = cueRanges->Array.slice(~start=0, ~end=cueIndex + 1)
+          let rangesAfter =
+            cueRanges
+            ->Array.sliceToEnd(~start=cueIndex + 1)
+            ->Array.map(((s, e)) => (s + 1, e + 1)) // Only shift ranges after insertion
+          let newCueRanges = rangesBefore->Array.concat([newCueRange])->Array.concat(rangesAfter)
+
+          setTranscriptionState(_ => SubtitlesReady({
+            wordChunks: newWordChunks,
+            pauseAfterIndices: newPauseIndices,
+            cueRanges: newCueRanges,
+            size,
+          }))
+        | None => ()
+        }
+      | TranscriptionInProgress => ()
+      }
+    },
+    splitCue: (cueIndex, splitAtWordIndex) => {
+      switch transcriptionState {
+      | SubtitlesReady({wordChunks, pauseAfterIndices, cueRanges, size}) =>
+        switch cueRanges->Array.get(cueIndex) {
+        | Some((startIdx, endIdx)) =>
+          let wordCount = endIdx - startIdx + 1
+
+          // Validate split index
+          if splitAtWordIndex > 0 && splitAtWordIndex < wordCount {
+            // Calculate the absolute index where we split
+            let absoluteSplitIdx = startIdx + splitAtWordIndex
+
+            // Create two new ranges from the original
+            let firstRange = (startIdx, absoluteSplitIdx - 1)
+            let secondRange = (absoluteSplitIdx, endIdx)
+
+            // Update cue ranges
+            let rangesBefore = cueRanges->Array.slice(~start=0, ~end=cueIndex)
+            let rangesAfter = cueRanges->Array.sliceToEnd(~start=cueIndex + 1)
+            let newCueRanges =
+              rangesBefore
+              ->Array.concat([firstRange, secondRange])
+              ->Array.concat(rangesAfter)
+
+            setTranscriptionState(_ => SubtitlesReady({
+              wordChunks,
+              pauseAfterIndices,
+              cueRanges: newCueRanges,
+              size,
+            }))
+          }
+        | None => ()
+        }
+      | TranscriptionInProgress => ()
+      }
+    },
   }, (transcriptionState, subtitles))
 }
 
@@ -428,6 +646,12 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
 let make = React.memo((~subtitlesManager, ~title: React.element) => {
   let ctx = EditorContext.useEditorContext()
   let (player, _) = ctx.usePlayer()
+
+  // Track which cue is being split and the preview split index
+  let (splitPreviewState, setSplitPreviewState) = React.useState(_ => None) // (cueIndex, splitAt)
+
+  // Track which cue should be focused (for newly added cues)
+  let (focusCueIndex, setFocusCueIndex) = React.useState(_ => None)
 
   <>
     <div
@@ -471,6 +695,32 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
           removeChunk=subtitlesManager.removeChunk
           onTextChange=subtitlesManager.editText
           onTimestampChange=subtitlesManager.editTimestamp
+          hasPauseBefore={subtitlesManager.hasPauseBefore(index)}
+          hasPauseAfter={subtitlesManager.hasPauseAfter(index)}
+          wordChunks={subtitlesManager.getWordChunksForCue(index)->Option.getOr([])}
+          onAddBefore={() => {
+            subtitlesManager.addCueBefore(index)
+            // Focus the newly added cue (inserted at same index, pushing current down)
+            setFocusCueIndex(_ => Some(index))
+          }}
+          onAddAfter={() => {
+            subtitlesManager.addCueAfter(index)
+            // Focus the newly added cue (inserted at index + 1)
+            setFocusCueIndex(_ => Some(index + 1))
+          }}
+          onSplit={splitIdx => {
+            subtitlesManager.splitCue(index, splitIdx)
+            // Focus the second cue (newly created from split) at index + 1
+            setFocusCueIndex(_ => Some(index + 1))
+          }}
+          splitPreview={splitPreviewState->Option.flatMap(
+            ((cueIdx, splitAt)) => cueIdx == index ? Some(splitAt) : None,
+          )}
+          onSplitPreviewChange={preview =>
+            setSplitPreviewState(_ => preview->Option.map(splitAt => (index, splitAt)))}
+          isAnySplitPreviewActive={splitPreviewState->Option.isSome}
+          shouldFocus={focusCueIndex->Option.map(i => i == index)->Option.getOr(false)}
+          onFocused={() => setFocusCueIndex(_ => None)}
         />
       )
       ->React.array}

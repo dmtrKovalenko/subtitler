@@ -24,8 +24,13 @@ let isFocusable = el =>
     | Some("input")
     | Some("button")
     | Some("checkbox")
-    | Some("link") => true
-    | _ => false
+    | Some("link")
+    | Some("menuitem")
+    | Some("menu") => true
+    | _ =>
+      // Also check if element is inside a dropdown/popover by checking data attributes
+      el->Webapi.Dom.Element.getAttribute("data-radix-collection-item")->Option.isSome ||
+        el->Webapi.Dom.Element.getAttribute("data-state")->Option.isSome
     }
   }
 

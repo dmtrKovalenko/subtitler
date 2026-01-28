@@ -6,11 +6,10 @@ import * as Icons from "../../../ui/Icons.res.mjs";
 import * as Input from "../../../ui/Input.res.mjs";
 import * as Utils from "../../../Utils.res.mjs";
 import * as React from "react";
-import * as Belt_Int from "rescript/lib/es6/belt_Int.js";
+import * as Slider from "../../../ui/Slider.res.mjs";
 import * as Combobox from "../../../ui/Combobox.res.mjs";
-import * as Core__Int from "@rescript/core/src/Core__Int.res.mjs";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
-import * as Core__Float from "@rescript/core/src/Core__Float.res.mjs";
+import * as NumberInput from "../../../ui/NumberInput.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as ToggleButton from "../../../ui/ToggleButton.res.mjs";
 import * as ToggleSwitch from "../../../ui/ToggleSwitch.res.mjs";
@@ -44,15 +43,7 @@ function formatFontWeight(weight) {
   }
 }
 
-function $$parseInt(value) {
-  if (value === "") {
-    return 0;
-  } else {
-    return Belt_Int.fromString(value);
-  }
-}
-
-var adornmentClassName = "font-mono rounded-md  m-1 bg-zinc-500 px-3 inset-y-0";
+var adornmentClassName = "font-mono rounded-md m-1 bg-zinc-500 px-3 inset-y-0";
 
 var make = Utils.neverRerender(function (props) {
       var id = React.useId();
@@ -65,87 +56,71 @@ var make = Utils.neverRerender(function (props) {
                         children: [
                           JsxRuntime.jsxs("div", {
                                 children: [
-                                  JsxRuntime.jsx(Input.make, {
-                                        step: 1.0,
-                                        label: "Y coordinate",
-                                        value: String(style.x),
-                                        type_: "number",
+                                  JsxRuntime.jsx(NumberInput.make, {
+                                        value: style.x,
+                                        onChange: (function (val) {
+                                            dispatch({
+                                                  TAG: "SetPosition",
+                                                  _0: val,
+                                                  _1: style.y
+                                                });
+                                          }),
+                                        label: "X coordinate",
+                                        min: 0,
+                                        max: 999,
                                         className: "w-full",
                                         labelHidden: true,
                                         adornment: "X",
-                                        adornmentClassName: adornmentClassName,
-                                        onChange: (function (value) {
-                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                        return {
-                                                                TAG: "SetPosition",
-                                                                _0: val,
-                                                                _1: style.y
-                                                              };
-                                                      })), dispatch);
-                                          }),
-                                        min: "0",
-                                        max: "999"
+                                        adornmentClassName: adornmentClassName
                                       }),
-                                  JsxRuntime.jsx(Input.make, {
-                                        step: 1.0,
-                                        label: "X coordinate",
-                                        value: String(style.y),
-                                        type_: "number",
+                                  JsxRuntime.jsx(NumberInput.make, {
+                                        value: style.y,
+                                        onChange: (function (val) {
+                                            dispatch({
+                                                  TAG: "SetPosition",
+                                                  _0: style.x,
+                                                  _1: val
+                                                });
+                                          }),
+                                        label: "Y coordinate",
+                                        min: 0,
+                                        max: 999,
                                         className: "w-full",
                                         labelHidden: true,
                                         adornment: "Y",
-                                        adornmentClassName: adornmentClassName,
-                                        onChange: (function (value) {
-                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                        return {
-                                                                TAG: "SetPosition",
-                                                                _0: style.x,
-                                                                _1: val
-                                                              };
-                                                      })), dispatch);
-                                          }),
-                                        min: "0",
-                                        max: "999"
+                                        adornmentClassName: adornmentClassName
                                       }),
-                                  JsxRuntime.jsx(Input.make, {
-                                        step: 1.0,
+                                  JsxRuntime.jsx(NumberInput.make, {
+                                        value: style.blockSize.width,
+                                        onChange: (function (val) {
+                                            dispatch({
+                                                  TAG: "SetBlockWidth",
+                                                  _0: val
+                                                });
+                                          }),
                                         label: "Width",
-                                        value: String(style.blockSize.width),
-                                        type_: "number",
+                                        min: 0,
+                                        max: 999,
                                         className: "w-full",
                                         labelHidden: true,
                                         adornment: "W",
-                                        adornmentClassName: adornmentClassName,
-                                        onChange: (function (value) {
-                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                        return {
-                                                                TAG: "SetBlockWidth",
-                                                                _0: val
-                                                              };
-                                                      })), dispatch);
-                                          }),
-                                        min: "0",
-                                        max: "999"
+                                        adornmentClassName: adornmentClassName
                                       }),
-                                  JsxRuntime.jsx(Input.make, {
-                                        step: 1.0,
+                                  JsxRuntime.jsx(NumberInput.make, {
+                                        value: style.blockSize.height,
+                                        onChange: (function (val) {
+                                            dispatch({
+                                                  TAG: "SetBlockHeight",
+                                                  _0: val
+                                                });
+                                          }),
                                         label: "Height",
-                                        value: String(style.blockSize.height),
-                                        type_: "number",
+                                        min: 0,
+                                        max: 999,
                                         className: "w-full",
                                         labelHidden: true,
                                         adornment: "H",
-                                        adornmentClassName: adornmentClassName,
-                                        onChange: (function (value) {
-                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                        return {
-                                                                TAG: "SetBlockHeight",
-                                                                _0: val
-                                                              };
-                                                      })), dispatch);
-                                          }),
-                                        min: "0",
-                                        max: "999"
+                                        adornmentClassName: adornmentClassName
                                       })
                                 ],
                                 className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full"
@@ -204,22 +179,18 @@ var make = Utils.neverRerender(function (props) {
                                                         });
                                                   })
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 1.0,
-                                                label: "width",
-                                                value: String(style.strokeWidth),
-                                                type_: "number",
-                                                adornmentClassName: adornmentClassName,
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
-                                                            dispatch({
-                                                                  TAG: "SetStrokeWidth",
-                                                                  _0: strokeWidth
-                                                                });
-                                                          }));
+                                          JsxRuntime.jsx(NumberInput.make, {
+                                                value: style.strokeWidth,
+                                                onChange: (function (strokeWidth) {
+                                                    dispatch({
+                                                          TAG: "SetStrokeWidth",
+                                                          _0: strokeWidth
+                                                        });
                                                   }),
-                                                min: "0",
-                                                max: "999"
+                                                label: "width",
+                                                min: 0,
+                                                max: 999,
+                                                adornmentClassName: adornmentClassName
                                               })
                                         ],
                                         className: "flex gap-2 col-span-3"
@@ -251,21 +222,18 @@ var make = Utils.neverRerender(function (props) {
                                               })
                                         ]
                                       }),
-                                  JsxRuntime.jsx(Input.make, {
-                                        label: "Size",
-                                        value: String(style.fontSizePx),
-                                        type_: "number",
-                                        className: "min-w-[4ch]",
-                                        onChange: (function (value) {
-                                            Core__Option.forEach(Core__Option.map($$parseInt(value), (function (val) {
-                                                        return {
-                                                                TAG: "SetFontSizePx",
-                                                                _0: val
-                                                              };
-                                                      })), dispatch);
+                                  JsxRuntime.jsx(NumberInput.make, {
+                                        value: style.fontSizePx,
+                                        onChange: (function (val) {
+                                            dispatch({
+                                                  TAG: "SetFontSizePx",
+                                                  _0: val
+                                                });
                                           }),
-                                        min: "0",
-                                        max: "999"
+                                        label: "Size",
+                                        min: 0,
+                                        max: 999,
+                                        className: "min-w-[4ch]"
                                       }),
                                   JsxRuntime.jsxs(React$1.Field, {
                                         className: "col-span-2",
@@ -350,31 +318,28 @@ var make = Utils.neverRerender(function (props) {
                                                         });
                                                   })
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 0.1,
-                                                label: "Opacity",
-                                                value: String(style.background.opacity),
-                                                type_: "number",
-                                                className: "w-full col-span-1 flex-1",
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Option.map(Core__Float.fromString(value), (function (val) {
-                                                                var init = style.background;
-                                                                return {
-                                                                        TAG: "SetBackground",
-                                                                        _0: {
-                                                                          color: init.color,
-                                                                          strokeColor: init.strokeColor,
-                                                                          strokeWidth: init.strokeWidth,
-                                                                          opacity: val,
-                                                                          paddingX: init.paddingX,
-                                                                          paddingY: init.paddingY,
-                                                                          borderRadius: init.borderRadius
-                                                                        }
-                                                                      };
-                                                              })), dispatch);
+                                          JsxRuntime.jsx(NumberInput.Float.make, {
+                                                value: style.background.opacity,
+                                                onChange: (function (opacity) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
                                                   }),
-                                                min: "0",
-                                                max: "1"
+                                                label: "Opacity",
+                                                min: 0.0,
+                                                max: 1.0,
+                                                step: 0.1,
+                                                className: "w-full col-span-1 flex-1"
                                               }),
                                           JsxRuntime.jsx(Input.make, {
                                                 label: "Stroke",
@@ -397,117 +362,101 @@ var make = Utils.neverRerender(function (props) {
                                                         });
                                                   })
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 1.0,
-                                                label: "width",
-                                                value: String(style.background.strokeWidth),
-                                                type_: "number",
-                                                className: "w-full",
-                                                adornmentClassName: adornmentClassName,
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (strokeWidth) {
-                                                            var init = style.background;
-                                                            dispatch({
-                                                                  TAG: "SetBackground",
-                                                                  _0: {
-                                                                    color: init.color,
-                                                                    strokeColor: init.strokeColor,
-                                                                    strokeWidth: strokeWidth,
-                                                                    opacity: init.opacity,
-                                                                    paddingX: init.paddingX,
-                                                                    paddingY: init.paddingY,
-                                                                    borderRadius: init.borderRadius
-                                                                  }
-                                                                });
-                                                          }));
+                                          JsxRuntime.jsx(NumberInput.make, {
+                                                value: style.background.strokeWidth,
+                                                onChange: (function (strokeWidth) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
                                                   }),
-                                                min: "0",
-                                                max: "999"
+                                                label: "width",
+                                                min: 0,
+                                                max: 999,
+                                                className: "w-full",
+                                                adornmentClassName: adornmentClassName
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 1.0,
+                                          JsxRuntime.jsx(NumberInput.make, {
+                                                value: style.background.borderRadius,
+                                                onChange: (function (borderRadius) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: borderRadius
+                                                          }
+                                                        });
+                                                  }),
                                                 label: "Border radius",
-                                                value: style.background.borderRadius.toString(),
-                                                type_: "number",
+                                                min: 0,
+                                                max: 999,
                                                 className: "w-full col-span-2",
                                                 adornment: Caml_option.some(JsxRuntime.jsx(Icons.BorderRadiusIcon.make, {
                                                           color: "white",
                                                           className: "size-4"
                                                         })),
-                                                adornmentClassName: "font-mono rounded-md   bg-zinc-500 px-2.5 inset-y-0",
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (borderRadius) {
-                                                            var init = style.background;
-                                                            dispatch({
-                                                                  TAG: "SetBackground",
-                                                                  _0: {
-                                                                    color: init.color,
-                                                                    strokeColor: init.strokeColor,
-                                                                    strokeWidth: init.strokeWidth,
-                                                                    opacity: init.opacity,
-                                                                    paddingX: init.paddingX,
-                                                                    paddingY: init.paddingY,
-                                                                    borderRadius: borderRadius
-                                                                  }
-                                                                });
-                                                          }));
-                                                  }),
-                                                min: "0",
-                                                max: "999"
+                                                adornmentClassName: "font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0"
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 1.0,
+                                          JsxRuntime.jsx(NumberInput.make, {
+                                                value: style.background.paddingX,
+                                                onChange: (function (paddingX) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: paddingX,
+                                                            paddingY: init.paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
+                                                  }),
                                                 label: "Padding X",
-                                                value: String(style.background.paddingX),
-                                                type_: "number",
+                                                min: 0,
+                                                max: 999,
                                                 className: "w-full",
-                                                adornmentClassName: adornmentClassName,
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingX) {
-                                                            var init = style.background;
-                                                            dispatch({
-                                                                  TAG: "SetBackground",
-                                                                  _0: {
-                                                                    color: init.color,
-                                                                    strokeColor: init.strokeColor,
-                                                                    strokeWidth: init.strokeWidth,
-                                                                    opacity: init.opacity,
-                                                                    paddingX: paddingX,
-                                                                    paddingY: init.paddingY,
-                                                                    borderRadius: init.borderRadius
-                                                                  }
-                                                                });
-                                                          }));
-                                                  }),
-                                                min: "0",
-                                                max: "999"
+                                                adornmentClassName: adornmentClassName
                                               }),
-                                          JsxRuntime.jsx(Input.make, {
-                                                step: 1.0,
-                                                label: "Padding Y",
-                                                value: String(style.background.paddingY),
-                                                type_: "number",
-                                                className: "w-full",
-                                                adornmentClassName: adornmentClassName,
-                                                onChange: (function (value) {
-                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingY) {
-                                                            var init = style.background;
-                                                            dispatch({
-                                                                  TAG: "SetBackground",
-                                                                  _0: {
-                                                                    color: init.color,
-                                                                    strokeColor: init.strokeColor,
-                                                                    strokeWidth: init.strokeWidth,
-                                                                    opacity: init.opacity,
-                                                                    paddingX: init.paddingX,
-                                                                    paddingY: paddingY,
-                                                                    borderRadius: init.borderRadius
-                                                                  }
-                                                                });
-                                                          }));
+                                          JsxRuntime.jsx(NumberInput.make, {
+                                                value: style.background.paddingY,
+                                                onChange: (function (paddingY) {
+                                                    var init = style.background;
+                                                    dispatch({
+                                                          TAG: "SetBackground",
+                                                          _0: {
+                                                            color: init.color,
+                                                            strokeColor: init.strokeColor,
+                                                            strokeWidth: init.strokeWidth,
+                                                            opacity: init.opacity,
+                                                            paddingX: init.paddingX,
+                                                            paddingY: paddingY,
+                                                            borderRadius: init.borderRadius
+                                                          }
+                                                        });
                                                   }),
-                                                min: "0",
-                                                max: "999"
+                                                label: "Padding Y",
+                                                min: 0,
+                                                max: 999,
+                                                className: "w-full",
+                                                adornmentClassName: adornmentClassName
                                               })
                                         ],
                                         className: Cx.cx([
@@ -602,140 +551,125 @@ var make = Utils.neverRerender(function (props) {
                                                                         });
                                                                   })
                                                               }),
-                                                          JsxRuntime.jsx(Input.make, {
-                                                                step: 0.1,
-                                                                label: "Opacity",
-                                                                value: String(style.wordAnimation.background.opacity),
-                                                                type_: "number",
-                                                                className: "w-full col-span-1 flex-1",
-                                                                onChange: (function (value) {
-                                                                    Core__Option.forEach(Core__Float.fromString(value), (function (opacity) {
-                                                                            var init = style.wordAnimation;
-                                                                            var init$1 = style.wordAnimation.background;
-                                                                            dispatch({
-                                                                                  TAG: "SetWordAnimation",
-                                                                                  _0: {
-                                                                                    showBackground: init.showBackground,
-                                                                                    background: {
-                                                                                      color: init$1.color,
-                                                                                      opacity: opacity,
-                                                                                      paddingX: init$1.paddingX,
-                                                                                      paddingY: init$1.paddingY,
-                                                                                      borderRadius: init$1.borderRadius
-                                                                                    },
-                                                                                    showFont: init.showFont,
-                                                                                    font: init.font,
-                                                                                    showPop: init.showPop,
-                                                                                    pop: init.pop
-                                                                                  }
-                                                                                });
-                                                                          }));
+                                                          JsxRuntime.jsx(NumberInput.Float.make, {
+                                                                value: style.wordAnimation.background.opacity,
+                                                                onChange: (function (opacity) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.background;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: {
+                                                                              color: init$1.color,
+                                                                              opacity: opacity,
+                                                                              paddingX: init$1.paddingX,
+                                                                              paddingY: init$1.paddingY,
+                                                                              borderRadius: init$1.borderRadius
+                                                                            },
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
                                                                   }),
-                                                                min: "0",
-                                                                max: "1"
+                                                                label: "Opacity",
+                                                                min: 0.0,
+                                                                max: 1.0,
+                                                                step: 0.1,
+                                                                className: "w-full col-span-1 flex-1"
                                                               }),
-                                                          JsxRuntime.jsx(Input.make, {
-                                                                step: 1.0,
+                                                          JsxRuntime.jsx(NumberInput.make, {
+                                                                value: style.wordAnimation.background.borderRadius,
+                                                                onChange: (function (borderRadius) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.background;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: {
+                                                                              color: init$1.color,
+                                                                              opacity: init$1.opacity,
+                                                                              paddingX: init$1.paddingX,
+                                                                              paddingY: init$1.paddingY,
+                                                                              borderRadius: borderRadius
+                                                                            },
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  }),
                                                                 label: "Radius",
-                                                                value: style.wordAnimation.background.borderRadius.toString(),
-                                                                type_: "number",
+                                                                min: 0,
+                                                                max: 99,
                                                                 className: "w-full col-span-1",
                                                                 adornment: Caml_option.some(JsxRuntime.jsx(Icons.BorderRadiusIcon.make, {
                                                                           color: "white",
                                                                           className: "size-4"
                                                                         })),
-                                                                adornmentClassName: "font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0",
-                                                                onChange: (function (value) {
-                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (borderRadius) {
-                                                                            var init = style.wordAnimation;
-                                                                            var init$1 = style.wordAnimation.background;
-                                                                            dispatch({
-                                                                                  TAG: "SetWordAnimation",
-                                                                                  _0: {
-                                                                                    showBackground: init.showBackground,
-                                                                                    background: {
-                                                                                      color: init$1.color,
-                                                                                      opacity: init$1.opacity,
-                                                                                      paddingX: init$1.paddingX,
-                                                                                      paddingY: init$1.paddingY,
-                                                                                      borderRadius: borderRadius
-                                                                                    },
-                                                                                    showFont: init.showFont,
-                                                                                    font: init.font,
-                                                                                    showPop: init.showPop,
-                                                                                    pop: init.pop
-                                                                                  }
-                                                                                });
-                                                                          }));
-                                                                  }),
-                                                                min: "0",
-                                                                max: "99"
+                                                                adornmentClassName: "font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0"
                                                               }),
-                                                          JsxRuntime.jsx(Input.make, {
-                                                                step: 1.0,
+                                                          JsxRuntime.jsx(NumberInput.make, {
+                                                                value: style.wordAnimation.background.paddingX,
+                                                                onChange: (function (paddingX) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.background;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: {
+                                                                              color: init$1.color,
+                                                                              opacity: init$1.opacity,
+                                                                              paddingX: paddingX,
+                                                                              paddingY: init$1.paddingY,
+                                                                              borderRadius: init$1.borderRadius
+                                                                            },
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
+                                                                  }),
                                                                 label: "Padding X",
-                                                                value: String(style.wordAnimation.background.paddingX),
-                                                                type_: "number",
+                                                                min: 0,
+                                                                max: 99,
                                                                 className: "w-full col-span-2",
-                                                                adornmentClassName: adornmentClassName,
-                                                                onChange: (function (value) {
-                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingX) {
-                                                                            var init = style.wordAnimation;
-                                                                            var init$1 = style.wordAnimation.background;
-                                                                            dispatch({
-                                                                                  TAG: "SetWordAnimation",
-                                                                                  _0: {
-                                                                                    showBackground: init.showBackground,
-                                                                                    background: {
-                                                                                      color: init$1.color,
-                                                                                      opacity: init$1.opacity,
-                                                                                      paddingX: paddingX,
-                                                                                      paddingY: init$1.paddingY,
-                                                                                      borderRadius: init$1.borderRadius
-                                                                                    },
-                                                                                    showFont: init.showFont,
-                                                                                    font: init.font,
-                                                                                    showPop: init.showPop,
-                                                                                    pop: init.pop
-                                                                                  }
-                                                                                });
-                                                                          }));
-                                                                  }),
-                                                                min: "0",
-                                                                max: "99"
+                                                                adornmentClassName: adornmentClassName
                                                               }),
-                                                          JsxRuntime.jsx(Input.make, {
-                                                                step: 1.0,
-                                                                label: "Padding Y",
-                                                                value: String(style.wordAnimation.background.paddingY),
-                                                                type_: "number",
-                                                                className: "w-full col-span-2",
-                                                                adornmentClassName: adornmentClassName,
-                                                                onChange: (function (value) {
-                                                                    Core__Option.forEach(Core__Int.fromString(value, undefined), (function (paddingY) {
-                                                                            var init = style.wordAnimation;
-                                                                            var init$1 = style.wordAnimation.background;
-                                                                            dispatch({
-                                                                                  TAG: "SetWordAnimation",
-                                                                                  _0: {
-                                                                                    showBackground: init.showBackground,
-                                                                                    background: {
-                                                                                      color: init$1.color,
-                                                                                      opacity: init$1.opacity,
-                                                                                      paddingX: init$1.paddingX,
-                                                                                      paddingY: paddingY,
-                                                                                      borderRadius: init$1.borderRadius
-                                                                                    },
-                                                                                    showFont: init.showFont,
-                                                                                    font: init.font,
-                                                                                    showPop: init.showPop,
-                                                                                    pop: init.pop
-                                                                                  }
-                                                                                });
-                                                                          }));
+                                                          JsxRuntime.jsx(NumberInput.make, {
+                                                                value: style.wordAnimation.background.paddingY,
+                                                                onChange: (function (paddingY) {
+                                                                    var init = style.wordAnimation;
+                                                                    var init$1 = style.wordAnimation.background;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: {
+                                                                              color: init$1.color,
+                                                                              opacity: init$1.opacity,
+                                                                              paddingX: init$1.paddingX,
+                                                                              paddingY: paddingY,
+                                                                              borderRadius: init$1.borderRadius
+                                                                            },
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: init.pop
+                                                                          }
+                                                                        });
                                                                   }),
-                                                                min: "0",
-                                                                max: "99"
+                                                                label: "Padding Y",
+                                                                min: 0,
+                                                                max: 99,
+                                                                className: "w-full col-span-2",
+                                                                adornmentClassName: adornmentClassName
                                                               })
                                                         ],
                                                         className: Cx.cx([
@@ -890,36 +824,47 @@ var make = Utils.neverRerender(function (props) {
                                                         ],
                                                         className: "flex items-center justify-between"
                                                       }),
-                                                  JsxRuntime.jsx("div", {
-                                                        children: JsxRuntime.jsx(Input.make, {
-                                                              step: 0.01,
-                                                              label: "Scale",
-                                                              value: String(style.wordAnimation.pop.scale),
-                                                              type_: "number",
-                                                              className: "w-full col-span-2",
-                                                              onChange: (function (value) {
-                                                                  Core__Option.forEach(Core__Float.fromString(value), (function (scale) {
-                                                                          var init = style.wordAnimation;
-                                                                          dispatch({
-                                                                                TAG: "SetWordAnimation",
-                                                                                _0: {
-                                                                                  showBackground: init.showBackground,
-                                                                                  background: init.background,
-                                                                                  showFont: init.showFont,
-                                                                                  font: init.font,
-                                                                                  showPop: init.showPop,
-                                                                                  pop: {
-                                                                                    scale: scale
-                                                                                  }
-                                                                                }
-                                                                              });
-                                                                        }));
-                                                                }),
-                                                              min: "1.0",
-                                                              max: "1.2"
-                                                            }),
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("div", {
+                                                                children: [
+                                                                  JsxRuntime.jsx("span", {
+                                                                        children: "Scale",
+                                                                        className: "text-sm text-white/70"
+                                                                      }),
+                                                                  JsxRuntime.jsx("span", {
+                                                                        children: (style.wordAnimation.pop.scale * 100.0 | 0).toString() + "%",
+                                                                        className: "text-sm font-medium text-white"
+                                                                      })
+                                                                ],
+                                                                className: "flex items-center justify-between"
+                                                              }),
+                                                          JsxRuntime.jsx(Slider.make, {
+                                                                onValueChange: (function (percent) {
+                                                                    var init = style.wordAnimation;
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: {
+                                                                            showBackground: init.showBackground,
+                                                                            background: init.background,
+                                                                            showFont: init.showFont,
+                                                                            font: init.font,
+                                                                            showPop: init.showPop,
+                                                                            pop: {
+                                                                              scale: percent / 100.0
+                                                                            }
+                                                                          }
+                                                                        });
+                                                                  }),
+                                                                value: style.wordAnimation.pop.scale * 100.0 | 0,
+                                                                min: 100,
+                                                                max: 200,
+                                                                step: 1,
+                                                                className: "!-ml-1.5"
+                                                              })
+                                                        ],
                                                         className: Cx.cx([
-                                                              "grid grid-cols-4 gap-2 pl-7",
+                                                              "flex flex-col gap-2 pl-7",
                                                               style.wordAnimation.showPop ? "brightness-100" : "brightness-50 pointer-events-none"
                                                             ])
                                                       })
@@ -944,7 +889,6 @@ var make = Utils.neverRerender(function (props) {
 
 export {
   formatFontWeight ,
-  $$parseInt ,
   adornmentClassName ,
   make ,
 }
