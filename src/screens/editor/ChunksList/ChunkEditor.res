@@ -125,7 +125,7 @@ let make = React.memo((
           el =>
             el->Webapi.Dom.Element.scrollIntoViewWithOptions({
               "behavior": "smooth",
-              "block": "start",
+              "block": "nearest",
             }),
         )
       }

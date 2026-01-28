@@ -430,7 +430,8 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
   let (player, _) = ctx.usePlayer()
 
   <>
-    <div className="sticky top-0 z-10 px-2 bg-zinc-900 flex flex-col w-full">
+    <div
+      className="sticky -top-px z-10 py-2 flex flex-col w-full bg-zinc-950 md:bg-zinc-900/95 md:backdrop-blur-sm border-b border-zinc-800/50">
       <h2 className="mx-auto text-xl pb-2"> {title} </h2>
       {switch subtitlesManager.transcriptionState {
       | SubtitlesReady({size}) =>

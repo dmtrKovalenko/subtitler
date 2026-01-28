@@ -307,7 +307,7 @@ var make = Utils.neverRerender(function (props) {
                                         ]
                                       })
                                 ],
-                                className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-6 gap-2 bg-white/5 p-3 w-full"
+                                className: "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-3 md:grid-cols-6 gap-2 bg-white/5 p-3 w-full"
                               }),
                           JsxRuntime.jsxs("div", {
                                 children: [
@@ -938,7 +938,7 @@ var make = Utils.neverRerender(function (props) {
                         ],
                         className: "flex flex-col gap-6"
                       }),
-                  className: "overflow-auto -mx-6 px-6 pb-6"
+                  className: "overflow-auto pb-6"
                 });
     });
 

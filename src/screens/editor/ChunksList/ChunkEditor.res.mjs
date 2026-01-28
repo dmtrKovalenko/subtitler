@@ -144,7 +144,7 @@ var make = React.memo(function (props) {
                   Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
                           el.scrollIntoView({
                                 behavior: "smooth",
-                                block: "start"
+                                block: "nearest"
                               });
                         }));
                 }

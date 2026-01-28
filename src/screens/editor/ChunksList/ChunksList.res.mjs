@@ -442,7 +442,7 @@ var make = React.memo(function (props) {
                                 }),
                             tmp
                           ],
-                          className: "sticky top-0 z-10 px-2 bg-zinc-900 flex flex-col w-full"
+                          className: "sticky -top-px z-10 py-2 flex flex-col w-full bg-zinc-950 md:bg-zinc-900/95 md:backdrop-blur-sm border-b border-zinc-800/50"
                         }),
                     JsxRuntime.jsx("div", {
                           children: subtitlesManager.activeSubtitles.map(function (chunk, index) {
