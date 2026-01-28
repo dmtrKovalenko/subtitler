@@ -1,14 +1,12 @@
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
-import path from "path";
 
 const ReactCompilerConfig = {
   target: "19",
 };
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react({
       include: ["**/*.res.mjs", "**/*.tsx", "**/*.ts"],
@@ -18,11 +16,11 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: mode === "production" ? "auto" : false,
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,ttf}"],
       },
     }),
   ],
-});
+}));

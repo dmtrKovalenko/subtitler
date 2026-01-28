@@ -12,8 +12,11 @@ export function Progress({ progress, name }: ProgressDemoProps) {
       value={progress}
     >
       <RadixProgress.Indicator
-        className="bg-white w-full h-full transition-transform duration-[660ms] ease-[cubic-bezier(0.65, 0, 0.35, 1)]"
-        style={{ transform: `translateX(-${100 - progress}%)` }}
+        className="bg-white h-full transition-transform duration-[660ms] ease-[cubic-bezier(0.65,0,0.35,1)]"
+        style={{ 
+          width: '100%',
+          transform: `translateX(-${100 - progress}%)` 
+        }}
       />
       <span className="absolute top-0.5 left-4 mix-blend-exclusion">
         {name}
