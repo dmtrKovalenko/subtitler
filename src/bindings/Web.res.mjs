@@ -24,19 +24,25 @@ function isFocusable(el) {
         return true;
     default:
       var match$1 = el.getAttribute("role");
-      if (match$1 == null) {
-        return false;
+      if (!(match$1 == null)) {
+        switch (match$1) {
+          case "button" :
+          case "checkbox" :
+          case "input" :
+          case "link" :
+          case "menu" :
+          case "menuitem" :
+          case "option" :
+          case "slider" :
+              return true;
+          default:
+            
+        }
       }
-      switch (match$1) {
-        case "button" :
-        case "checkbox" :
-        case "input" :
-        case "link" :
-        case "option" :
-        case "slider" :
-            return true;
-        default:
-          return false;
+      if (Core__Option.isSome(Caml_option.nullable_to_opt(el.getAttribute("data-radix-collection-item")))) {
+        return true;
+      } else {
+        return Core__Option.isSome(Caml_option.nullable_to_opt(el.getAttribute("data-state")));
       }
   }
 }

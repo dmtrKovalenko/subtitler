@@ -25,7 +25,12 @@ export type subtitlesManager = {
   readonly removeChunk: (_1:number, joinSiblingsTimestamps:boolean) => void; 
   readonly editText: (_1:number, _2:string) => void; 
   readonly editTimestamp: (_1:number, _2:Subtitles_timestamp) => void; 
-  readonly getWordChunksForCue: (_1:number) => (undefined | WordTimestamps_wordChunk[])
+  readonly getWordChunksForCue: (_1:number) => (undefined | WordTimestamps_wordChunk[]); 
+  readonly hasPauseBefore: (_1:number) => boolean; 
+  readonly hasPauseAfter: (_1:number) => boolean; 
+  readonly addCueBefore: (_1:number) => void; 
+  readonly addCueAfter: (_1:number) => void; 
+  readonly splitCue: (_1:number, _2:number) => void
 };
 
 export const useChunksState: (subtitles:Subtitles_subtitleCue[], transcriptionInProgress:boolean, default_chunk_size:number) => subtitlesManager = ChunksListJS.useChunksState as any;

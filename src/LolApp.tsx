@@ -6,7 +6,7 @@ import { useTranscriber } from "./transcriber/useTranscriber";
 import Constants from "./transcriber/Constants";
 import { Spinner } from "./ui/Spinner";
 import { LandingDropzone } from "./screens/LandingDropzone";
-import { Progress } from "./ui/Progress";
+import { Progress } from "./ui/Progress.gen";
 import { makeEditorContextComponent } from "./screens/editor/EditorContext.gen";
 import { Transition } from "@headlessui/react";
 import type {
@@ -23,7 +23,10 @@ import { ShowErrorContext, UserFacingError } from "./ErrorBoundary";
 import { log } from "./hooks/useAnalytics";
 import HeartIcon from "@heroicons/react/20/solid/HeartIcon";
 import { ProductHuntIcon } from "./ui/Icons.res.mjs";
-import { Editor } from "./screens/editor/Editor.gen";
+
+const Editor = React.lazy(() =>
+  import("./screens/editor/Editor.gen").then((m) => ({ default: m.Editor })),
+);
 
 type VideoFile = {
   name: string;
@@ -583,16 +586,24 @@ export default function LolApp() {
 
       {EditorContext && (
         <EditorContext.make>
-          <Editor
-            render={render}
-            subtitlesManager={subtitlesManager}
-            rendererPreviewCanvasRef={rendererPreviewCanvasRef}
-            renderCanvasKey={renderCanvasKey}
-            videoFileName={file.name}
-            onResetPlayerState={(fn: () => void) => {
-              resetPlayerStateRef.current = fn;
-            }}
-          />
+          <React.Suspense
+            fallback={
+              <div className="flex items-center justify-center h-dvh md:h-screen">
+                <Spinner sizeRem={3} />
+              </div>
+            }
+          >
+            <Editor
+              render={render}
+              subtitlesManager={subtitlesManager}
+              rendererPreviewCanvasRef={rendererPreviewCanvasRef}
+              renderCanvasKey={renderCanvasKey}
+              videoFileName={file.name}
+              onResetPlayerState={(fn: () => void) => {
+                resetPlayerStateRef.current = fn;
+              }}
+            />
+          </React.Suspense>
         </EditorContext.make>
       )}
 

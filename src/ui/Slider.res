@@ -33,7 +33,7 @@ module RadixSlider = {
  *  Reusable slider component used for the volume slider and timeline scaling selector
  */
 @react.component
-let make = (~onValueChange, ~disabled=?, ~value, ~min, ~max, ~step) => {
+let make = (~onValueChange, ~disabled=?, ~value, ~min, ~max, ~step, ~className=?) => {
   let handleChange = React.useCallback1(newValue => {
     newValue->Array.getUnsafe(0)->onValueChange
   }, [onValueChange])
@@ -45,7 +45,10 @@ let make = (~onValueChange, ~disabled=?, ~value, ~min, ~max, ~step) => {
     disabled={disabled->Option.getOr(false)}
     value=[value]
     onValueChange=handleChange
-    className="relative flex items-center select-none w-full h-4 mx-2">
+    className={Cx.cx([
+      "relative flex items-center select-none w-full h-4",
+      className->Option.getOr(""),
+    ])}>
     <RadixSlider.Track className="relative flex-grow h-1 rounded-full bg-slate-800">
       <RadixSlider.Range className="absolute bg-gray-100 rounded-full h-full" />
     </RadixSlider.Track>

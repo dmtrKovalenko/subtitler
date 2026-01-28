@@ -89,6 +89,16 @@ var ChatBubbleIcon = {};
 
 var CheckIcon = {};
 
+var PlusIcon = {};
+
+var ScissorsIcon = {};
+
+var ArrowUpLeftIcon = {};
+
+var ArrowDownLeftIcon = {};
+
+var AdjustmentsVerticalIcon = {};
+
 var FilmIcon = {};
 
 var PaintBrushIcon = {};
@@ -150,6 +160,11 @@ export {
   DownloadIcon ,
   ChatBubbleIcon ,
   CheckIcon ,
+  PlusIcon ,
+  ScissorsIcon ,
+  ArrowUpLeftIcon ,
+  ArrowDownLeftIcon ,
+  AdjustmentsVerticalIcon ,
   FilmIcon ,
   PaintBrushIcon ,
   SwatchIcon ,

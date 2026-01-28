@@ -393,6 +393,228 @@ function useChunksState(subtitles, transcriptionInProgress, default_chunk_size) 
                               return transcriptionState.wordChunks.slice(match[0], match[1] + 1 | 0);
                             }
                             
+                          }),
+                        hasPauseBefore: (function (cueIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return false;
+                            }
+                            var cueRanges = transcriptionState.cueRanges;
+                            var wordChunks = transcriptionState.wordChunks;
+                            var match = cueRanges[cueIndex];
+                            var match$1 = cueRanges[cueIndex - 1 | 0];
+                            if (match === undefined) {
+                              return false;
+                            }
+                            var startIdx = match[0];
+                            if (match$1 !== undefined) {
+                              var currentStart = Core__Option.getOr(Core__Option.map(wordChunks[startIdx], (function (w) {
+                                          return w.timestamp[0];
+                                        })), 0.0);
+                              var prevEnd = Core__Option.getOr(Core__Option.flatMap(wordChunks[match$1[1]], (function (w) {
+                                          return Caml_option.nullable_to_opt(w.timestamp[1]);
+                                        })), 0.0);
+                              return currentStart - prevEnd > 0.1;
+                            }
+                            var currentStart$1 = Core__Option.getOr(Core__Option.map(wordChunks[startIdx], (function (w) {
+                                        return w.timestamp[0];
+                                      })), 0.0);
+                            return currentStart$1 > 0.1;
+                          }),
+                        hasPauseAfter: (function (cueIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return false;
+                            }
+                            var cueRanges = transcriptionState.cueRanges;
+                            var wordChunks = transcriptionState.wordChunks;
+                            var match = cueRanges[cueIndex];
+                            var match$1 = cueRanges[cueIndex + 1 | 0];
+                            if (match === undefined) {
+                              return false;
+                            }
+                            var endIdx = match[1];
+                            if (match$1 === undefined) {
+                              return Core__Option.isSome(Core__Option.flatMap(wordChunks[endIdx], (function (w) {
+                                                return Caml_option.nullable_to_opt(w.timestamp[1]);
+                                              })));
+                            }
+                            var currentEnd = Core__Option.getOr(Core__Option.flatMap(wordChunks[endIdx], (function (w) {
+                                        return Caml_option.nullable_to_opt(w.timestamp[1]);
+                                      })), 0.0);
+                            var nextStart = Core__Option.getOr(Core__Option.map(wordChunks[match$1[0]], (function (w) {
+                                        return w.timestamp[0];
+                                      })), 0.0);
+                            return nextStart - currentEnd > 0.1;
+                          }),
+                        addCueBefore: (function (cueIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return ;
+                            }
+                            var size = transcriptionState.size;
+                            var cueRanges = transcriptionState.cueRanges;
+                            var wordChunks = transcriptionState.wordChunks;
+                            var match = cueRanges[cueIndex];
+                            if (match === undefined) {
+                              return ;
+                            }
+                            var startIdx = match[0];
+                            var currentStart = Core__Option.getOr(Core__Option.map(wordChunks[startIdx], (function (w) {
+                                        return w.timestamp[0];
+                                      })), 0.0);
+                            var match$1 = cueRanges[cueIndex - 1 | 0];
+                            var gapStart = match$1 !== undefined ? Core__Option.getOr(Core__Option.flatMap(wordChunks[match$1[1]], (function (w) {
+                                          return Caml_option.nullable_to_opt(w.timestamp[1]);
+                                        })), 0.0) : 0.0;
+                            var newWordChunk_timestamp = [
+                              gapStart,
+                              currentStart
+                            ];
+                            var newWordChunk = {
+                              text: "",
+                              timestamp: newWordChunk_timestamp
+                            };
+                            var wordsBefore = wordChunks.slice(0, startIdx);
+                            var wordsAfter = wordChunks.slice(startIdx);
+                            var newWordChunks = wordsBefore.concat([newWordChunk]).concat(wordsAfter);
+                            var newPauseIndices = transcriptionState.pauseAfterIndices.map(function (idx) {
+                                  if (idx >= startIdx) {
+                                    return idx + 1 | 0;
+                                  } else {
+                                    return idx;
+                                  }
+                                });
+                            var newCueRange = [
+                              startIdx,
+                              startIdx
+                            ];
+                            var shiftedRanges = cueRanges.map(function (param) {
+                                  var e = param[1];
+                                  var s = param[0];
+                                  if (s >= startIdx) {
+                                    return [
+                                            s + 1 | 0,
+                                            e + 1 | 0
+                                          ];
+                                  } else {
+                                    return [
+                                            s,
+                                            e
+                                          ];
+                                  }
+                                });
+                            var newCueRanges = shiftedRanges.slice(0, cueIndex).concat([newCueRange]).concat(shiftedRanges.slice(cueIndex));
+                            setTranscriptionState(function (param) {
+                                  return {
+                                          TAG: "SubtitlesReady",
+                                          wordChunks: newWordChunks,
+                                          pauseAfterIndices: newPauseIndices,
+                                          cueRanges: newCueRanges,
+                                          size: size
+                                        };
+                                });
+                          }),
+                        addCueAfter: (function (cueIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return ;
+                            }
+                            var size = transcriptionState.size;
+                            var cueRanges = transcriptionState.cueRanges;
+                            var wordChunks = transcriptionState.wordChunks;
+                            var match = cueRanges[cueIndex];
+                            if (match === undefined) {
+                              return ;
+                            }
+                            var endIdx = match[1];
+                            var currentEnd = Core__Option.getOr(Core__Option.flatMap(wordChunks[endIdx], (function (w) {
+                                        return Caml_option.nullable_to_opt(w.timestamp[1]);
+                                      })), 0.0);
+                            var match$1 = cueRanges[cueIndex + 1 | 0];
+                            var gapEnd = match$1 !== undefined ? Core__Option.getOr(Core__Option.map(wordChunks[match$1[0]], (function (w) {
+                                          return w.timestamp[0];
+                                        })), 0.0) : currentEnd + 1.0;
+                            var newWordChunk_timestamp = [
+                              currentEnd,
+                              gapEnd
+                            ];
+                            var newWordChunk = {
+                              text: "",
+                              timestamp: newWordChunk_timestamp
+                            };
+                            var insertIdx = endIdx + 1 | 0;
+                            var wordsBefore = wordChunks.slice(0, insertIdx);
+                            var wordsAfter = wordChunks.slice(insertIdx);
+                            var newWordChunks = wordsBefore.concat([newWordChunk]).concat(wordsAfter);
+                            var newPauseIndices = transcriptionState.pauseAfterIndices.map(function (idx) {
+                                  if (idx >= insertIdx) {
+                                    return idx + 1 | 0;
+                                  } else {
+                                    return idx;
+                                  }
+                                });
+                            var newCueRange = [
+                              insertIdx,
+                              insertIdx
+                            ];
+                            var rangesBefore = cueRanges.slice(0, cueIndex + 1 | 0);
+                            var rangesAfter = cueRanges.slice(cueIndex + 1 | 0).map(function (param) {
+                                  return [
+                                          param[0] + 1 | 0,
+                                          param[1] + 1 | 0
+                                        ];
+                                });
+                            var newCueRanges = rangesBefore.concat([newCueRange]).concat(rangesAfter);
+                            setTranscriptionState(function (param) {
+                                  return {
+                                          TAG: "SubtitlesReady",
+                                          wordChunks: newWordChunks,
+                                          pauseAfterIndices: newPauseIndices,
+                                          cueRanges: newCueRanges,
+                                          size: size
+                                        };
+                                });
+                          }),
+                        splitCue: (function (cueIndex, splitAtWordIndex) {
+                            if (typeof transcriptionState !== "object") {
+                              return ;
+                            }
+                            var size = transcriptionState.size;
+                            var cueRanges = transcriptionState.cueRanges;
+                            var pauseAfterIndices = transcriptionState.pauseAfterIndices;
+                            var wordChunks = transcriptionState.wordChunks;
+                            var match = cueRanges[cueIndex];
+                            if (match === undefined) {
+                              return ;
+                            }
+                            var endIdx = match[1];
+                            var startIdx = match[0];
+                            var wordCount = (endIdx - startIdx | 0) + 1 | 0;
+                            if (!(splitAtWordIndex > 0 && splitAtWordIndex < wordCount)) {
+                              return ;
+                            }
+                            var absoluteSplitIdx = startIdx + splitAtWordIndex | 0;
+                            var firstRange_1 = absoluteSplitIdx - 1 | 0;
+                            var firstRange = [
+                              startIdx,
+                              firstRange_1
+                            ];
+                            var secondRange = [
+                              absoluteSplitIdx,
+                              endIdx
+                            ];
+                            var rangesBefore = cueRanges.slice(0, cueIndex);
+                            var rangesAfter = cueRanges.slice(cueIndex + 1 | 0);
+                            var newCueRanges = rangesBefore.concat([
+                                    firstRange,
+                                    secondRange
+                                  ]).concat(rangesAfter);
+                            setTranscriptionState(function (param) {
+                                  return {
+                                          TAG: "SubtitlesReady",
+                                          wordChunks: wordChunks,
+                                          pauseAfterIndices: pauseAfterIndices,
+                                          cueRanges: newCueRanges,
+                                          size: size
+                                        };
+                                });
                           })
                       };
               }), [
@@ -406,15 +628,25 @@ var make = React.memo(function (props) {
       var ctx = EditorContext.useEditorContext();
       var match = ctx.usePlayer();
       var player = match[0];
-      var match$1 = subtitlesManager.transcriptionState;
+      var match$1 = React.useState(function () {
+            
+          });
+      var setSplitPreviewState = match$1[1];
+      var splitPreviewState = match$1[0];
+      var match$2 = React.useState(function () {
+            
+          });
+      var setFocusCueIndex = match$2[1];
+      var focusCueIndex = match$2[0];
+      var match$3 = subtitlesManager.transcriptionState;
       var tmp;
-      if (typeof match$1 !== "object") {
+      if (typeof match$3 !== "object") {
         tmp = JsxRuntime.jsx("p", {
               children: "Transcription in progress. Once finished you'll be able to edit and resize generated subtitles.",
               className: "text-center pb-4 px-2 text-balance text-sm text-gray-500"
             });
       } else {
-        var size = match$1.size;
+        var size = match$3.size;
         tmp = JsxRuntime.jsxs(JsxRuntime.Fragment, {
               children: [
                 JsxRuntime.jsx("h3", {
@@ -456,7 +688,53 @@ var make = React.memo(function (props) {
                                             chunk: chunk,
                                             removeChunk: subtitlesManager.removeChunk,
                                             onTimestampChange: subtitlesManager.editTimestamp,
-                                            onTextChange: subtitlesManager.editText
+                                            onTextChange: subtitlesManager.editText,
+                                            hasPauseBefore: subtitlesManager.hasPauseBefore(index),
+                                            hasPauseAfter: subtitlesManager.hasPauseAfter(index),
+                                            wordChunks: Core__Option.getOr(subtitlesManager.getWordChunksForCue(index), []),
+                                            onAddBefore: (function () {
+                                                subtitlesManager.addCueBefore(index);
+                                                setFocusCueIndex(function (param) {
+                                                      return index;
+                                                    });
+                                              }),
+                                            onAddAfter: (function () {
+                                                subtitlesManager.addCueAfter(index);
+                                                setFocusCueIndex(function (param) {
+                                                      return index + 1 | 0;
+                                                    });
+                                              }),
+                                            onSplit: (function (splitIdx) {
+                                                subtitlesManager.splitCue(index, splitIdx);
+                                                setFocusCueIndex(function (param) {
+                                                      return index + 1 | 0;
+                                                    });
+                                              }),
+                                            splitPreview: Core__Option.flatMap(splitPreviewState, (function (param) {
+                                                    if (param[0] === index) {
+                                                      return param[1];
+                                                    }
+                                                    
+                                                  })),
+                                            onSplitPreviewChange: (function (preview) {
+                                                setSplitPreviewState(function (param) {
+                                                      return Core__Option.map(preview, (function (splitAt) {
+                                                                    return [
+                                                                            index,
+                                                                            splitAt
+                                                                          ];
+                                                                  }));
+                                                    });
+                                              }),
+                                            isAnySplitPreviewActive: Core__Option.isSome(splitPreviewState),
+                                            shouldFocus: Core__Option.getOr(Core__Option.map(focusCueIndex, (function (i) {
+                                                        return i === index;
+                                                      })), false),
+                                            onFocused: (function () {
+                                                setFocusCueIndex(function (param) {
+                                                      
+                                                    });
+                                              })
                                           }, id !== undefined ? id.toString() : index.toString() + "-" + chunk.text);
                               }),
                           className: "flex flex-1 ml-1.5 pb-4 min-h-0 flex-col gap-6"
@@ -464,6 +742,8 @@ var make = React.memo(function (props) {
                   ]
                 });
     });
+
+var pauseThreshold = 0.1;
 
 export {
   subtitleCueToWordChunk ,
@@ -475,6 +755,7 @@ export {
   buildCuesFromRanges ,
   updatePauseIndicesAfterEdit ,
   updateRangesAfterEdit ,
+  pauseThreshold ,
   useChunksState ,
   make ,
 }

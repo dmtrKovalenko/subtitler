@@ -11,14 +11,8 @@ let formatFontWeight = weight =>
   | Style.Black => "Black"
   }
 
-let parseInt = value =>
-  if value == "" {
-    Some(0)
-  } else {
-    Belt.Int.fromString(value)
-  }
+let adornmentClassName = "font-mono rounded-md m-1 bg-zinc-500 px-3 inset-y-0"
 
-let adornmentClassName = "font-mono rounded-md  m-1 bg-zinc-500 px-3 inset-y-0"
 @react.component
 let make = Utils.neverRerender(() => {
   let id = React.useId()
@@ -29,73 +23,49 @@ let make = Utils.neverRerender(() => {
     <div className="flex flex-col gap-6">
       <div
         className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full">
-        <Input
+        <NumberInput
           labelHidden=true
-          type_="number"
-          label="Y coordinate"
+          label="X coordinate"
           adornmentClassName
           className="w-full"
-          min="0"
-          max="999"
-          step=1.0
+          min=0
+          max=999
           adornment={"X"->React.string}
-          value={style.x->Belt.Int.toString}
-          onChange={value =>
-            value
-            ->parseInt
-            ->Option.map(val => Style.SetPosition(val, style.y))
-            ->Option.forEach(dispatch)}
+          value={style.x}
+          onChange={val => dispatch(Style.SetPosition(val, style.y))}
         />
-        <Input
+        <NumberInput
           labelHidden=true
-          type_="number"
-          min="0"
-          max="999"
-          step=1.0
-          label="X coordinate"
+          min=0
+          max=999
+          label="Y coordinate"
           className="w-full"
           adornment={"Y"->React.string}
           adornmentClassName
-          value={style.y->Belt.Int.toString}
-          onChange={value =>
-            value
-            ->parseInt
-            ->Option.map(val => Style.SetPosition(style.x, val))
-            ->Option.forEach(dispatch)}
+          value={style.y}
+          onChange={val => dispatch(Style.SetPosition(style.x, val))}
         />
-        <Input
-          type_="number"
-          min="0"
-          max="999"
-          step=1.0
+        <NumberInput
+          min=0
+          max=999
           labelHidden=true
           label="Width"
           className="w-full"
           adornment={"W"->React.string}
           adornmentClassName
-          value={style.blockSize.width->Belt.Int.toString}
-          onChange={value =>
-            value
-            ->parseInt
-            ->Option.map(val => Style.SetBlockWidth(val))
-            ->Option.forEach(dispatch)}
+          value={style.blockSize.width}
+          onChange={val => dispatch(Style.SetBlockWidth(val))}
         />
-        <Input
-          type_="number"
-          min="0"
-          max="999"
-          step=1.0
+        <NumberInput
+          min=0
+          max=999
           labelHidden=true
           label="Height"
           className="w-full"
           adornment={"H"->React.string}
           adornmentClassName
-          value={style.blockSize.height->Belt.Int.toString}
-          onChange={value =>
-            value
-            ->parseInt
-            ->Option.map(val => Style.SetBlockHeight(val))
-            ->Option.forEach(dispatch)}
+          value={style.blockSize.height}
+          onChange={val => dispatch(Style.SetBlockHeight(val))}
         />
       </div>
       <div
@@ -130,18 +100,13 @@ let make = Utils.neverRerender(() => {
             value={style.strokeColor->Option.getOr(style.color)}
             onChange={value => dispatch(Style.SetStrokeColor(value))}
           />
-          <Input
-            type_="number"
+          <NumberInput
             label="width"
             adornmentClassName
-            min="0"
-            step=1.0
-            max="999"
-            value={style.strokeWidth->Belt.Int.toString}
-            onChange={value =>
-              value
-              ->Int.fromString
-              ->Option.forEach(strokeWidth => dispatch(Style.SetStrokeWidth(strokeWidth)))}
+            min=0
+            max=999
+            value={style.strokeWidth}
+            onChange={strokeWidth => dispatch(Style.SetStrokeWidth(strokeWidth))}
           />
         </div>
         <Input.Field className="col-span-3">
@@ -158,18 +123,13 @@ let make = Utils.neverRerender(() => {
               ->String.includes(value)}
           />
         </Input.Field>
-        <Input
+        <NumberInput
           label="Size"
-          type_="number"
-          min="0"
-          max="999"
-          value={style.fontSizePx->Belt.Int.toString}
+          min=0
+          max=999
+          value={style.fontSizePx}
           className="min-w-[4ch]"
-          onChange={value =>
-            value
-            ->parseInt
-            ->Option.map(val => Style.SetFontSizePx(val))
-            ->Option.forEach(dispatch)}
+          onChange={val => dispatch(Style.SetFontSizePx(val))}
         />
         <Input.Field className="col-span-2">
           <Input.Label forId={""} className="whitespace-nowrap">
@@ -210,19 +170,14 @@ let make = Utils.neverRerender(() => {
             value={style.background.color}
             onChange={value => dispatch(Style.SetBackground({...style.background, color: value}))}
           />
-          <Input
-            type_="number"
+          <NumberInput.Float
             label="Opacity"
             className="w-full col-span-1 flex-1"
-            min="0"
-            max="1"
+            min=0.0
+            max=1.0
             step=0.1
-            value={style.background.opacity->Belt.Float.toString}
-            onChange={value =>
-              value
-              ->Float.fromString
-              ->Option.map(val => Style.SetBackground({...style.background, opacity: val}))
-              ->Option.forEach(dispatch)}
+            value={style.background.opacity}
+            onChange={opacity => dispatch(Style.SetBackground({...style.background, opacity}))}
           />
           <Input
             type_="color"
@@ -232,70 +187,44 @@ let make = Utils.neverRerender(() => {
             onChange={value =>
               dispatch(Style.SetBackground({...style.background, strokeColor: Some(value)}))}
           />
-          <Input
-            type_="number"
+          <NumberInput
             label="width"
             adornmentClassName
             className="w-full"
-            min="0"
-            step=1.0
-            max="999"
-            value={style.background.strokeWidth->Belt.Int.toString}
-            onChange={value =>
-              value
-              ->Int.fromString
-              ->Option.forEach(strokeWidth =>
-                dispatch(Style.SetBackground({...style.background, strokeWidth}))
-              )}
+            min=0
+            max=999
+            value={style.background.strokeWidth}
+            onChange={strokeWidth =>
+              dispatch(Style.SetBackground({...style.background, strokeWidth}))}
           />
-          <Input
-            type_="number"
+          <NumberInput
             label="Border radius"
             className="w-full col-span-2"
-            min="0"
-            step=1.0
-            max="999"
-            adornmentClassName="font-mono rounded-md   bg-zinc-500 px-2.5 inset-y-0"
+            min=0
+            max=999
+            adornmentClassName="font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0"
             adornment={<Icons.BorderRadiusIcon color="white" className="size-4" />}
-            value={style.background.borderRadius->Int.toString}
-            onChange={value =>
-              value
-              ->Int.fromString
-              ->Option.forEach(borderRadius =>
-                dispatch(Style.SetBackground({...style.background, borderRadius}))
-              )}
+            value={style.background.borderRadius}
+            onChange={borderRadius =>
+              dispatch(Style.SetBackground({...style.background, borderRadius}))}
           />
-          <Input
-            type_="number"
+          <NumberInput
             label="Padding X"
             adornmentClassName
             className="w-full"
-            min="0"
-            step=1.0
-            max="999"
-            value={style.background.paddingX->Belt.Int.toString}
-            onChange={value =>
-              value
-              ->Int.fromString
-              ->Option.forEach(paddingX =>
-                dispatch(Style.SetBackground({...style.background, paddingX}))
-              )}
+            min=0
+            max=999
+            value={style.background.paddingX}
+            onChange={paddingX => dispatch(Style.SetBackground({...style.background, paddingX}))}
           />
-          <Input
-            type_="number"
+          <NumberInput
             label="Padding Y"
             adornmentClassName
             className="w-full"
-            min="0"
-            step=1.0
-            max="999"
-            value={style.background.paddingY->Belt.Int.toString}
-            onChange={value =>
-              value
-              ->Int.fromString
-              ->Option.forEach(paddingY =>
-                dispatch(Style.SetBackground({...style.background, paddingY}))
-              )}
+            min=0
+            max=999
+            value={style.background.paddingY}
+            onChange={paddingY => dispatch(Style.SetBackground({...style.background, paddingY}))}
           />
         </div>
       </div>
@@ -347,88 +276,65 @@ let make = Utils.neverRerender(() => {
                     }),
                   )}
               />
-              <Input
-                type_="number"
+              <NumberInput.Float
                 label="Opacity"
                 className="w-full col-span-1 flex-1"
-                min="0"
-                max="1"
+                min=0.0
+                max=1.0
                 step=0.1
-                value={style.wordAnimation.background.opacity->Belt.Float.toString}
-                onChange={value =>
-                  value
-                  ->Float.fromString
-                  ->Option.forEach(opacity =>
-                    dispatch(
-                      Style.SetWordAnimation({
-                        ...style.wordAnimation,
-                        background: {...style.wordAnimation.background, opacity},
-                      }),
-                    )
+                value={style.wordAnimation.background.opacity}
+                onChange={opacity =>
+                  dispatch(
+                    Style.SetWordAnimation({
+                      ...style.wordAnimation,
+                      background: {...style.wordAnimation.background, opacity},
+                    }),
                   )}
               />
-              <Input
-                type_="number"
+              <NumberInput
                 label="Radius"
                 className="w-full col-span-1"
-                min="0"
-                step=1.0
-                max="99"
+                min=0
+                max=99
                 adornmentClassName="font-mono rounded-md bg-zinc-500 px-2.5 inset-y-0"
                 adornment={<Icons.BorderRadiusIcon color="white" className="size-4" />}
-                value={style.wordAnimation.background.borderRadius->Int.toString}
-                onChange={value =>
-                  value
-                  ->Int.fromString
-                  ->Option.forEach(borderRadius =>
-                    dispatch(
-                      Style.SetWordAnimation({
-                        ...style.wordAnimation,
-                        background: {...style.wordAnimation.background, borderRadius},
-                      }),
-                    )
+                value={style.wordAnimation.background.borderRadius}
+                onChange={borderRadius =>
+                  dispatch(
+                    Style.SetWordAnimation({
+                      ...style.wordAnimation,
+                      background: {...style.wordAnimation.background, borderRadius},
+                    }),
                   )}
               />
-              <Input
-                type_="number"
+              <NumberInput
                 label="Padding X"
                 adornmentClassName
                 className="w-full col-span-2"
-                min="0"
-                step=1.0
-                max="99"
-                value={style.wordAnimation.background.paddingX->Belt.Int.toString}
-                onChange={value =>
-                  value
-                  ->Int.fromString
-                  ->Option.forEach(paddingX =>
-                    dispatch(
-                      Style.SetWordAnimation({
-                        ...style.wordAnimation,
-                        background: {...style.wordAnimation.background, paddingX},
-                      }),
-                    )
+                min=0
+                max=99
+                value={style.wordAnimation.background.paddingX}
+                onChange={paddingX =>
+                  dispatch(
+                    Style.SetWordAnimation({
+                      ...style.wordAnimation,
+                      background: {...style.wordAnimation.background, paddingX},
+                    }),
                   )}
               />
-              <Input
-                type_="number"
+              <NumberInput
                 label="Padding Y"
                 adornmentClassName
                 className="w-full col-span-2"
-                min="0"
-                step=1.0
-                max="99"
-                value={style.wordAnimation.background.paddingY->Belt.Int.toString}
-                onChange={value =>
-                  value
-                  ->Int.fromString
-                  ->Option.forEach(paddingY =>
-                    dispatch(
-                      Style.SetWordAnimation({
-                        ...style.wordAnimation,
-                        background: {...style.wordAnimation.background, paddingY},
-                      }),
-                    )
+                min=0
+                max=99
+                value={style.wordAnimation.background.paddingY}
+                onChange={paddingY =>
+                  dispatch(
+                    Style.SetWordAnimation({
+                      ...style.wordAnimation,
+                      background: {...style.wordAnimation.background, paddingY},
+                    }),
                   )}
               />
             </div>
@@ -506,29 +412,31 @@ let make = Utils.neverRerender(() => {
             </div>
             <div
               className={Cx.cx([
-                "grid grid-cols-4 gap-2 pl-7",
+                "flex flex-col gap-2 pl-7",
                 style.wordAnimation.showPop
                   ? "brightness-100"
                   : "brightness-50 pointer-events-none",
               ])}>
-              <Input
-                type_="number"
-                label="Scale"
-                className="w-full col-span-2"
-                min="1.0"
-                max="1.2"
-                step=0.01
-                value={style.wordAnimation.pop.scale->Belt.Float.toString}
-                onChange={value =>
-                  value
-                  ->Float.fromString
-                  ->Option.forEach(scale =>
-                    dispatch(
-                      Style.SetWordAnimation({
-                        ...style.wordAnimation,
-                        pop: {scale: scale},
-                      }),
-                    )
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/70"> {React.string("Scale")} </span>
+                <span className="text-sm font-medium text-white">
+                  {React.string(
+                    `${(style.wordAnimation.pop.scale *. 100.0)->Float.toInt->Int.toString}%`,
+                  )}
+                </span>
+              </div>
+              <Slider
+                className="!-ml-1.5"
+                min={100}
+                max={200}
+                step={1}
+                value={(style.wordAnimation.pop.scale *. 100.0)->Float.toInt}
+                onValueChange={percent =>
+                  dispatch(
+                    Style.SetWordAnimation({
+                      ...style.wordAnimation,
+                      pop: {scale: percent->Int.toFloat /. 100.0},
+                    }),
                   )}
               />
             </div>
