@@ -237,7 +237,8 @@ var make$1 = React.memo(function (props) {
                                       content: mobilePreviewContent
                                     }
                                   ],
-                                  defaultIndex: 0
+                                  defaultIndex: 0,
+                                  className: "outline-none"
                                 }),
                             className: "flex-1 flex flex-col min-h-0"
                           }),

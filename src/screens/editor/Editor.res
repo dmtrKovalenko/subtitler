@@ -174,6 +174,7 @@ let make = React.memo((
       <div className="flex-1 flex flex-col min-h-0">
         <Tabs
           defaultIndex=0
+          className="outline-none"
           tabs=[
             {
               id: "subtitles",

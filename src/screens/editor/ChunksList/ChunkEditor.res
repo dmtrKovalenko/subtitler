@@ -149,23 +149,27 @@ let make = React.memo((
 
   // Don't auto-scroll when split preview is active or user is interacting with menus
   React.useEffect2(() => {
-    if current && !previousWasCurrentRef.current {
+    if current {
+      // Always update the ref when this cue is current
       globalCurrentCueTextAreaRef := Some(textAreaRef)
 
-      // Skip scroll if ANY split preview is active (user is in split menu)
-      // or if user is focusing any interactive element
-      let shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement()
+      // Only auto-scroll on transition to current
+      if !previousWasCurrentRef.current {
+        // Skip scroll if ANY split preview is active (user is in split menu)
+        // or if user is focusing any interactive element
+        let shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement()
 
-      if shouldScroll {
-        ref.current
-        ->Js.Nullable.toOption
-        ->Option.forEach(
-          el =>
-            el->Webapi.Dom.Element.scrollIntoViewWithOptions({
-              "behavior": "smooth",
-              "block": "nearest",
-            }),
-        )
+        if shouldScroll {
+          ref.current
+          ->Js.Nullable.toOption
+          ->Option.forEach(
+            el =>
+              el->Webapi.Dom.Element.scrollIntoViewWithOptions({
+                "behavior": "smooth",
+                "block": "nearest",
+              }),
+          )
+        }
       }
     }
 
@@ -283,6 +287,7 @@ let make = React.memo((
         rows={chunk.text === "" ? 2 : 3}
         onBlur={handleBlur}
         onKeyDown={editorInputHandler}
+        id={current ? "current-cue-textarea" : ""}
         className={Cx.cx([
           "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
           "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400",

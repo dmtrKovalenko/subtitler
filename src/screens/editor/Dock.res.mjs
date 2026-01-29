@@ -11,7 +11,6 @@ import * as Spinner from "../../ui/Spinner.res.mjs";
 import * as Shortcut from "./Shortcut.res.mjs";
 import * as Subtitles from "./Subtitles.res.mjs";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
-import * as ChunkEditor from "./ChunksList/ChunkEditor.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 import * as Core__Promise from "@rescript/core/src/Core__Promise.res.mjs";
 import * as EditorContext from "./EditorContext.res.mjs";
@@ -24,7 +23,7 @@ import * as Webapi__Dom__EventTarget from "rescript-webapi/src/Webapi/Dom/Webapi
 import * as Solid from "@heroicons/react/24/solid";
 import * as VideoExportFormatDropdown from "../../ui/VideoExportFormatDropdown.res.mjs";
 import * as Outline from "@heroicons/react/24/outline";
-import * as Webapi__Dom__HtmlInputElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlInputElement.res.mjs";
+import * as Webapi__Dom__HtmlTextAreaElement from "rescript-webapi/src/Webapi/Dom/Webapi__Dom__HtmlTextAreaElement.res.mjs";
 
 var make = DockButton;
 
@@ -264,13 +263,12 @@ function Dock(props) {
             });
       });
   var editCurrentSubtitle = Hooks.useEvent(function () {
-        setTimeout((function () {
-                Core__Option.forEach(Core__Option.flatMap(Core__Option.flatMap(ChunkEditor.globalCurrentCueTextAreaRef.contents, (function (el) {
-                                return Caml_option.nullable_to_opt(el.current);
-                              })), Webapi__Dom__HtmlInputElement.ofElement), (function (prim) {
-                        prim.focus();
-                      }));
-              }), 0);
+        Core__Option.forEach(Core__Option.flatMap(Caml_option.nullable_to_opt(document.getElementById("current-cue-textarea")), Webapi__Dom__HtmlTextAreaElement.ofElement), (function (textarea) {
+                textarea.focus();
+                var len = textarea.value.length;
+                textarea.selectionStart = len;
+                textarea.selectionEnd = len;
+              }));
       });
   var moveToCue = Hooks.useEvent(function (shift) {
         var currentOrLastCue = Utils.$$Option.unwrapOrElse(context.getImmediatePlayerState().currentPlayingCue, (function () {

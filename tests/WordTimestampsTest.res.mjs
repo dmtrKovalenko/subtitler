@@ -155,7 +155,7 @@ Test.test("applyTextEdit: simple word replacement", (function () {
         Assert.floatEqual(undefined, getStart(result, 1), 0.5);
       }));
 
-Test.test("applyTextEdit: word insertion in middle with gap", (function () {
+Test.test("applyTextEdit: word insertion in middle with gap merges into next match", (function () {
         var words = [
           {
             text: "hello",
@@ -173,11 +173,11 @@ Test.test("applyTextEdit: word insertion in middle with gap", (function () {
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "hello beautiful world");
-        Assert.intEqual(undefined, result.length, 3);
+        Assert.intEqual(undefined, result.length, 2);
         Assert.stringEqual(undefined, result[0].text, "hello");
-        Assert.stringEqual(undefined, result[1].text, "beautiful");
-        Assert.stringEqual(undefined, result[2].text, "world");
-        Assert.floatEqual(undefined, getStart(result, 1), 0.4);
+        Assert.stringEqual(undefined, result[1].text, "beautiful world");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.8);
       }));
 
 Test.test("applyTextEdit: word insertion at START merges with first word", (function () {
@@ -314,7 +314,7 @@ Test.test("applyTextEdit: word deletion at END", (function () {
         Assert.floatEqual(undefined, getStart(result, 0), 0.0);
       }));
 
-Test.test("applyTextEdit: multiple insertions in middle split gap evenly", (function () {
+Test.test("applyTextEdit: multiple insertions in middle merge into next match", (function () {
         var words = [
           {
             text: "hello",
@@ -332,13 +332,11 @@ Test.test("applyTextEdit: multiple insertions in middle split gap evenly", (func
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "hello big beautiful world");
-        Assert.intEqual(undefined, result.length, 4);
+        Assert.intEqual(undefined, result.length, 2);
         Assert.stringEqual(undefined, result[0].text, "hello");
-        Assert.stringEqual(undefined, result[1].text, "big");
-        Assert.stringEqual(undefined, result[2].text, "beautiful");
-        Assert.stringEqual(undefined, result[3].text, "world");
-        Assert.floatEqual(undefined, getStart(result, 1), 0.4);
-        Assert.floatEqual(undefined, getStart(result, 2), 0.6);
+        Assert.stringEqual(undefined, result[1].text, "big beautiful world");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.8);
       }));
 
 Test.test("applyTextEdit: mixed replacement and middle insertion", (function () {
@@ -366,15 +364,13 @@ Test.test("applyTextEdit: mixed replacement and middle insertion", (function () 
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "hey helo beautiful world");
-        Assert.intEqual(undefined, result.length, 4);
+        Assert.intEqual(undefined, result.length, 3);
         Assert.stringEqual(undefined, result[0].text, "hey");
         Assert.stringEqual(undefined, result[1].text, "helo");
-        Assert.stringEqual(undefined, result[2].text, "beautiful");
-        Assert.stringEqual(undefined, result[3].text, "world");
+        Assert.stringEqual(undefined, result[2].text, "beautiful world");
         Assert.floatEqual(undefined, getStart(result, 0), 0.0);
         Assert.floatEqual(undefined, getStart(result, 1), 0.3);
-        Assert.floatEqual(undefined, getStart(result, 2), 0.5);
-        Assert.floatEqual(undefined, getStart(result, 3), 0.7);
+        Assert.floatEqual(undefined, getStart(result, 2), 0.7);
       }));
 
 Test.test("applyTextEdit: complete rewrite (0% overlap)", (function () {
@@ -412,7 +408,7 @@ Test.test("applyTextEdit: empty new text", (function () {
         Assert.intEqual(undefined, result.length, 0);
       }));
 
-Test.test("applyTextEdit: insertions with no gap (zero duration)", (function () {
+Test.test("applyTextEdit: insertions with no gap merge into next match", (function () {
         var words = [
           {
             text: "hello",
@@ -430,8 +426,10 @@ Test.test("applyTextEdit: insertions with no gap (zero duration)", (function () 
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "hello beautiful world");
-        Assert.intEqual(undefined, result.length, 3);
-        Assert.stringEqual(undefined, result[1].text, "beautiful");
+        Assert.intEqual(undefined, result.length, 2);
+        Assert.stringEqual(undefined, result[0].text, "hello");
+        Assert.stringEqual(undefined, result[1].text, "beautiful world");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
         Assert.floatEqual(undefined, getStart(result, 1), 0.5);
       }));
 
@@ -467,13 +465,11 @@ Test.test("applyTextEdit: complex start merge + middle insert + end merge", (fun
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "oh hello beautiful world indeed");
-        Assert.intEqual(undefined, result.length, 3);
+        Assert.intEqual(undefined, result.length, 2);
         Assert.stringEqual(undefined, result[0].text, "oh hello");
-        Assert.stringEqual(undefined, result[1].text, "beautiful");
-        Assert.stringEqual(undefined, result[2].text, "world indeed");
+        Assert.stringEqual(undefined, result[1].text, "beautiful world indeed");
         Assert.floatEqual(undefined, getStart(result, 0), 0.0);
-        Assert.floatEqual(undefined, getStart(result, 1), 0.3);
-        Assert.floatEqual(undefined, getStart(result, 2), 0.7);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.7);
       }));
 
 Test.test("applyTextEdit: single word unchanged", (function () {
@@ -533,12 +529,11 @@ Test.test("applyTextEdit: insert word with punctuation", (function () {
           }
         ];
         var result = WordTimestamps.applyTextEdit(words, "Hello, beautiful world!");
-        Assert.intEqual(undefined, result.length, 3);
+        Assert.intEqual(undefined, result.length, 2);
         Assert.stringEqual(undefined, result[0].text, "Hello,");
-        Assert.stringEqual(undefined, result[1].text, "beautiful");
-        Assert.stringEqual(undefined, result[2].text, "world!");
+        Assert.stringEqual(undefined, result[1].text, "beautiful world!");
         Assert.floatEqual(undefined, getStart(result, 0), 0.0);
-        Assert.floatEqual(undefined, getStart(result, 2), 0.5);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.5);
       }));
 
 Test.test("applyTextEdit: case change should preserve timestamp", (function () {
@@ -562,6 +557,81 @@ Test.test("applyTextEdit: case change should preserve timestamp", (function () {
         Assert.intEqual(undefined, result.length, 2);
         Assert.stringEqual(undefined, result[0].text, "HELLO");
         Assert.stringEqual(undefined, result[1].text, "WORLD");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.5);
+      }));
+
+Test.test("applyTextEdit: replace word with two words merges into single chunk", (function () {
+        var words = [
+          {
+            text: "Hello",
+            timestamp: [
+              0.0,
+              0.5
+            ]
+          },
+          {
+            text: "world",
+            timestamp: [
+              0.5,
+              1.0
+            ]
+          }
+        ];
+        var result = WordTimestamps.applyTextEdit(words, "Hello freaking world");
+        Assert.intEqual(undefined, result.length, 2);
+        Assert.stringEqual(undefined, result[0].text, "Hello");
+        Assert.stringEqual(undefined, result[1].text, "freaking world");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.5);
+      }));
+
+Test.test("applyTextEdit: replace first word with multiple words", (function () {
+        var words = [
+          {
+            text: "Hello",
+            timestamp: [
+              0.0,
+              0.5
+            ]
+          },
+          {
+            text: "world",
+            timestamp: [
+              0.5,
+              1.0
+            ]
+          }
+        ];
+        var result = WordTimestamps.applyTextEdit(words, "Oh hi Hello world");
+        Assert.intEqual(undefined, result.length, 2);
+        Assert.stringEqual(undefined, result[0].text, "Oh hi Hello");
+        Assert.stringEqual(undefined, result[1].text, "world");
+        Assert.floatEqual(undefined, getStart(result, 0), 0.0);
+        Assert.floatEqual(undefined, getStart(result, 1), 0.5);
+      }));
+
+Test.test("applyTextEdit: replace last word with multiple words", (function () {
+        var words = [
+          {
+            text: "Hello",
+            timestamp: [
+              0.0,
+              0.5
+            ]
+          },
+          {
+            text: "world",
+            timestamp: [
+              0.5,
+              1.0
+            ]
+          }
+        ];
+        var result = WordTimestamps.applyTextEdit(words, "Hello world indeed friend");
+        Assert.intEqual(undefined, result.length, 2);
+        Assert.stringEqual(undefined, result[0].text, "Hello");
+        Assert.stringEqual(undefined, result[1].text, "world indeed friend");
         Assert.floatEqual(undefined, getStart(result, 0), 0.0);
         Assert.floatEqual(undefined, getStart(result, 1), 0.5);
       }));

@@ -74,7 +74,10 @@ function matchAction(e, shortcuts) {
 
 function useKeyboardShortcuts(shortcuts, fn) {
   var handleKeydown = Hooks.useEvent(function (e) {
-        Core__Option.forEach(matchAction(e, shortcuts), fn);
+        Core__Option.forEach(matchAction(e, shortcuts), (function (shortcut) {
+                e.preventDefault();
+                fn(shortcut);
+              }));
       });
   React.useEffect((function () {
           window.addEventListener("keydown", handleKeydown);

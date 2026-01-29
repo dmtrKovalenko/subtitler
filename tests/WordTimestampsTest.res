@@ -107,16 +107,16 @@ test("applyTextEdit: simple word replacement", () => {
   Assert.floatEqual(getStart(result, 1), 0.5)
 })
 
-test("applyTextEdit: word insertion in middle with gap", () => {
+test("applyTextEdit: word insertion in middle with gap merges into next match", () => {
   let words = [word("hello", 0.0, ts(0.0, 0.4)), word("world", 0.8, ts(0.8, 1.0))]
   let result = WordTimestamps.applyTextEdit(words, "hello beautiful world")
 
-  Assert.intEqual(Array.length(result), 3)
+  // Inserted word should merge with the next matched word
+  Assert.intEqual(Array.length(result), 2)
   Assert.stringEqual(getText(result, 0), "hello")
-  Assert.stringEqual(getText(result, 1), "beautiful")
-  Assert.stringEqual(getText(result, 2), "world")
-  // beautiful should fill the gap (0.4 to 0.8)
-  Assert.floatEqual(getStart(result, 1), 0.4)
+  Assert.stringEqual(getText(result, 1), "beautiful world")
+  Assert.floatEqual(getStart(result, 0), 0.0)
+  Assert.floatEqual(getStart(result, 1), 0.8)
 })
 
 test("applyTextEdit: word insertion at START merges with first word", () => {
@@ -189,18 +189,16 @@ test("applyTextEdit: word deletion at END", () => {
   Assert.floatEqual(getStart(result, 0), 0.0)
 })
 
-test("applyTextEdit: multiple insertions in middle split gap evenly", () => {
+test("applyTextEdit: multiple insertions in middle merge into next match", () => {
   let words = [word("hello", 0.0, ts(0.0, 0.4)), word("world", 0.8, ts(0.8, 1.0))]
   let result = WordTimestamps.applyTextEdit(words, "hello big beautiful world")
 
-  Assert.intEqual(Array.length(result), 4)
+  // All inserted words should merge with the next matched word
+  Assert.intEqual(Array.length(result), 2)
   Assert.stringEqual(getText(result, 0), "hello")
-  Assert.stringEqual(getText(result, 1), "big")
-  Assert.stringEqual(getText(result, 2), "beautiful")
-  Assert.stringEqual(getText(result, 3), "world")
-  // Gap: 0.4 to 0.8 = 0.4s, 2 words -> 0.2s each
-  Assert.floatEqual(getStart(result, 1), 0.4)
-  Assert.floatEqual(getStart(result, 2), 0.6)
+  Assert.stringEqual(getText(result, 1), "big beautiful world")
+  Assert.floatEqual(getStart(result, 0), 0.0)
+  Assert.floatEqual(getStart(result, 1), 0.8)
 })
 
 test("applyTextEdit: mixed replacement and middle insertion", () => {
@@ -211,19 +209,15 @@ test("applyTextEdit: mixed replacement and middle insertion", () => {
   ]
   let result = WordTimestamps.applyTextEdit(words, "hey helo beautiful world")
 
-  Assert.intEqual(Array.length(result), 4)
+  // LCS matches "hey" (0,0) and "world" (2,3)
+  // "helo" gets "hello"'s timestamp, "beautiful" merges with "world"
+  Assert.intEqual(Array.length(result), 3)
   Assert.stringEqual(getText(result, 0), "hey")
   Assert.stringEqual(getText(result, 1), "helo")
-  Assert.stringEqual(getText(result, 2), "beautiful")
-  Assert.stringEqual(getText(result, 3), "world")
-  // hey keeps timestamp
+  Assert.stringEqual(getText(result, 2), "beautiful world")
   Assert.floatEqual(getStart(result, 0), 0.0)
-  // LCS matches "hey" (0,0) and "world" (2,3)
-  // So "helo" and "beautiful" are both insertions between hey and world
-  // Gap: 0.3 to 0.7 = 0.4s, split between 2 words
   Assert.floatEqual(getStart(result, 1), 0.3)
-  Assert.floatEqual(getStart(result, 2), 0.5)
-  Assert.floatEqual(getStart(result, 3), 0.7)
+  Assert.floatEqual(getStart(result, 2), 0.7)
 })
 
 test("applyTextEdit: complete rewrite (0% overlap)", () => {
@@ -242,13 +236,15 @@ test("applyTextEdit: empty new text", () => {
   Assert.intEqual(Array.length(result), 0)
 })
 
-test("applyTextEdit: insertions with no gap (zero duration)", () => {
+test("applyTextEdit: insertions with no gap merge into next match", () => {
   let words = [word("hello", 0.0, ts(0.0, 0.5)), word("world", 0.5, ts(0.5, 1.0))]
   let result = WordTimestamps.applyTextEdit(words, "hello beautiful world")
 
-  Assert.intEqual(Array.length(result), 3)
-  Assert.stringEqual(getText(result, 1), "beautiful")
-  // beautiful should have zero duration at insertion point
+  // Inserted word merges with next matched word
+  Assert.intEqual(Array.length(result), 2)
+  Assert.stringEqual(getText(result, 0), "hello")
+  Assert.stringEqual(getText(result, 1), "beautiful world")
+  Assert.floatEqual(getStart(result, 0), 0.0)
   Assert.floatEqual(getStart(result, 1), 0.5)
 })
 
@@ -265,13 +261,14 @@ test("applyTextEdit: complex start merge + middle insert + end merge", () => {
   let words = [word("hello", 0.0, ts(0.0, 0.3)), word("world", 0.7, ts(0.7, 1.0))]
   let result = WordTimestamps.applyTextEdit(words, "oh hello beautiful world indeed")
 
-  Assert.intEqual(Array.length(result), 3)
+  // "oh" merges with first match "hello"
+  // "beautiful" merges with second match "world"
+  // "indeed" merges with last match "world" (at end)
+  Assert.intEqual(Array.length(result), 2)
   Assert.stringEqual(getText(result, 0), "oh hello")
-  Assert.stringEqual(getText(result, 1), "beautiful")
-  Assert.stringEqual(getText(result, 2), "world indeed")
+  Assert.stringEqual(getText(result, 1), "beautiful world indeed")
   Assert.floatEqual(getStart(result, 0), 0.0)
-  Assert.floatEqual(getStart(result, 1), 0.3)
-  Assert.floatEqual(getStart(result, 2), 0.7)
+  Assert.floatEqual(getStart(result, 1), 0.7)
 })
 
 test("applyTextEdit: single word unchanged", () => {
@@ -303,12 +300,12 @@ test("applyTextEdit: insert word with punctuation", () => {
   let words = [word("Hello", 0.0, ts(0.0, 0.5)), word("world", 0.5, ts(0.5, 1.0))]
   let result = WordTimestamps.applyTextEdit(words, "Hello, beautiful world!")
 
-  Assert.intEqual(Array.length(result), 3)
+  // Inserted word merges with next matched word
+  Assert.intEqual(Array.length(result), 2)
   Assert.stringEqual(getText(result, 0), "Hello,")
-  Assert.stringEqual(getText(result, 1), "beautiful")
-  Assert.stringEqual(getText(result, 2), "world!")
+  Assert.stringEqual(getText(result, 1), "beautiful world!")
   Assert.floatEqual(getStart(result, 0), 0.0)
-  Assert.floatEqual(getStart(result, 2), 0.5)
+  Assert.floatEqual(getStart(result, 1), 0.5)
 })
 
 test("applyTextEdit: case change should preserve timestamp", () => {
@@ -319,6 +316,44 @@ test("applyTextEdit: case change should preserve timestamp", () => {
   Assert.intEqual(Array.length(result), 2)
   Assert.stringEqual(getText(result, 0), "HELLO")
   Assert.stringEqual(getText(result, 1), "WORLD")
+  Assert.floatEqual(getStart(result, 0), 0.0)
+  Assert.floatEqual(getStart(result, 1), 0.5)
+})
+
+test("applyTextEdit: replace word with two words merges into single chunk", () => {
+  // User scenario: "Hello world" -> "Hello freaking world"
+  // "freaking" replaces nothing (world still matches), so it merges with "world"
+  let words = [word("Hello", 0.0, ts(0.0, 0.5)), word("world", 0.5, ts(0.5, 1.0))]
+  let result = WordTimestamps.applyTextEdit(words, "Hello freaking world")
+
+  Assert.intEqual(Array.length(result), 2)
+  Assert.stringEqual(getText(result, 0), "Hello")
+  Assert.stringEqual(getText(result, 1), "freaking world")
+  // "freaking world" should be highlighted together with world's timestamp
+  Assert.floatEqual(getStart(result, 0), 0.0)
+  Assert.floatEqual(getStart(result, 1), 0.5)
+})
+
+test("applyTextEdit: replace first word with multiple words", () => {
+  // "Hello world" -> "Oh hi Hello world" where "Hello" matches
+  let words = [word("Hello", 0.0, ts(0.0, 0.5)), word("world", 0.5, ts(0.5, 1.0))]
+  let result = WordTimestamps.applyTextEdit(words, "Oh hi Hello world")
+
+  Assert.intEqual(Array.length(result), 2)
+  Assert.stringEqual(getText(result, 0), "Oh hi Hello")
+  Assert.stringEqual(getText(result, 1), "world")
+  Assert.floatEqual(getStart(result, 0), 0.0)
+  Assert.floatEqual(getStart(result, 1), 0.5)
+})
+
+test("applyTextEdit: replace last word with multiple words", () => {
+  // "Hello world" -> "Hello world indeed friend"
+  let words = [word("Hello", 0.0, ts(0.0, 0.5)), word("world", 0.5, ts(0.5, 1.0))]
+  let result = WordTimestamps.applyTextEdit(words, "Hello world indeed friend")
+
+  Assert.intEqual(Array.length(result), 2)
+  Assert.stringEqual(getText(result, 0), "Hello")
+  Assert.stringEqual(getText(result, 1), "world indeed friend")
   Assert.floatEqual(getStart(result, 0), 0.0)
   Assert.floatEqual(getStart(result, 1), 0.5)
 })

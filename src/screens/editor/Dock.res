@@ -116,12 +116,15 @@ let make = (~subtitlesManager, ~render, ~fullScreenToggler: Hooks.toggle, ~video
   let seekToEnd = Hooks.useEvent(() => playerDispatch(Seek(context.videoMeta.duration)))
 
   let editCurrentSubtitle = Hooks.useEvent(() => {
-    setTimeout(() =>
-      ChunkEditor.globalCurrentCueTextAreaRef.contents
-      ->Option.flatMap(el => Js.Nullable.toOption(el.current))
-      ->Option.flatMap(Dom.HtmlInputElement.ofElement)
-      ->Option.forEach(Dom.HtmlInputElement.focus)
-    , 0)->ignore
+    Webapi.Dom.document
+    ->Webapi.Dom.Document.getElementById("current-cue-textarea")
+    ->Option.flatMap(Dom.HtmlTextAreaElement.ofElement)
+    ->Option.forEach(textarea => {
+      Dom.HtmlTextAreaElement.focus(textarea)
+      let len = Dom.HtmlTextAreaElement.value(textarea)->String.length
+      Dom.HtmlTextAreaElement.setSelectionStart(textarea, Some(len))
+      Dom.HtmlTextAreaElement.setSelectionEnd(textarea, Some(len))
+    })
   })
 
   let moveToCue = Hooks.useEvent(shift => {
