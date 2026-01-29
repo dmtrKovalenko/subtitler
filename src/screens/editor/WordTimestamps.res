@@ -187,6 +187,9 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
       matches->Array.forEachWithIndex((match_, matchIdx) => {
         let (oldIdx, newIdx) = match_
 
+        // Track text to merge with current matched word (from gaps with no old words)
+        let betweenMergeText = ref("")
+
         // Handle tokens BETWEEN previous match and current match
         if matchIdx > 0 {
           let (prevOldIdx, prevNewIdx) = matches->Array.getUnsafe(matchIdx - 1)
@@ -210,39 +213,15 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
                 result->Array.push({text: token, timestamp: ts})
               }
 
-              // Interpolate remaining new tokens
+              // If more new tokens than old, merge remainder into current match
               if newCountBetween > oldCountBetween {
                 let remainingNewTokens = newTokensBetween->Array.sliceToEnd(~start=assignCount)
-                let lastUsedOld = oldWordsBetween->Array.getUnsafe(assignCount - 1)
-                let prevEnd =
-                  lastUsedOld->end_->Js.Nullable.toOption->Option.getOr(lastUsedOld->start)
-                let nextStart = oldWords->Array.getUnsafe(oldIdx)->start
-
-                let timestamps = interpolateTimestamps(
-                  ~prevEnd,
-                  ~nextStart,
-                  ~count=Array.length(remainingNewTokens),
-                )
-
-                remainingNewTokens->Array.forEachWithIndex((token, i) => {
-                  result->Array.push({text: token, timestamp: timestamps->Array.getUnsafe(i)})
-                })
+                betweenMergeText := remainingNewTokens->Array.join(" ")
               }
             } else {
-              // No old words in gap - interpolate all new tokens
-              let prevEnd =
-                oldWords
-                ->Array.getUnsafe(prevOldIdx)
-                ->end_
-                ->Js.Nullable.toOption
-                ->Option.getOr(oldWords->Array.getUnsafe(prevOldIdx)->start)
-              let nextStart = oldWords->Array.getUnsafe(oldIdx)->start
-
-              let timestamps = interpolateTimestamps(~prevEnd, ~nextStart, ~count=newCountBetween)
-
-              newTokensBetween->Array.forEachWithIndex((token, i) => {
-                result->Array.push({text: token, timestamp: timestamps->Array.getUnsafe(i)})
-              })
+              // No old words in gap - these are replacement words for a deleted word
+              // Merge them with the current matched word
+              betweenMergeText := newTokensBetween->Array.join(" ")
             }
           }
         }
@@ -251,9 +230,15 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
         let originalTs = (oldWords->Array.getUnsafe(oldIdx)).timestamp
         let matchedToken = newTokens->Array.getUnsafe(newIdx)
 
-        // Merge with start tokens if first match
+        // Build final text: merge start tokens (for first match), between tokens, and matched token
         let finalText = if matchIdx == 0 && startMergeText !== "" {
-          startMergeText ++ " " ++ matchedToken
+          if betweenMergeText.contents !== "" {
+            startMergeText ++ " " ++ betweenMergeText.contents ++ " " ++ matchedToken
+          } else {
+            startMergeText ++ " " ++ matchedToken
+          }
+        } else if betweenMergeText.contents !== "" {
+          betweenMergeText.contents ++ " " ++ matchedToken
         } else {
           matchedToken
         }

@@ -88,5 +88,9 @@ export type stylePreferences = {
   readonly showBackground: boolean; 
   readonly background: background; 
   readonly showWordAnimation: boolean; 
-  readonly wordAnimation: wordAnimation
+  readonly wordAnimation: wordAnimation; 
+  readonly x: (undefined | number); 
+  readonly y: (undefined | number); 
+  readonly videoWidth: (undefined | number); 
+  readonly videoHeight: (undefined | number)
 };

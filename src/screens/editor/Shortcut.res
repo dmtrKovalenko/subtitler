@@ -69,7 +69,10 @@ let matchAction = (e, shortcuts) => {
 
 let useKeyboardShortcuts = (shortcuts, fn) => {
   let handleKeydown = Hooks.useEvent(e => {
-    matchAction(e, shortcuts)->Option.forEach(fn)
+    matchAction(e, shortcuts)->Option.forEach(shortcut => {
+      e->KeyboardEvent.preventDefault
+      fn(shortcut)
+    })
   })
 
   React.useEffect1(() => {

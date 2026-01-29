@@ -163,16 +163,19 @@ var make = React.memo(function (props) {
       var previousWasCurrentRef = React.useRef(current);
       var editorInputHandler = useEditorInputHandler();
       React.useEffect((function () {
-              if (current && !previousWasCurrentRef.current) {
+              if (current) {
                 globalCurrentCueTextAreaRef.contents = textAreaRef;
-                var shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement();
-                if (shouldScroll) {
-                  Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
-                          el.scrollIntoView({
-                                behavior: "smooth",
-                                block: "nearest"
-                              });
-                        }));
+                if (!previousWasCurrentRef.current) {
+                  var shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement();
+                  if (shouldScroll) {
+                    Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
+                            el.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "nearest"
+                                });
+                          }));
+                  }
+                  
                 }
                 
               }
@@ -300,6 +303,7 @@ var make = React.memo(function (props) {
                                   "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",
                                   "focus:outline-none focus:outline-2 focus:-outline-offset-2 focus:outline-orange-400"
                                 ]),
+                            id: current ? "current-cue-textarea" : "",
                             readOnly: readonly,
                             rows: chunk.text === "" ? 2 : 3,
                             onKeyDown: editorInputHandler,

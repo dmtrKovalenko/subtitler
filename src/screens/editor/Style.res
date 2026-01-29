@@ -140,7 +140,7 @@ let defaultWordAnimation: wordAnimation = {
   pop: defaultWordAnimationPop,
 }
 
-// Persistable style preferences (excludes video-dependent properties like x, y, blockSize)
+// Persistable style preferences (excludes video-dependent properties like blockSize)
 @genType
 type stylePreferences = {
   fontFamily: string,
@@ -154,6 +154,11 @@ type stylePreferences = {
   background: background,
   showWordAnimation: bool,
   wordAnimation: wordAnimation,
+  // Position with video dimensions for conditional restore
+  x: option<int>,
+  y: option<int>,
+  videoWidth: option<int>,
+  videoHeight: option<int>,
 }
 
 let defaultPreferences: stylePreferences = {
@@ -168,10 +173,16 @@ let defaultPreferences: stylePreferences = {
   background: defaultBackground,
   showWordAnimation: false,
   wordAnimation: defaultWordAnimation,
+  x: None,
+  y: None,
+  // we store the video x and y was set for to only restore position
+  // if video dimensions matches on load
+  videoWidth: None,
+  videoHeight: None,
 }
 
 let stylePreferencesStorageKey = "subtitler.stylePreferences"
-let stylePreferencesVersion = 2
+let stylePreferencesVersion = 3
 
 let loadStylePreferences = (): option<stylePreferences> => {
   open Dom.Storage2
@@ -193,7 +204,7 @@ let loadStylePreferences = (): option<stylePreferences> => {
   }
 }
 
-let saveStylePreferences = (style: style) => {
+let saveStylePreferences = (style: style, ~videoWidth: int, ~videoHeight: int) => {
   open Dom.Storage2
 
   let prefs: stylePreferences = {
@@ -208,6 +219,10 @@ let saveStylePreferences = (style: style) => {
     background: style.background,
     showWordAnimation: style.showWordAnimation,
     wordAnimation: style.wordAnimation,
+    x: Some(style.x),
+    y: Some(style.y),
+    videoWidth: Some(videoWidth),
+    videoHeight: Some(videoHeight),
   }
 
   localStorage->setItem(
@@ -237,16 +252,30 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
   let center = Ctx.videoMeta.width / 2 - width / 2
   let defaultFontSizePx = Ctx.videoMeta.height / 30
 
-  // Load persisted preferences
   let savedPrefs = loadStylePreferences()
+  let savedPositionMatches =
+    savedPrefs->Option.mapOr(false, p =>
+      p.videoWidth == Some(Ctx.videoMeta.width) && p.videoHeight == Some(Ctx.videoMeta.height)
+    )
+
+  let defaultX = center
+  let defaultY = if Ctx.videoMeta.width > Ctx.videoMeta.height {
+    Ctx.videoMeta.height - Ctx.videoMeta.height / 6
+  } else {
+    Ctx.videoMeta.height / 7
+  }
 
   let initial = {
-    // Video-dependent properties (always calculated fresh)
-    x: center,
-    y: if Ctx.videoMeta.width > Ctx.videoMeta.height {
-      Ctx.videoMeta.height - Ctx.videoMeta.height / 6
+    // Video-dependent properties (restore if dimensions match, otherwise calculate fresh)
+    x: if savedPositionMatches {
+      savedPrefs->Option.flatMap(p => p.x)->Option.getOr(defaultX)
     } else {
-      Ctx.videoMeta.height / 7
+      defaultX
+    },
+    y: if savedPositionMatches {
+      savedPrefs->Option.flatMap(p => p.y)->Option.getOr(defaultY)
+    } else {
+      defaultY
     },
     blockSize: {width, height: defaultFontSizePx},
     fontVariants: all_font_weights,
@@ -271,9 +300,9 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     wordAnimation: savedPrefs->Option.mapOr(defaultPreferences.wordAnimation, p => p.wordAnimation),
   }
 
-  let reducer = (state, action) => {
+  let reducer = (state: style, action): style => {
     let newState = switch action {
-    | SetPosition(x, y) => {...state, x, y}
+    | SetPosition(newX, newY) => {...state, x: newX, y: newY}
     | SetFontFamily(fontFamily) => {...state, fontFamily}
     | SetFontWeight(fontWeight) => {...state, fontWeight}
     | SetFontSizePx(fontSizePx) => {...state, fontSizePx}
@@ -306,7 +335,11 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     }
 
     // Persist preferences on every change
-    saveStylePreferences(newState)
+    saveStylePreferences(
+      newState,
+      ~videoWidth=Ctx.videoMeta.width,
+      ~videoHeight=Ctx.videoMeta.height,
+    )
 
     newState
   }
