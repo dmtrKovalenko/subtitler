@@ -503,18 +503,19 @@ var make = Utils.neverRerender(function (props) {
                                                               }),
                                                           JsxRuntime.jsx(ToggleSwitch.make, {
                                                                 labelId: "word-anim-background",
-                                                                enabled: style.wordAnimation.showBackground,
-                                                                onChange: (function (showBackground) {
+                                                                enabled: style.wordAnimation.enableBackground,
+                                                                onChange: (function (enableBackground) {
                                                                     var init = style.wordAnimation;
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: showBackground,
+                                                                            enableBackground: enableBackground,
                                                                             background: init.background,
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   })
@@ -535,7 +536,7 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: {
                                                                               color: value,
                                                                               opacity: init$1.opacity,
@@ -543,10 +544,11 @@ var make = Utils.neverRerender(function (props) {
                                                                               paddingY: init$1.paddingY,
                                                                               borderRadius: init$1.borderRadius
                                                                             },
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   })
@@ -559,7 +561,7 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: {
                                                                               color: init$1.color,
                                                                               opacity: opacity,
@@ -567,10 +569,11 @@ var make = Utils.neverRerender(function (props) {
                                                                               paddingY: init$1.paddingY,
                                                                               borderRadius: init$1.borderRadius
                                                                             },
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   }),
@@ -588,7 +591,7 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: {
                                                                               color: init$1.color,
                                                                               opacity: init$1.opacity,
@@ -596,10 +599,11 @@ var make = Utils.neverRerender(function (props) {
                                                                               paddingY: init$1.paddingY,
                                                                               borderRadius: borderRadius
                                                                             },
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   }),
@@ -621,7 +625,7 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: {
                                                                               color: init$1.color,
                                                                               opacity: init$1.opacity,
@@ -629,10 +633,11 @@ var make = Utils.neverRerender(function (props) {
                                                                               paddingY: init$1.paddingY,
                                                                               borderRadius: init$1.borderRadius
                                                                             },
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   }),
@@ -650,7 +655,7 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: {
                                                                               color: init$1.color,
                                                                               opacity: init$1.opacity,
@@ -658,10 +663,11 @@ var make = Utils.neverRerender(function (props) {
                                                                               paddingY: paddingY,
                                                                               borderRadius: init$1.borderRadius
                                                                             },
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   }),
@@ -674,7 +680,7 @@ var make = Utils.neverRerender(function (props) {
                                                         ],
                                                         className: Cx.cx([
                                                               "grid grid-cols-4 gap-2 pl-7",
-                                                              style.wordAnimation.showBackground ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                              style.wordAnimation.enableBackground ? "brightness-100" : "brightness-50 pointer-events-none"
                                                             ])
                                                       })
                                                 ],
@@ -696,18 +702,19 @@ var make = Utils.neverRerender(function (props) {
                                                               }),
                                                           JsxRuntime.jsx(ToggleSwitch.make, {
                                                                 labelId: "word-anim-font",
-                                                                enabled: style.wordAnimation.showFont,
-                                                                onChange: (function (showFont) {
+                                                                enabled: style.wordAnimation.enableFont,
+                                                                onChange: (function (enableFont) {
                                                                     var init = style.wordAnimation;
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: init.background,
-                                                                            showFont: showFont,
+                                                                            enableFont: enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   })
@@ -728,15 +735,16 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: init.background,
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: {
                                                                               color: value,
                                                                               fontWeight: init$1.fontWeight
                                                                             },
-                                                                            showPop: init.showPop,
-                                                                            pop: init.pop
+                                                                            enablePop: init.enablePop,
+                                                                            pop: init.pop,
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   })
@@ -759,15 +767,16 @@ var make = Utils.neverRerender(function (props) {
                                                                                     dispatch({
                                                                                           TAG: "SetWordAnimation",
                                                                                           _0: {
-                                                                                            showBackground: init.showBackground,
+                                                                                            enableBackground: init.enableBackground,
                                                                                             background: init.background,
-                                                                                            showFont: init.showFont,
+                                                                                            enableFont: init.enableFont,
                                                                                             font: {
                                                                                               color: init$1.color,
                                                                                               fontWeight: fontWeight
                                                                                             },
-                                                                                            showPop: init.showPop,
-                                                                                            pop: init.pop
+                                                                                            enablePop: init.enablePop,
+                                                                                            pop: init.pop,
+                                                                                            enableSlide: init.enableSlide
                                                                                           }
                                                                                         });
                                                                                   }));
@@ -783,7 +792,71 @@ var make = Utils.neverRerender(function (props) {
                                                         ],
                                                         className: Cx.cx([
                                                               "grid grid-cols-4 gap-2 pl-7",
-                                                              style.wordAnimation.showFont ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                              style.wordAnimation.enableFont ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                            ])
+                                                      })
+                                                ],
+                                                className: "flex flex-col gap-1.5"
+                                              }),
+                                          JsxRuntime.jsxs("div", {
+                                                children: [
+                                                  JsxRuntime.jsxs("div", {
+                                                        children: [
+                                                          JsxRuntime.jsxs("label", {
+                                                                children: [
+                                                                  JsxRuntime.jsx(Outline.ArrowRightIcon, {
+                                                                        className: "size-5"
+                                                                      }),
+                                                                  "Slide"
+                                                                ],
+                                                                className: "text-base text-white flex items-center gap-2",
+                                                                id: "word-anim-slide"
+                                                              }),
+                                                          JsxRuntime.jsx(ToggleSwitch.make, {
+                                                                labelId: "word-anim-slide",
+                                                                enabled: style.wordAnimation.enableSlide,
+                                                                onChange: (function (enableSlide) {
+                                                                    var newWordAnim;
+                                                                    if (enableSlide) {
+                                                                      var init = style.wordAnimation;
+                                                                      newWordAnim = {
+                                                                        enableBackground: true,
+                                                                        background: init.background,
+                                                                        enableFont: init.enableFont,
+                                                                        font: init.font,
+                                                                        enablePop: false,
+                                                                        pop: init.pop,
+                                                                        enableSlide: enableSlide
+                                                                      };
+                                                                    } else {
+                                                                      var init$1 = style.wordAnimation;
+                                                                      newWordAnim = {
+                                                                        enableBackground: init$1.enableBackground,
+                                                                        background: init$1.background,
+                                                                        enableFont: init$1.enableFont,
+                                                                        font: init$1.font,
+                                                                        enablePop: init$1.enablePop,
+                                                                        pop: init$1.pop,
+                                                                        enableSlide: enableSlide
+                                                                      };
+                                                                    }
+                                                                    dispatch({
+                                                                          TAG: "SetWordAnimation",
+                                                                          _0: newWordAnim
+                                                                        });
+                                                                  })
+                                                              })
+                                                        ],
+                                                        className: "flex items-center justify-between"
+                                                      }),
+                                                  JsxRuntime.jsx("div", {
+                                                        children: JsxRuntime.jsx("span", {
+                                                              children: "Background slides smoothly between words",
+                                                              className: "text-sm text-white/70"
+                                                            }),
+                                                        className: Cx.cx([
+                                                              "pl-7",
+                                                              style.wordAnimation.enableSlide ? "brightness-100" : "brightness-50 pointer-events-none"
                                                             ])
                                                       })
                                                 ],
@@ -805,19 +878,35 @@ var make = Utils.neverRerender(function (props) {
                                                               }),
                                                           JsxRuntime.jsx(ToggleSwitch.make, {
                                                                 labelId: "word-anim-pop",
-                                                                enabled: style.wordAnimation.showPop,
-                                                                onChange: (function (showPop) {
-                                                                    var init = style.wordAnimation;
+                                                                enabled: style.wordAnimation.enablePop,
+                                                                onChange: (function (enablePop) {
+                                                                    var newWordAnim;
+                                                                    if (enablePop) {
+                                                                      var init = style.wordAnimation;
+                                                                      newWordAnim = {
+                                                                        enableBackground: init.enableBackground,
+                                                                        background: init.background,
+                                                                        enableFont: init.enableFont,
+                                                                        font: init.font,
+                                                                        enablePop: enablePop,
+                                                                        pop: init.pop,
+                                                                        enableSlide: false
+                                                                      };
+                                                                    } else {
+                                                                      var init$1 = style.wordAnimation;
+                                                                      newWordAnim = {
+                                                                        enableBackground: init$1.enableBackground,
+                                                                        background: init$1.background,
+                                                                        enableFont: init$1.enableFont,
+                                                                        font: init$1.font,
+                                                                        enablePop: enablePop,
+                                                                        pop: init$1.pop,
+                                                                        enableSlide: init$1.enableSlide
+                                                                      };
+                                                                    }
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
-                                                                          _0: {
-                                                                            showBackground: init.showBackground,
-                                                                            background: init.background,
-                                                                            showFont: init.showFont,
-                                                                            font: init.font,
-                                                                            showPop: showPop,
-                                                                            pop: init.pop
-                                                                          }
+                                                                          _0: newWordAnim
                                                                         });
                                                                   })
                                                               })
@@ -845,14 +934,15 @@ var make = Utils.neverRerender(function (props) {
                                                                     dispatch({
                                                                           TAG: "SetWordAnimation",
                                                                           _0: {
-                                                                            showBackground: init.showBackground,
+                                                                            enableBackground: init.enableBackground,
                                                                             background: init.background,
-                                                                            showFont: init.showFont,
+                                                                            enableFont: init.enableFont,
                                                                             font: init.font,
-                                                                            showPop: init.showPop,
+                                                                            enablePop: init.enablePop,
                                                                             pop: {
                                                                               scale: percent / 100.0
-                                                                            }
+                                                                            },
+                                                                            enableSlide: init.enableSlide
                                                                           }
                                                                         });
                                                                   }),
@@ -865,7 +955,7 @@ var make = Utils.neverRerender(function (props) {
                                                         ],
                                                         className: Cx.cx([
                                                               "flex flex-col gap-2 pl-7",
-                                                              style.wordAnimation.showPop ? "brightness-100" : "brightness-50 pointer-events-none"
+                                                              style.wordAnimation.enablePop ? "brightness-100" : "brightness-50 pointer-events-none"
                                                             ])
                                                       })
                                                 ],

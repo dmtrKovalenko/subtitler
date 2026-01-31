@@ -25,6 +25,8 @@ import {
   calculateActualWidth,
   interpolateBackgroundPosition,
   calculateScaledBackground,
+  calculateSlidePosition,
+  SlideTransitionState,
 } from "../../codecs/active-word";
 
 type EditorCanvasProps = {
@@ -121,6 +123,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     y: number;
     width: number;
   } | null>(null);
+
+  // Slide transition state for smooth background animation
+  const slideTransitionRef = React.useRef<SlideTransitionState | null>(null);
 
   const animationProgress = React.useMemo(() => {
     if (!wordChunks || activeWordIndex < 0) return 0;
@@ -346,30 +351,60 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
       activeWordIndex >= 0
         ? wordPositions.find((p) => p.index === activeWordIndex)
         : null;
+    
+    // Pop scale is only used when enablePop is enabled AND slide is not enabled
     const popScale =
-      wordAnim.showPop && activePos
+      wordAnim.enablePop && !wordAnim.enableSlide && activePos
         ? calculatePopScale(animationProgress, wordAnim.pop.scale)
         : 1;
 
-    const prevWord = prevActiveWordRef.current;
-    const isNewWord = prevWord !== null && prevWord.index !== activeWordIndex;
-    const bgPos =
-      activePos && wordAnim.showBackground
-        ? interpolateBackgroundPosition(
-            activePos,
-            prevWord,
-            animationProgress,
-            isNewWord,
-          )
-        : { x: 0, y: 0, width: 0 };
-
-    if (activePos && wordAnim.showBackground) {
-      prevActiveWordRef.current = {
-        index: activeWordIndex,
-        x: activePos.x,
-        y: activePos.y,
-        width: activePos.width,
-      };
+    // Calculate background position - use slide animation if enabled, otherwise use old interpolation
+    let bgPos = { x: 0, y: 0, width: 0 };
+    
+    if (activePos && wordAnim.enableBackground) {
+      if (wordAnim.enableSlide) {
+        // Get previous word position for slide animation
+        const prevWord = prevActiveWordRef.current;
+        const prevActivePos = prevWord ? { x: prevWord.x, y: prevWord.y, width: prevWord.width } : null;
+        
+        // Use new slide animation with proper transition tracking
+        const { position, newTransitionState } = calculateSlidePosition(
+          activePos,
+          activeWordIndex,
+          animationProgress,
+          slideTransitionRef.current,
+          prevActivePos,
+          0.3, // 30% slide duration
+        );
+        bgPos = position;
+        slideTransitionRef.current = newTransitionState;
+        
+        // Update previous word reference for next word change
+        prevActiveWordRef.current = {
+          index: activeWordIndex,
+          x: activePos.x,
+          y: activePos.y,
+          width: activePos.width,
+        };
+      } else {
+        // Use old interpolation method
+        const prevWord = prevActiveWordRef.current;
+        const isNewWord = prevWord !== null && prevWord.index !== activeWordIndex;
+        bgPos = interpolateBackgroundPosition(
+          activePos,
+          prevWord,
+          animationProgress,
+          isNewWord,
+        );
+        
+        // Update previous word reference for old method
+        prevActiveWordRef.current = {
+          index: activeWordIndex,
+          x: activePos.x,
+          y: activePos.y,
+          width: activePos.width,
+        };
+      }
     }
 
     const bgPadX = wordAnim.background.paddingX;
@@ -427,7 +462,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           })}
 
         {/* Render active word background and text last (on top) */}
-        {activePos && wordAnim.showBackground && (
+        {activePos && wordAnim.enableBackground && (
           <Rect
             x={bgPos.x - bgPadX - scaledBg.offsetX}
             y={bgPos.y - bgPadY - scaledBg.offsetY}
@@ -452,13 +487,14 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             let offsetY = 0;
 
             // Font effect: change text color and/or font weight (fallback to main style)
-            if (wordAnim.showFont) {
+            if (wordAnim.enableFont) {
               fillColor = wordAnim.font.color ?? subtitleStyle.color;
               fontWeight = wordAnim.font.fontWeight ?? subtitleStyle.fontWeight;
             }
 
             // Pop effect: scale animation (reuse pre-calculated popScale)
-            if (wordAnim.showPop) {
+            // Only apply if slide is not enabled (they are mutually exclusive)
+            if (wordAnim.enablePop && !wordAnim.enableSlide) {
               scale = popScale;
               // Offset to scale from center of the word
               offsetX = (activePos.width * (scale - 1)) / 2;

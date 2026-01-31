@@ -20,6 +20,8 @@ import {
   calculateActualWidth,
   interpolateBackgroundPosition,
   calculateScaledBackground,
+  calculateSlidePosition,
+  SlideTransitionState,
 } from "./active-word";
 
 // Word animation data for export
@@ -90,6 +92,8 @@ export type RendererContext = {
   // For smooth background animation
   prevWordPosition?: { x: number; y: number; width: number };
   animatedBgRect?: Konva.Rect;
+  // For slide animation
+  slideTransitionState?: SlideTransitionState | null;
 };
 
 // monkeypatch Konva for offscreen canvas usage
@@ -352,8 +356,9 @@ function updateWordAnimationLayer(
 
   ctx.wordGroup.destroyChildren();
 
+  // Pop scale is only used when enablePop is enabled AND slide is not enabled
   let popScale = 1;
-  if (wordAnim.showPop && activePos) {
+  if (wordAnim.enablePop && !wordAnim.enableSlide && activePos) {
     popScale = calculatePopScale(animationProgress, wordAnim.pop.scale);
   }
 
@@ -382,15 +387,46 @@ function updateWordAnimationLayer(
     ctx.wordGroup.add(wordText);
   }
 
-  // for background calculate interpolated position (render after non-active words)
-  if (activePos && wordAnim.showBackground) {
-    const isNewWord = ctx.lastActiveWordIndex !== activeWordIndex;
-    const bgPos = interpolateBackgroundPosition(
-      activePos,
-      ctx.prevWordPosition,
-      animationProgress,
-      isNewWord
-    );
+  // Calculate background position - use slide animation if enabled, otherwise use old interpolation
+  if (activePos && wordAnim.enableBackground) {
+    let bgPos: { x: number; y: number; width: number };
+    
+    if (wordAnim.enableSlide) {
+      // Use new slide animation with proper transition tracking
+      const { position, newTransitionState } = calculateSlidePosition(
+        activePos,
+        activeWordIndex,
+        animationProgress,
+        ctx.slideTransitionState ?? null,
+        ctx.prevWordPosition ?? null,
+        0.3, // 30% slide duration
+      );
+      bgPos = position;
+      ctx.slideTransitionState = newTransitionState;
+      
+      // Update previous word position for next word change
+      ctx.prevWordPosition = {
+        x: activePos.x,
+        y: activePos.y,
+        width: activePos.width,
+      };
+    } else {
+      // Use old interpolation method
+      const isNewWord = ctx.lastActiveWordIndex !== activeWordIndex;
+      bgPos = interpolateBackgroundPosition(
+        activePos,
+        ctx.prevWordPosition,
+        animationProgress,
+        isNewWord
+      );
+      
+      // Update previous word position for old method
+      ctx.prevWordPosition = {
+        x: activePos.x,
+        y: activePos.y,
+        width: activePos.width,
+      };
+    }
 
     const bgPadX = wordAnim.background.paddingX;
     const bgPadY = wordAnim.background.paddingY;
@@ -412,12 +448,6 @@ function updateWordAnimationLayer(
       cornerRadius: wordAnim.background.borderRadius,
     });
     ctx.wordGroup.add(bgRect);
-
-    ctx.prevWordPosition = {
-      x: activePos.x,
-      y: activePos.y,
-      width: activePos.width,
-    };
   }
 
   // Render active word last (on top)
@@ -429,13 +459,14 @@ function updateWordAnimationLayer(
     let offsetY = 0;
 
     // Font effect: change text color and/or font weight (fallback to main style)
-    if (wordAnim.showFont) {
+    if (wordAnim.enableFont) {
       fillColor = wordAnim.font.color ?? ctx.style.color;
       fontWeight = wordAnim.font.fontWeight ?? ctx.style.fontWeight;
     }
 
     // Pop effect: scale animation (only for active word)
-    if (wordAnim.showPop) {
+    // Only apply if slide is not enabled (they are mutually exclusive)
+    if (wordAnim.enablePop && !wordAnim.enableSlide) {
       scale = popScale;
       // Offset to scale from center of the word
       offsetX = (activePos.width * (scale - 1)) / 2;

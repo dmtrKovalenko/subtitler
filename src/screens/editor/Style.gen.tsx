@@ -32,12 +32,13 @@ export type wordAnimationFont = { readonly color: (undefined | string); readonly
 export type wordAnimationPop = { readonly scale: number };
 
 export type wordAnimation = {
-  readonly showBackground: boolean; 
+  readonly enableBackground: boolean; 
   readonly background: wordAnimationBackground; 
-  readonly showFont: boolean; 
+  readonly enableFont: boolean; 
   readonly font: wordAnimationFont; 
-  readonly showPop: boolean; 
-  readonly pop: wordAnimationPop
+  readonly enablePop: boolean; 
+  readonly pop: wordAnimationPop; 
+  readonly enableSlide: boolean
 };
 
 export type style = {

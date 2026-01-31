@@ -251,15 +251,15 @@ let make = Utils.neverRerender(() => {
               </label>
               <ToggleSwitch
                 labelId="word-anim-background"
-                enabled={style.wordAnimation.showBackground}
-                onChange={showBackground =>
-                  dispatch(Style.SetWordAnimation({...style.wordAnimation, showBackground}))}
+                enabled={style.wordAnimation.enableBackground}
+                onChange={enableBackground =>
+                  dispatch(Style.SetWordAnimation({...style.wordAnimation, enableBackground}))}
               />
             </div>
             <div
               className={Cx.cx([
                 "grid grid-cols-4 gap-2 pl-7",
-                style.wordAnimation.showBackground
+                style.wordAnimation.enableBackground
                   ? "brightness-100"
                   : "brightness-50 pointer-events-none",
               ])}>
@@ -347,15 +347,15 @@ let make = Utils.neverRerender(() => {
               </label>
               <ToggleSwitch
                 labelId="word-anim-font"
-                enabled={style.wordAnimation.showFont}
-                onChange={showFont =>
-                  dispatch(Style.SetWordAnimation({...style.wordAnimation, showFont}))}
+                enabled={style.wordAnimation.enableFont}
+                onChange={enableFont =>
+                  dispatch(Style.SetWordAnimation({...style.wordAnimation, enableFont}))}
               />
             </div>
             <div
               className={Cx.cx([
                 "grid grid-cols-4 gap-2 pl-7",
-                style.wordAnimation.showFont
+                style.wordAnimation.enableFont
                   ? "brightness-100"
                   : "brightness-50 pointer-events-none",
               ])}>
@@ -396,6 +396,39 @@ let make = Utils.neverRerender(() => {
               </Input.Field>
             </div>
           </div>
+          // Slide Effect - smooth background transition between words
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label id="word-anim-slide" className="text-base text-white flex items-center gap-2">
+                <Icons.ArrowRightIcon className="size-5" />
+                {React.string("Slide")}
+              </label>
+              <ToggleSwitch
+                labelId="word-anim-slide"
+                enabled={style.wordAnimation.enableSlide}
+                onChange={enableSlide => {
+                  // When enabling slide: enable background, disable pop (mutually exclusive)
+                  let newWordAnim = if enableSlide {
+                    {...style.wordAnimation, enableSlide, enableBackground: true, enablePop: false}
+                  } else {
+                    {...style.wordAnimation, enableSlide}
+                  }
+                  dispatch(Style.SetWordAnimation(newWordAnim))
+                }}
+              />
+            </div>
+            <div
+              className={Cx.cx([
+                "pl-7",
+                style.wordAnimation.enableSlide
+                  ? "brightness-100"
+                  : "brightness-50 pointer-events-none",
+              ])}>
+              <span className="text-sm text-white/70">
+                {React.string("Background slides smoothly between words")}
+              </span>
+            </div>
+          </div>
           // Pop/Scale Effect
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
@@ -405,15 +438,22 @@ let make = Utils.neverRerender(() => {
               </label>
               <ToggleSwitch
                 labelId="word-anim-pop"
-                enabled={style.wordAnimation.showPop}
-                onChange={showPop =>
-                  dispatch(Style.SetWordAnimation({...style.wordAnimation, showPop}))}
+                enabled={style.wordAnimation.enablePop}
+                onChange={enablePop => {
+                  // When enabling pop, disable slide (mutually exclusive)
+                  let newWordAnim = if enablePop {
+                    {...style.wordAnimation, enablePop, enableSlide: false}
+                  } else {
+                    {...style.wordAnimation, enablePop}
+                  }
+                  dispatch(Style.SetWordAnimation(newWordAnim))
+                }}
               />
             </div>
             <div
               className={Cx.cx([
                 "flex flex-col gap-2 pl-7",
-                style.wordAnimation.showPop
+                style.wordAnimation.enablePop
                   ? "brightness-100"
                   : "brightness-50 pointer-events-none",
               ])}>

@@ -52,14 +52,16 @@ type wordAnimationPop = {scale: float} // 1.0 - 1.2 range
 @genType
 type wordAnimation = {
   // Background highlight for active word
-  showBackground: bool,
+  enableBackground: bool,
   background: wordAnimationBackground,
   // Font styling for active word
-  showFont: bool,
+  enableFont: bool,
   font: wordAnimationFont,
   // Pop/scale effect for active word
-  showPop: bool,
+  enablePop: bool,
   pop: wordAnimationPop,
+  // Slide effect - background slides smoothly between words
+  enableSlide: bool,
 }
 
 @genType
@@ -132,14 +134,13 @@ let defaultWordAnimationPop: wordAnimationPop = {
 }
 
 let defaultWordAnimation: wordAnimation = {
-  // Background - enabled by default
-  showBackground: true,
+  enableBackground: true,
   background: defaultWordAnimationBackground,
-  // Font - enabled by default (to show white text on orange bg)
-  showFont: true,
+  // Font - enabled by default but matches the color of main subtitles
+  enableFont: true,
   font: defaultWordAnimationFont,
-  // Pop - disabled by default
-  showPop: false,
+  enableSlide: true,
+  enablePop: false,
   pop: defaultWordAnimationPop,
 }
 
@@ -187,7 +188,7 @@ let defaultPreferences: stylePreferences = {
 }
 
 let stylePreferencesStorageKey = "subtitler.stylePreferences"
-let stylePreferencesVersion = 4
+let stylePreferencesVersion = 5
 
 let loadStylePreferences = (): option<stylePreferences> => {
   open Dom.Storage2

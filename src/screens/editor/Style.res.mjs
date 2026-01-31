@@ -46,12 +46,13 @@ var defaultWordAnimationPop = {
 };
 
 var defaultWordAnimation = {
-  showBackground: true,
+  enableBackground: true,
   background: defaultWordAnimationBackground,
-  showFont: true,
+  enableFont: true,
   font: defaultWordAnimationFont,
-  showPop: false,
-  pop: defaultWordAnimationPop
+  enablePop: false,
+  pop: defaultWordAnimationPop,
+  enableSlide: true
 };
 
 var defaultPreferences = {
@@ -86,7 +87,7 @@ function loadStylePreferences() {
   if (storedVersion === undefined) {
     return ;
   }
-  if (storedVersion !== 4) {
+  if (storedVersion !== 5) {
     return ;
   }
   try {
@@ -133,7 +134,7 @@ function saveStylePreferences(style, videoWidth, videoHeight) {
     videoHeight: prefs_videoHeight
   };
   localStorage.setItem(stylePreferencesStorageKey, Core__Option.getOr(JSON.stringify(prefs), ""));
-  localStorage.setItem(stylePreferencesStorageKey + ".version", String(4));
+  localStorage.setItem(stylePreferencesStorageKey + ".version", String(5));
 }
 
 function MakeRendererObservable(Ctx) {
@@ -619,7 +620,7 @@ function MakeRendererObservable(Ctx) {
             });
 }
 
-var stylePreferencesVersion = 4;
+var stylePreferencesVersion = 5;
 
 export {
   all_font_weights ,
