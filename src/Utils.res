@@ -113,6 +113,30 @@ module Path = {
   }
 }
 
+module TextUtils = {
+  /**
+   * Trims only dots and commas from the start and end of each word.
+   * Preserves all other punctuation like ?, !, apostrophes, etc.
+   * Example: "Hello, world..." -> "Hello world"
+   * Example: "What's up?" -> "What's up?"
+   * Example: "don't stop!" -> "don't stop!"
+   */
+  @genType
+  let stripPunctuation = (text: string): string => {
+    text
+    ->String.splitByRegExp(%re("/\s+/"))
+    ->Core__Array.filterMap(word => word)
+    ->Core__Array.map(word => {
+      // Trim dots and commas from start and end only
+      word
+      ->String.replaceRegExp(%re("/^[.,]+/g"), "")
+      ->String.replaceRegExp(%re("/[.,]+$/g"), "")
+    })
+    ->Core__Array.filter(word => String.length(word) > 0)
+    ->Core__Array.join(" ")
+  }
+}
+
 module Bool = {
   @inline
   let invert = a => !a

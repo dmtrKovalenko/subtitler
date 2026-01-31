@@ -248,6 +248,7 @@ function MakePlayer(Ctx) {
           nextId: include.nextId,
           subscribe: include.subscribe,
           useObservable: include.useObservable,
+          useObservableSelector: include.useObservableSelector,
           renderFrame: renderFrame,
           reducer: reducer,
           onFrame: onFrame,

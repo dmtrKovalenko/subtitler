@@ -7,6 +7,7 @@ import * as Js_string from "rescript/lib/es6/js_string.js";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
 import * as Caml_int32 from "rescript/lib/es6/caml_int32.js";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
+import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 import * as Core__Float from "@rescript/core/src/Core__Float.res.mjs";
 import * as PervasivesU from "rescript/lib/es6/pervasivesU.js";
 
@@ -170,6 +171,20 @@ var Path = {
   getFilename: getFilename
 };
 
+function stripPunctuation(text) {
+  return Core__Array.filterMap(text.split(/\s+/), (function (word) {
+                      return word;
+                    })).map(function (word) {
+                  return word.replace(/^[.,]+/g, "").replace(/[.,]+$/g, "");
+                }).filter(function (word) {
+                return word.length > 0;
+              }).join(" ");
+}
+
+var TextUtils = {
+  stripPunctuation: stripPunctuation
+};
+
 function invert(a) {
   return !a;
 }
@@ -283,6 +298,7 @@ export {
   $$Option ,
   Log ,
   Path ,
+  TextUtils ,
   Bool ,
   Duration ,
   neverRerender ,

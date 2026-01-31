@@ -623,30 +623,72 @@ function useChunksState(subtitles, transcriptionInProgress, default_chunk_size) 
             ]);
 }
 
+var emptyWordChunks = [];
+
 var make = React.memo(function (props) {
       var subtitlesManager = props.subtitlesManager;
       var ctx = EditorContext.useEditorContext();
-      var match = ctx.usePlayer();
-      var player = match[0];
+      var currentPlayingCueIndex = ctx.usePlayerSelector(function (player) {
+            return Core__Option.map(player.currentPlayingCue, (function (cue) {
+                          return cue.currentIndex;
+                        }));
+          });
+      var match = React.useState(function () {
+            
+          });
+      var setSplitPreviewState = match[1];
+      var splitPreviewState = match[0];
       var match$1 = React.useState(function () {
             
           });
-      var setSplitPreviewState = match$1[1];
-      var splitPreviewState = match$1[0];
-      var match$2 = React.useState(function () {
-            
-          });
-      var setFocusCueIndex = match$2[1];
-      var focusCueIndex = match$2[0];
-      var match$3 = subtitlesManager.transcriptionState;
+      var setFocusCueIndex = match$1[1];
+      var focusCueIndex = match$1[0];
+      var handleAddBefore = React.useCallback((function (index) {
+              subtitlesManager.addCueBefore(index);
+              setFocusCueIndex(function (param) {
+                    return index;
+                  });
+            }), [subtitlesManager.addCueBefore]);
+      var handleAddAfter = React.useCallback((function (index) {
+              subtitlesManager.addCueAfter(index);
+              setFocusCueIndex(function (param) {
+                    return index + 1 | 0;
+                  });
+            }), [subtitlesManager.addCueAfter]);
+      var handleSplit = React.useCallback((function (param) {
+              var index = param[0];
+              subtitlesManager.splitCue(index, param[1]);
+              setFocusCueIndex(function (param) {
+                    return index + 1 | 0;
+                  });
+            }), [subtitlesManager.splitCue]);
+      var handleSplitPreviewChange = React.useCallback((function (param) {
+              var preview = param[1];
+              var index = param[0];
+              setSplitPreviewState(function (param) {
+                    return Core__Option.map(preview, (function (splitAt) {
+                                  return [
+                                          index,
+                                          splitAt
+                                        ];
+                                }));
+                  });
+            }), []);
+      var handleFocused = React.useCallback((function () {
+              setFocusCueIndex(function (param) {
+                    
+                  });
+            }), []);
+      var isAnySplitPreviewActive = Core__Option.isSome(splitPreviewState);
+      var match$2 = subtitlesManager.transcriptionState;
       var tmp;
-      if (typeof match$3 !== "object") {
+      if (typeof match$2 !== "object") {
         tmp = JsxRuntime.jsx("p", {
               children: "Transcription in progress. Once finished you'll be able to edit and resize generated subtitles.",
               className: "text-center pb-4 px-2 text-balance text-sm text-gray-500"
             });
       } else {
-        var size = match$3.size;
+        var size = match$2.size;
         tmp = JsxRuntime.jsxs(JsxRuntime.Fragment, {
               children: [
                 JsxRuntime.jsx("h3", {
@@ -682,8 +724,8 @@ var make = React.memo(function (props) {
                                 return JsxRuntime.jsx(ChunkEditor.make, {
                                             index: index,
                                             readonly: subtitlesManager.transcriptionState === "TranscriptionInProgress",
-                                            current: Core__Option.getOr(Core__Option.map(player.currentPlayingCue, (function (cue) {
-                                                        return cue.currentIndex === index;
+                                            current: Core__Option.getOr(Core__Option.map(currentPlayingCueIndex, (function (i) {
+                                                        return i === index;
                                                       })), false),
                                             chunk: chunk,
                                             removeChunk: subtitlesManager.removeChunk,
@@ -691,24 +733,18 @@ var make = React.memo(function (props) {
                                             onTextChange: subtitlesManager.editText,
                                             hasPauseBefore: subtitlesManager.hasPauseBefore(index),
                                             hasPauseAfter: subtitlesManager.hasPauseAfter(index),
-                                            wordChunks: Core__Option.getOr(subtitlesManager.getWordChunksForCue(index), []),
+                                            wordChunks: Core__Option.getOr(subtitlesManager.getWordChunksForCue(index), emptyWordChunks),
                                             onAddBefore: (function () {
-                                                subtitlesManager.addCueBefore(index);
-                                                setFocusCueIndex(function (param) {
-                                                      return index;
-                                                    });
+                                                handleAddBefore(index);
                                               }),
                                             onAddAfter: (function () {
-                                                subtitlesManager.addCueAfter(index);
-                                                setFocusCueIndex(function (param) {
-                                                      return index + 1 | 0;
-                                                    });
+                                                handleAddAfter(index);
                                               }),
                                             onSplit: (function (splitIdx) {
-                                                subtitlesManager.splitCue(index, splitIdx);
-                                                setFocusCueIndex(function (param) {
-                                                      return index + 1 | 0;
-                                                    });
+                                                handleSplit([
+                                                      index,
+                                                      splitIdx
+                                                    ]);
                                               }),
                                             splitPreview: Core__Option.flatMap(splitPreviewState, (function (param) {
                                                     if (param[0] === index) {
@@ -717,24 +753,16 @@ var make = React.memo(function (props) {
                                                     
                                                   })),
                                             onSplitPreviewChange: (function (preview) {
-                                                setSplitPreviewState(function (param) {
-                                                      return Core__Option.map(preview, (function (splitAt) {
-                                                                    return [
-                                                                            index,
-                                                                            splitAt
-                                                                          ];
-                                                                  }));
-                                                    });
+                                                handleSplitPreviewChange([
+                                                      index,
+                                                      preview
+                                                    ]);
                                               }),
-                                            isAnySplitPreviewActive: Core__Option.isSome(splitPreviewState),
+                                            isAnySplitPreviewActive: isAnySplitPreviewActive,
                                             shouldFocus: Core__Option.getOr(Core__Option.map(focusCueIndex, (function (i) {
                                                         return i === index;
                                                       })), false),
-                                            onFocused: (function () {
-                                                setFocusCueIndex(function (param) {
-                                                      
-                                                    });
-                                              })
+                                            onFocused: handleFocused
                                           }, id !== undefined ? id.toString() : index.toString() + "-" + chunk.text);
                               }),
                           className: "flex flex-1 ml-1.5 pb-4 min-h-0 flex-col gap-6"
@@ -757,6 +785,7 @@ export {
   updateRangesAfterEdit ,
   pauseThreshold ,
   useChunksState ,
+  emptyWordChunks ,
   make ,
 }
 /* make Not a pure module */

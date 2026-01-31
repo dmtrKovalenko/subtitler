@@ -15,12 +15,14 @@ import type Konva from "konva";
 import { WelcomeScreen } from "./WelcomeScreen";
 import clsx from "clsx";
 import { subtitlesManager } from "./ChunksList/ChunksList.gen";
+import { TextUtils_stripPunctuation as stripPunctuation } from "../../Utils.gen";
 import {
   findActiveWordIndex,
   calculateAnimationProgress,
   calculatePopScale,
   calculateWordPositions,
   calculateTotalHeight,
+  calculateActualWidth,
   interpolateBackgroundPosition,
   calculateScaledBackground,
 } from "../../codecs/active-word";
@@ -77,13 +79,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     ? 0
     : (player.currentPlayingCue?.currentIndex ?? 0);
 
-  // During transcription, treat as if there's an active cue (the first one)
-  // This ensures the component behaves the same way during and after transcription
   const hasActiveCue =
     transcriptionInProgress || player.currentPlayingCue !== undefined;
-  const currentSubtitle = hasActiveCue
+  const rawSubtitle = hasActiveCue
     ? (subtitles[cueIndexToShow]?.text ?? "")
     : "";
+  
+  const currentSubtitle = subtitleStyle.hidePunctuation 
+    ? stripPunctuation(rawSubtitle)
+    : rawSubtitle;
 
   const wordChunks = React.useMemo(() => {
     if (
@@ -128,6 +132,54 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     wordPositions &&
     wordPositions.length > 0;
 
+  const actualTextDimensions = React.useMemo(() => {
+    if (useWordAnimation && wordPositions && wordPositions.length > 0) {
+      const totalHeight = calculateTotalHeight(wordPositions, subtitleStyle.fontSizePx);
+      const actualWidth = calculateActualWidth(wordPositions, subtitleStyle.fontSizePx);
+      return { width: actualWidth, height: totalHeight };
+    }
+    
+    // For regular text, calculate from the text content
+    if (!currentSubtitle.trim()) {
+      return { width: 0, height: 0 };
+    }
+
+    const blockWidth = subtitleStyle.blockSize.width;
+    const lineHeight = subtitleStyle.fontSizePx * 1.2;
+    
+    // Split text into words and calculate line wrapping
+    const words = currentSubtitle.trim().split(/\s+/);
+    const lines: string[] = [];
+    let currentLine = "";
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = measureText(testLine);
+      
+      if (testWidth > blockWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Find the widest line
+    let maxWidth = 0;
+    for (const line of lines) {
+      const lineWidth = measureText(line);
+      maxWidth = Math.max(maxWidth, lineWidth);
+    }
+    
+    return {
+      width: maxWidth,
+      height: lines.length * lineHeight,
+    };
+  }, [currentSubtitle, subtitleStyle.blockSize.width, subtitleStyle.fontSizePx, measureText, useWordAnimation, wordPositions]);
+
   React.useEffect(() => {
     const node = useWordAnimation ? groupRef.current : textRef.current;
     if (node) {
@@ -152,18 +204,31 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   ]);
 
   const backgroundDimensions = React.useMemo(() => {
-    const nodeWidth = textDimensions.width || subtitleStyle.blockSize.width;
-    const nodeHeight = textDimensions.height || subtitleStyle.fontSizePx * 1.2;
+    // Use actual measured text dimensions for the background
+    const nodeWidth = actualTextDimensions.width || subtitleStyle.blockSize.width;
+    const nodeHeight = actualTextDimensions.height || subtitleStyle.fontSizePx * 1.2;
+    
+    // Calculate x position based on alignment
+    let bgX = subtitleStyle.x - subtitleStyle.background.paddingX;
+    if (subtitleStyle.align === "Center") {
+      // Center the background around the text center
+      bgX = subtitleStyle.x + (subtitleStyle.blockSize.width - nodeWidth) / 2 - subtitleStyle.background.paddingX;
+    } else if (subtitleStyle.align === "Right") {
+      // Align background to the right
+      bgX = subtitleStyle.x + subtitleStyle.blockSize.width - nodeWidth - subtitleStyle.background.paddingX;
+    }
+    
     return {
-      x: subtitleStyle.x - subtitleStyle.background.paddingX,
+      x: bgX,
       y: subtitleStyle.y - subtitleStyle.background.paddingY,
       width: nodeWidth + subtitleStyle.background.paddingX * 2,
       height: nodeHeight + subtitleStyle.background.paddingY * 2,
     };
   }, [
-    textDimensions,
+    actualTextDimensions,
     subtitleStyle.x,
     subtitleStyle.y,
+    subtitleStyle.align,
     subtitleStyle.background.paddingX,
     subtitleStyle.background.paddingY,
     subtitleStyle.blockSize.width,
@@ -349,7 +414,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         {wordPositions.map((pos, i) => {
           const isActive = pos.index === activeWordIndex;
-          const wordText = pos.word.text.trim(); // Trim spaces
+          const wordText = subtitleStyle.hidePunctuation 
+            ? stripPunctuation(pos.word.text.trim())
+            : pos.word.text.trim();
 
           // Start with base styles
           let fillColor = subtitleStyle.color;

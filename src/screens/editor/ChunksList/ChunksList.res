@@ -642,16 +642,48 @@ let useChunksState = (~subtitles, ~transcriptionInProgress, ~default_chunk_size)
   }, (transcriptionState, subtitles))
 }
 
+// Stable empty array to avoid creating new references
+let emptyWordChunks: array<WordTimestamps.wordChunk> = []
+
 @react.component
 let make = React.memo((~subtitlesManager, ~title: React.element) => {
   let ctx = EditorContext.useEditorContext()
-  let (player, _) = ctx.usePlayer()
+
+  // Only subscribe to the current playing cue INDEX, not the full player state
+  // This prevents re-renders on every frame (60fps) during playback
+  let currentPlayingCueIndex = ctx.usePlayerSelector(player =>
+    player.currentPlayingCue->Option.map(cue => cue.currentIndex)
+  )
 
   // Track which cue is being split and the preview split index
   let (splitPreviewState, setSplitPreviewState) = React.useState(_ => None) // (cueIndex, splitAt)
 
   // Track which cue should be focused (for newly added cues)
   let (focusCueIndex, setFocusCueIndex) = React.useState(_ => None)
+
+  // Memoize callbacks to prevent ChunkEditor re-renders
+  let handleAddBefore = React.useCallback1((index: int) => {
+    subtitlesManager.addCueBefore(index)
+    setFocusCueIndex(_ => Some(index))
+  }, [subtitlesManager.addCueBefore])
+
+  let handleAddAfter = React.useCallback1((index: int) => {
+    subtitlesManager.addCueAfter(index)
+    setFocusCueIndex(_ => Some(index + 1))
+  }, [subtitlesManager.addCueAfter])
+
+  let handleSplit = React.useCallback1(((index: int, splitIdx: int)) => {
+    subtitlesManager.splitCue(index, splitIdx)
+    setFocusCueIndex(_ => Some(index + 1))
+  }, [subtitlesManager.splitCue])
+
+  let handleSplitPreviewChange = React.useCallback0(((index: int, preview: option<int>)) => {
+    setSplitPreviewState(_ => preview->Option.map(splitAt => (index, splitAt)))
+  })
+
+  let handleFocused = React.useCallback0(() => setFocusCueIndex(_ => None))
+
+  let isAnySplitPreviewActive = splitPreviewState->Option.isSome
 
   <>
     <div
@@ -683,9 +715,7 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
       ->Array.mapWithIndex((chunk, index) =>
         <ChunkEditor
           index
-          current={player.currentPlayingCue
-          ->Option.map(cue => cue.currentIndex === index)
-          ->Option.getOr(false)}
+          current={currentPlayingCueIndex->Option.map(i => i === index)->Option.getOr(false)}
           readonly={subtitlesManager.transcriptionState == TranscriptionInProgress}
           chunk
           key={switch chunk.id {
@@ -697,30 +727,17 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
           onTimestampChange=subtitlesManager.editTimestamp
           hasPauseBefore={subtitlesManager.hasPauseBefore(index)}
           hasPauseAfter={subtitlesManager.hasPauseAfter(index)}
-          wordChunks={subtitlesManager.getWordChunksForCue(index)->Option.getOr([])}
-          onAddBefore={() => {
-            subtitlesManager.addCueBefore(index)
-            // Focus the newly added cue (inserted at same index, pushing current down)
-            setFocusCueIndex(_ => Some(index))
-          }}
-          onAddAfter={() => {
-            subtitlesManager.addCueAfter(index)
-            // Focus the newly added cue (inserted at index + 1)
-            setFocusCueIndex(_ => Some(index + 1))
-          }}
-          onSplit={splitIdx => {
-            subtitlesManager.splitCue(index, splitIdx)
-            // Focus the second cue (newly created from split) at index + 1
-            setFocusCueIndex(_ => Some(index + 1))
-          }}
+          wordChunks={subtitlesManager.getWordChunksForCue(index)->Option.getOr(emptyWordChunks)}
+          onAddBefore={() => handleAddBefore(index)}
+          onAddAfter={() => handleAddAfter(index)}
+          onSplit={splitIdx => handleSplit((index, splitIdx))}
           splitPreview={splitPreviewState->Option.flatMap(
             ((cueIdx, splitAt)) => cueIdx == index ? Some(splitAt) : None,
           )}
-          onSplitPreviewChange={preview =>
-            setSplitPreviewState(_ => preview->Option.map(splitAt => (index, splitAt)))}
-          isAnySplitPreviewActive={splitPreviewState->Option.isSome}
+          onSplitPreviewChange={preview => handleSplitPreviewChange((index, preview))}
+          isAnySplitPreviewActive
           shouldFocus={focusCueIndex->Option.map(i => i == index)->Option.getOr(false)}
-          onFocused={() => setFocusCueIndex(_ => None)}
+          onFocused=handleFocused
         />
       )
       ->React.array}

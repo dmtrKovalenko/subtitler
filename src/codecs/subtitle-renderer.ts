@@ -5,6 +5,7 @@ import {
 } from "../screens/editor/Subtitles.gen";
 import { style } from "../screens/editor/Style.gen";
 import { wordChunk } from "../screens/editor/WordTimestamps.gen";
+import { TextUtils_stripPunctuation as stripPunctuation } from "../Utils.gen";
 import KonvaCore from "konva/lib/Core";
 import type Konva from "konva";
 import { Text } from "konva/lib/shapes/Text";
@@ -16,6 +17,7 @@ import {
   calculatePopScale,
   calculateWordPositions,
   calculateTotalHeight,
+  calculateActualWidth,
   interpolateBackgroundPosition,
   calculateScaledBackground,
 } from "./active-word";
@@ -25,6 +27,51 @@ export type WordAnimationData = {
   wordChunks: wordChunk[];
   cueRanges: Array<[number, number]>;
 };
+
+function calculateActualTextDimensions(
+  text: string,
+  style: style,
+  measureText: (text: string) => number
+): { width: number; height: number } {
+  if (!text.trim()) {
+    return { width: 0, height: 0 };
+  }
+
+  const blockWidth = style.blockSize.width;
+  const lineHeight = style.fontSizePx * 1.2;
+  
+  // Split text into words and calculate line wrapping
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const testWidth = measureText(testLine);
+    
+    if (testWidth > blockWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  // Find the widest line
+  let maxWidth = 0;
+  for (const line of lines) {
+    const lineWidth = measureText(line);
+    maxWidth = Math.max(maxWidth, lineWidth);
+  }
+  
+  return {
+    width: maxWidth,
+    height: lines.length * lineHeight,
+  };
+}
 
 export type RendererContext = {
   stage: Konva.Stage;
@@ -214,21 +261,40 @@ function updateTextLayer(
   ctx: RendererContext,
   currentCue: currentPlayingCue | undefined,
 ): void {
-  ctx.text.setAttr("text", currentCue?.currentCue?.text ?? "");
+  let text = currentCue?.currentCue?.text ?? "";
+  
+  if (ctx.style.hidePunctuation && text) {
+    text = stripPunctuation(text);
+  }
+  
+  ctx.text.setAttr("text", text);
 
   if (ctx.background) {
-    if (!currentCue) {
+    if (!currentCue || !text.trim()) {
       ctx.background.hide();
     } else {
       ctx.background.show();
-    }
+      
+      // Calculate actual text dimensions for proper background sizing
+      const measureText = createKonvaMeasureText(ctx.style);
+      const actualDims = calculateActualTextDimensions(text, ctx.style, measureText);
+      
+      // Calculate x position based on alignment
+      let bgX = ctx.text.x() - ctx.style.background.paddingX;
+      const alignLower = ctx.style.align.toLowerCase();
+      if (alignLower === "center") {
+        bgX = ctx.text.x() + (ctx.style.blockSize.width - actualDims.width) / 2 - ctx.style.background.paddingX;
+      } else if (alignLower === "right") {
+        bgX = ctx.text.x() + ctx.style.blockSize.width - actualDims.width - ctx.style.background.paddingX;
+      }
 
-    ctx.background.setAttrs({
-      x: ctx.text.x() - ctx.style.background.paddingX,
-      y: ctx.text.y() - ctx.style.background.paddingY,
-      width: ctx.text.width() + ctx.style.background.paddingX * 2,
-      height: ctx.text.height() + ctx.style.background.paddingY * 2,
-    });
+      ctx.background.setAttrs({
+        x: bgX,
+        y: ctx.text.y() - ctx.style.background.paddingY,
+        width: actualDims.width + ctx.style.background.paddingX * 2,
+        height: actualDims.height + ctx.style.background.paddingY * 2,
+      });
+    }
   }
 
   ctx.layer.draw();
@@ -351,12 +417,17 @@ function updateWordAnimationLayer(
       }
     }
 
+    let wordTextContent = pos.word.text.trim();
+    if (ctx.style.hidePunctuation) {
+      wordTextContent = stripPunctuation(wordTextContent);
+    }
+
     const wordText = new Text({
       x: pos.x - offsetX,
       y: pos.y - offsetY,
       scaleX: popScale,
       scaleY: popScale,
-      text: pos.word.text.trim(),
+      text: wordTextContent,
       fill: fillColor,
       fontSize: ctx.style.fontSizePx,
       fontStyle: fontWeight >= 700 ? "bold" : "normal",
@@ -372,11 +443,21 @@ function updateWordAnimationLayer(
   // redraw background for the whole block
   if (ctx.background) {
     const totalHeight = calculateTotalHeight(positions, ctx.style.fontSizePx);
+    const actualWidth = calculateActualWidth(positions, ctx.style.fontSizePx);
+    
+    // Calculate x position based on alignment
+    let bgX = ctx.style.x - ctx.style.background.paddingX;
+    const alignLower = ctx.style.align.toLowerCase();
+    if (alignLower === "center") {
+      bgX = ctx.style.x + (ctx.style.blockSize.width - actualWidth) / 2 - ctx.style.background.paddingX;
+    } else if (alignLower === "right") {
+      bgX = ctx.style.x + ctx.style.blockSize.width - actualWidth - ctx.style.background.paddingX;
+    }
 
     ctx.background.setAttrs({
-      x: ctx.style.x - ctx.style.background.paddingX,
+      x: bgX,
       y: ctx.style.y - ctx.style.background.paddingY,
-      width: ctx.style.blockSize.width + ctx.style.background.paddingX * 2,
+      width: actualWidth + ctx.style.background.paddingX * 2,
       height: totalHeight + ctx.style.background.paddingY * 2,
     });
     ctx.background.show();

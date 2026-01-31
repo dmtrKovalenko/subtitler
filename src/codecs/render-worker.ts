@@ -746,7 +746,11 @@ export async function render({
 
     try {
       for await (const wrappedCanvas of canvasSink.canvases()) {
-        const { canvas: sourceCanvas, timestamp, duration } = wrappedCanvas;
+        const { canvas: sourceCanvas, timestamp: rawTimestamp, duration } = wrappedCanvas;
+
+        // Clamp negative timestamps to 0 - some videos have frames with slightly
+        // negative PTS values due to B-frames or encoding artifacts
+        const timestamp = Math.max(0, rawTimestamp);
 
         try {
           renderCueOnCanvas(cues, sourceCanvas, rendererCtx, timestamp);

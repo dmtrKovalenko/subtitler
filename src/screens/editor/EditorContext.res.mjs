@@ -26,34 +26,35 @@ function useEditorContext() {
 function MakeEditorContext(Ctx) {
   var PlayerObserver = Player.MakePlayer(Ctx);
   var StyleObserver = Style.MakeRendererObservable(Ctx);
+  var usePlayer = function () {
+    return [
+            PlayerObserver.useObservable(),
+            PlayerObserver.dispatch
+          ];
+  };
+  var usePlayerSelector = function (selector) {
+    return PlayerObserver.useObservableSelector(selector);
+  };
+  var useStyle = function () {
+    return [
+            StyleObserver.useObservable(),
+            StyleObserver.dispatch
+          ];
+  };
   var EditorContext$MakeEditorContext = function (props) {
-    var usePlayer = function () {
-      return [
-              PlayerObserver.useObservable(),
-              PlayerObserver.dispatch
-            ];
-    };
-    var useStyle = function () {
-      return [
-              StyleObserver.useObservable(),
-              StyleObserver.dispatch
-            ];
-    };
-    var ctx_videoMeta = Ctx.videoMeta;
-    var ctx_dom = Ctx.dom;
-    var ctx_getImmediatePlayerState = PlayerObserver.get;
-    var ctx_getImmediateStyleState = StyleObserver.get;
-    var ctx_playerImmediateDispatch = PlayerObserver.dispatch;
-    var ctx = {
-      ctx: Ctx,
-      videoMeta: ctx_videoMeta,
-      dom: ctx_dom,
-      getImmediatePlayerState: ctx_getImmediatePlayerState,
-      getImmediateStyleState: ctx_getImmediateStyleState,
-      playerImmediateDispatch: ctx_playerImmediateDispatch,
-      usePlayer: usePlayer,
-      useStyle: useStyle
-    };
+    var ctx = React.useMemo((function () {
+            return {
+                    ctx: Ctx,
+                    videoMeta: Ctx.videoMeta,
+                    dom: Ctx.dom,
+                    getImmediatePlayerState: PlayerObserver.get,
+                    getImmediateStyleState: StyleObserver.get,
+                    playerImmediateDispatch: PlayerObserver.dispatch,
+                    usePlayer: usePlayer,
+                    usePlayerSelector: usePlayerSelector,
+                    useStyle: useStyle
+                  };
+          }), []);
     return React.createElement(providerElement, {
                 value: ctx,
                 children: props.children
@@ -62,6 +63,9 @@ function MakeEditorContext(Ctx) {
   return {
           PlayerObserver: PlayerObserver,
           StyleObserver: StyleObserver,
+          usePlayer: usePlayer,
+          usePlayerSelector: usePlayerSelector,
+          useStyle: useStyle,
           make: EditorContext$MakeEditorContext
         };
 }
@@ -82,32 +86,35 @@ function makeEditorContextComponent(videoMeta, videoElement, timelineVideoElemen
   };
   var PlayerObserver = Player.MakePlayer(Ctx);
   var StyleObserver = Style.MakeRendererObservable(Ctx);
+  var usePlayer = function () {
+    return [
+            PlayerObserver.useObservable(),
+            PlayerObserver.dispatch
+          ];
+  };
+  var usePlayerSelector = function (selector) {
+    return PlayerObserver.useObservableSelector(selector);
+  };
+  var useStyle = function () {
+    return [
+            StyleObserver.useObservable(),
+            StyleObserver.dispatch
+          ];
+  };
   var EditorContext$MakeEditorContext = function (props) {
-    var usePlayer = function () {
-      return [
-              PlayerObserver.useObservable(),
-              PlayerObserver.dispatch
-            ];
-    };
-    var useStyle = function () {
-      return [
-              StyleObserver.useObservable(),
-              StyleObserver.dispatch
-            ];
-    };
-    var ctx_getImmediatePlayerState = PlayerObserver.get;
-    var ctx_getImmediateStyleState = StyleObserver.get;
-    var ctx_playerImmediateDispatch = PlayerObserver.dispatch;
-    var ctx = {
-      ctx: Ctx,
-      videoMeta: videoMeta,
-      dom: dom,
-      getImmediatePlayerState: ctx_getImmediatePlayerState,
-      getImmediateStyleState: ctx_getImmediateStyleState,
-      playerImmediateDispatch: ctx_playerImmediateDispatch,
-      usePlayer: usePlayer,
-      useStyle: useStyle
-    };
+    var ctx = React.useMemo((function () {
+            return {
+                    ctx: Ctx,
+                    videoMeta: videoMeta,
+                    dom: dom,
+                    getImmediatePlayerState: PlayerObserver.get,
+                    getImmediateStyleState: StyleObserver.get,
+                    playerImmediateDispatch: PlayerObserver.dispatch,
+                    usePlayer: usePlayer,
+                    usePlayerSelector: usePlayerSelector,
+                    useStyle: useStyle
+                  };
+          }), []);
     return React.createElement(providerElement, {
                 value: ctx,
                 children: props.children

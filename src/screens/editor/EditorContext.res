@@ -10,6 +10,7 @@ type editorContext = {
   getImmediateStyleState: unit => Style.style,
   playerImmediateDispatch: Player.action => unit,
   usePlayer: unit => (Player.state, Player.action => unit),
+  usePlayerSelector: 'a. (Player.state => 'a) => 'a,
   useStyle: unit => (Style.style, Style.changeStyleAction => unit),
 }
 
@@ -30,26 +31,33 @@ module MakeEditorContext = (Ctx: Types.Ctx) => {
   module PlayerObserver = Player.MakePlayer(Ctx)
   module StyleObserver = Style.MakeRendererObservable(Ctx)
 
+  // Define hooks outside make to avoid recreation on every render
+  let usePlayer = () => {
+    (PlayerObserver.useObservable(), PlayerObserver.dispatch)
+  }
+
+  let usePlayerSelector = selector => {
+    PlayerObserver.useObservableSelector(selector)
+  }
+
+  let useStyle = () => {
+    (StyleObserver.useObservable(), StyleObserver.dispatch)
+  }
+
   @react.component @genType
   let make = (~children) => {
-    let usePlayer = () => {
-      (PlayerObserver.useObservable(), PlayerObserver.dispatch)
-    }
-
-    let useStyle = () => {
-      (StyleObserver.useObservable(), StyleObserver.dispatch)
-    }
-
-    let ctx = {
+    // Memoize the context value to prevent unnecessary re-renders
+    let ctx = React.useMemo0(() => {
       ctx: module(Ctx),
       dom: Ctx.dom,
       videoMeta: Ctx.videoMeta,
       usePlayer,
+      usePlayerSelector,
       getImmediatePlayerState: PlayerObserver.get,
       playerImmediateDispatch: PlayerObserver.dispatch,
       useStyle,
       getImmediateStyleState: StyleObserver.get,
-    }
+    })
 
     providerElement->React.createElement({
       value: Some(ctx),

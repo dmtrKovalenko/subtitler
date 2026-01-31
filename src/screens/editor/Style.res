@@ -79,6 +79,8 @@ type style = {
   background: background,
   showWordAnimation: bool,
   wordAnimation: wordAnimation,
+  // Hide punctuation from rendered subtitles (preserves in source for resizing)
+  hidePunctuation: bool,
 }
 
 @genType
@@ -100,6 +102,7 @@ type changeStyleAction =
   | ToggleBackground
   | ToggleWordAnimation
   | SetWordAnimation(wordAnimation)
+  | ToggleHidePunctuation
 
 let defaultBackground: background = {
   color: "#000000",
@@ -154,6 +157,7 @@ type stylePreferences = {
   background: background,
   showWordAnimation: bool,
   wordAnimation: wordAnimation,
+  hidePunctuation: bool,
   // Position with video dimensions for conditional restore
   x: option<int>,
   y: option<int>,
@@ -173,6 +177,7 @@ let defaultPreferences: stylePreferences = {
   background: defaultBackground,
   showWordAnimation: false,
   wordAnimation: defaultWordAnimation,
+  hidePunctuation: true,
   x: None,
   y: None,
   // we store the video x and y was set for to only restore position
@@ -182,7 +187,7 @@ let defaultPreferences: stylePreferences = {
 }
 
 let stylePreferencesStorageKey = "subtitler.stylePreferences"
-let stylePreferencesVersion = 3
+let stylePreferencesVersion = 4
 
 let loadStylePreferences = (): option<stylePreferences> => {
   open Dom.Storage2
@@ -219,6 +224,7 @@ let saveStylePreferences = (style: style, ~videoWidth: int, ~videoHeight: int) =
     background: style.background,
     showWordAnimation: style.showWordAnimation,
     wordAnimation: style.wordAnimation,
+    hidePunctuation: style.hidePunctuation,
     x: Some(style.x),
     y: Some(style.y),
     videoWidth: Some(videoWidth),
@@ -298,6 +304,9 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
       p.showWordAnimation
     ),
     wordAnimation: savedPrefs->Option.mapOr(defaultPreferences.wordAnimation, p => p.wordAnimation),
+    hidePunctuation: savedPrefs->Option.mapOr(defaultPreferences.hidePunctuation, p =>
+      p.hidePunctuation
+    ),
   }
 
   let reducer = (state: style, action): style => {
@@ -332,6 +341,7 @@ module MakeRendererObservable = (Ctx: Ctx) => UseObservable.MakeObserver({
     | SetStrokeWidth(strokeWidth) => {...state, strokeWidth}
     | ToggleWordAnimation => {...state, showWordAnimation: !state.showWordAnimation}
     | SetWordAnimation(wordAnimation) => {...state, wordAnimation}
+    | ToggleHidePunctuation => {...state, hidePunctuation: !state.hidePunctuation}
     }
 
     // Persist preferences on every change
