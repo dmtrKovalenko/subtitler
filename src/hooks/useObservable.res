@@ -58,12 +58,36 @@ module Pubsub = (Init: PubsubInit) => {
     let (_, forceUpdate) = React.useReducer((x, _) => x + 1, 0)
 
     React.useEffect0(() => {
-      let unsubscribe = subscribe(forceUpdate)
+      let unsubscribe = subscribe(_ => forceUpdate())
 
       Some(unsubscribe)
     })
 
     get()
+  }
+
+  // Selector-based hook that only re-renders when the selected value changes
+  // This is critical for performance - components can subscribe to specific slices of state
+  @genType
+  let useObservableSelector = (selector: Init.t => 'a): 'a => {
+    let selectedRef = React.useRef(selector(get()))
+    let (_, forceUpdate) = React.useReducer((x, _) => x + 1, 0)
+
+    React.useEffect0(() => {
+      let unsubscribe = subscribe(state => {
+        let newSelected = selector(state)
+
+        // Only force update if the selected value actually changed
+        if newSelected !== selectedRef.current {
+          selectedRef.current = newSelected
+          forceUpdate()
+        }
+      })
+
+      Some(unsubscribe)
+    })
+
+    selectedRef.current
   }
 }
 

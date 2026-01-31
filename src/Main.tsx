@@ -35,6 +35,28 @@ Sentry.init({
   enabled: process.env.NODE_ENV !== 'development',
   replaysSessionSampleRate: 0.05,
   replaysOnErrorSampleRate: 1.0,
+  ignoreErrors: [
+    // Browser extension errors (password managers, etc.)
+    "ControlLooksLikePasswordCredentialField",
+    "Cannot read properties of null (reading 'ControlLooksLikePasswordCredentialField')",
+    // Other common extension-related errors
+    "ResizeObserver loop limit exceeded",
+    "ResizeObserver loop completed with undelivered notifications",
+    // Extensions injecting scripts
+    /^chrome-extension:\/\//,
+    /^moz-extension:\/\//,
+  ],
+  beforeSend(event) {
+    // Filter out errors from browser extensions
+    if (event.exception?.values?.[0]?.stacktrace?.frames?.some(
+      (frame) => frame.filename?.includes("extension") || 
+                 frame.filename?.startsWith("chrome-extension://") ||
+                 frame.filename?.startsWith("moz-extension://")
+    )) {
+      return null;
+    }
+    return event;
+  },
 });
 
 const rootElement = document.querySelector("#root");

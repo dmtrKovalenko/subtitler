@@ -66,6 +66,7 @@ var defaultPreferences = {
   background: defaultBackground,
   showWordAnimation: false,
   wordAnimation: defaultWordAnimation,
+  hidePunctuation: true,
   x: undefined,
   y: undefined,
   videoWidth: undefined,
@@ -85,7 +86,7 @@ function loadStylePreferences() {
   if (storedVersion === undefined) {
     return ;
   }
-  if (storedVersion !== 3) {
+  if (storedVersion !== 4) {
     return ;
   }
   try {
@@ -108,6 +109,7 @@ function saveStylePreferences(style, videoWidth, videoHeight) {
   var prefs_background = style.background;
   var prefs_showWordAnimation = style.showWordAnimation;
   var prefs_wordAnimation = style.wordAnimation;
+  var prefs_hidePunctuation = style.hidePunctuation;
   var prefs_x = style.x;
   var prefs_y = style.y;
   var prefs_videoWidth = videoWidth;
@@ -124,13 +126,14 @@ function saveStylePreferences(style, videoWidth, videoHeight) {
     background: prefs_background,
     showWordAnimation: prefs_showWordAnimation,
     wordAnimation: prefs_wordAnimation,
+    hidePunctuation: prefs_hidePunctuation,
     x: prefs_x,
     y: prefs_y,
     videoWidth: prefs_videoWidth,
     videoHeight: prefs_videoHeight
   };
   localStorage.setItem(stylePreferencesStorageKey, Core__Option.getOr(JSON.stringify(prefs), ""));
-  localStorage.setItem(stylePreferencesStorageKey + ".version", String(3));
+  localStorage.setItem(stylePreferencesStorageKey + ".version", String(4));
 }
 
 function MakeRendererObservable(Ctx) {
@@ -191,6 +194,9 @@ function MakeRendererObservable(Ctx) {
   var initial_wordAnimation = Core__Option.mapOr(savedPrefs, defaultWordAnimation, (function (p) {
           return p.wordAnimation;
         }));
+  var initial_hidePunctuation = Core__Option.mapOr(savedPrefs, true, (function (p) {
+          return p.hidePunctuation;
+        }));
   var initial = {
     x: initial_x,
     y: initial_y,
@@ -206,7 +212,8 @@ function MakeRendererObservable(Ctx) {
     showBackground: initial_showBackground,
     background: initial_background,
     showWordAnimation: initial_showWordAnimation,
-    wordAnimation: initial_wordAnimation
+    wordAnimation: initial_wordAnimation,
+    hidePunctuation: initial_hidePunctuation
   };
   var reducer = function (state, action) {
     var newState;
@@ -228,7 +235,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "ToggleBackground" :
@@ -247,7 +255,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: !state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "ToggleWordAnimation" :
@@ -266,7 +275,28 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: !state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
+            };
+            break;
+        case "ToggleHidePunctuation" :
+            newState = {
+              x: state.x,
+              y: state.y,
+              fontFamily: state.fontFamily,
+              fontWeight: state.fontWeight,
+              fontSizePx: state.fontSizePx,
+              color: state.color,
+              strokeColor: state.strokeColor,
+              strokeWidth: state.strokeWidth,
+              align: state.align,
+              blockSize: state.blockSize,
+              fontVariants: state.fontVariants,
+              showBackground: state.showBackground,
+              background: state.background,
+              showWordAnimation: state.showWordAnimation,
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: !state.hidePunctuation
             };
             break;
         
@@ -289,7 +319,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetAlign" :
@@ -308,7 +339,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetBackground" :
@@ -327,7 +359,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: action._0,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetBlockHeight" :
@@ -349,7 +382,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetBlockWidth" :
@@ -371,7 +405,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetColor" :
@@ -390,7 +425,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetFontFamily" :
@@ -409,7 +445,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetFontSizePx" :
@@ -428,7 +465,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetFontVariants" :
@@ -448,7 +486,8 @@ function MakeRendererObservable(Ctx) {
                   showBackground: state.showBackground,
                   background: state.background,
                   showWordAnimation: state.showWordAnimation,
-                  wordAnimation: state.wordAnimation
+                  wordAnimation: state.wordAnimation,
+                  hidePunctuation: state.hidePunctuation
                 }) : ({
                   x: state.x,
                   y: state.y,
@@ -464,7 +503,8 @@ function MakeRendererObservable(Ctx) {
                   showBackground: state.showBackground,
                   background: state.background,
                   showWordAnimation: state.showWordAnimation,
-                  wordAnimation: state.wordAnimation
+                  wordAnimation: state.wordAnimation,
+                  hidePunctuation: state.hidePunctuation
                 });
             break;
         case "SetFontWeight" :
@@ -483,7 +523,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetPosition" :
@@ -502,7 +543,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetStrokeColor" :
@@ -521,7 +563,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetStrokeWidth" :
@@ -540,7 +583,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: state.wordAnimation
+              wordAnimation: state.wordAnimation,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         case "SetWordAnimation" :
@@ -559,7 +603,8 @@ function MakeRendererObservable(Ctx) {
               showBackground: state.showBackground,
               background: state.background,
               showWordAnimation: state.showWordAnimation,
-              wordAnimation: action._0
+              wordAnimation: action._0,
+              hidePunctuation: state.hidePunctuation
             };
             break;
         
@@ -574,7 +619,7 @@ function MakeRendererObservable(Ctx) {
             });
 }
 
-var stylePreferencesVersion = 3;
+var stylePreferencesVersion = 4;
 
 export {
   all_font_weights ,

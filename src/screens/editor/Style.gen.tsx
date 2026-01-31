@@ -55,13 +55,15 @@ export type style = {
   readonly showBackground: boolean; 
   readonly background: background; 
   readonly showWordAnimation: boolean; 
-  readonly wordAnimation: wordAnimation
+  readonly wordAnimation: wordAnimation; 
+  readonly hidePunctuation: boolean
 };
 
 export type changeStyleAction = 
     "ResetFontVariants"
   | "ToggleBackground"
   | "ToggleWordAnimation"
+  | "ToggleHidePunctuation"
   | { TAG: "Resize"; _0: size }
   | { TAG: "SetAlign"; _0: align }
   | { TAG: "SetBackground"; _0: background }
@@ -89,6 +91,7 @@ export type stylePreferences = {
   readonly background: background; 
   readonly showWordAnimation: boolean; 
   readonly wordAnimation: wordAnimation; 
+  readonly hidePunctuation: boolean; 
   readonly x: (undefined | number); 
   readonly y: (undefined | number); 
   readonly videoWidth: (undefined | number); 

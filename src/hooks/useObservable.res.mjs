@@ -44,9 +44,29 @@ function Pubsub(Init) {
           }), 0);
     var forceUpdate = match[1];
     React.useEffect((function () {
-            return subscribe(forceUpdate);
+            return subscribe(function (param) {
+                        forceUpdate();
+                      });
           }), []);
     return mutableState.contents;
+  };
+  var useObservableSelector = function (selector) {
+    var selectedRef = React.useRef(selector(mutableState.contents));
+    var match = React.useReducer((function (x, param) {
+            return x + 1 | 0;
+          }), 0);
+    var forceUpdate = match[1];
+    React.useEffect((function () {
+            return subscribe(function (state) {
+                        var newSelected = selector(state);
+                        if (newSelected !== selectedRef.current) {
+                          selectedRef.current = newSelected;
+                          return forceUpdate();
+                        }
+                        
+                      });
+          }), []);
+    return selectedRef.current;
   };
   return {
           mutableState: mutableState,
@@ -55,7 +75,8 @@ function Pubsub(Init) {
           set: set,
           nextId: nextId,
           subscribe: subscribe,
-          useObservable: useObservable
+          useObservable: useObservable,
+          useObservableSelector: useObservableSelector
         };
 }
 
@@ -94,7 +115,9 @@ function MakeObserver(Observable) {
           }), 0);
     var forceUpdate = match[1];
     React.useEffect((function () {
-            return subscribe(forceUpdate);
+            return subscribe(function (param) {
+                        forceUpdate();
+                      });
           }), []);
     return mutableState.contents;
   };

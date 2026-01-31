@@ -31,6 +31,7 @@ export type editorContext = {
   readonly getImmediateStyleState: () => Style_style; 
   readonly playerImmediateDispatch: (_1:Player_action) => void; 
   readonly usePlayer: () => [Player_state, (_1:Player_action) => void]; 
+  readonly usePlayerSelector: unknown; 
   readonly useStyle: () => [Style_style, (_1:Style_changeStyleAction) => void]
 };
 

@@ -146,6 +146,48 @@ export function calculateTotalHeight(
     : lineHeight;
 }
 
+/**
+ * Calculate the actual width of text based on word positions (widest line)
+ */
+export function calculateActualWidth(
+  positions: WordPosition[],
+  fontSizePx: number
+): number {
+  if (positions.length === 0) return 0;
+  
+  const lineHeight = fontSizePx * 1.2;
+  
+  // Group positions by line (same y value within tolerance)
+  const lineWidths: number[] = [];
+  let currentLineY = positions[0].y;
+  let currentLineMaxX = 0;
+  let currentLineMinX = Infinity;
+  
+  for (const pos of positions) {
+    // Check if this is a new line (y position changed significantly)
+    if (Math.abs(pos.y - currentLineY) > lineHeight * 0.5) {
+      // Save previous line's width
+      if (currentLineMinX !== Infinity) {
+        lineWidths.push(currentLineMaxX - currentLineMinX);
+      }
+      // Start new line
+      currentLineY = pos.y;
+      currentLineMinX = pos.x;
+      currentLineMaxX = pos.x + pos.width;
+    } else {
+      currentLineMinX = Math.min(currentLineMinX, pos.x);
+      currentLineMaxX = Math.max(currentLineMaxX, pos.x + pos.width);
+    }
+  }
+  
+  // Don't forget the last line
+  if (currentLineMinX !== Infinity) {
+    lineWidths.push(currentLineMaxX - currentLineMinX);
+  }
+  
+  return lineWidths.length > 0 ? Math.max(...lineWidths) : 0;
+}
+
 export function interpolateBackgroundPosition(
   activePos: { x: number; y: number; width: number },
   prevPos: { x: number; y: number; width: number } | null | undefined,
