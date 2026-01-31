@@ -400,6 +400,33 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         }}
         onTransform={handleResize}
       >
+        {/* Render non-active words first (below) */}
+        {wordPositions
+          .filter((pos) => pos.index !== activeWordIndex)
+          .map((pos) => {
+            const wordText = subtitleStyle.hidePunctuation
+              ? stripPunctuation(pos.word.text.trim())
+              : pos.word.text.trim();
+
+            return (
+              <Text
+                key={pos.index}
+                x={pos.x}
+                y={pos.y}
+                text={wordText}
+                fill={subtitleStyle.color}
+                fontSize={subtitleStyle.fontSizePx}
+                fontStyle={subtitleStyle.fontWeight >= 700 ? "bold" : "normal"}
+                fontFamily={`"${subtitleStyle.fontFamily}"`}
+                stroke={subtitleStyle.strokeColor}
+                strokeWidth={subtitleStyle.strokeWidth}
+                strokeEnabled={subtitleStyle.strokeColor !== subtitleStyle.color}
+                fillAfterStrokeEnabled
+              />
+            );
+          })}
+
+        {/* Render active word background and text last (on top) */}
         {activePos && wordAnim.showBackground && (
           <Rect
             x={bgPos.x - bgPadX - scaledBg.offsetX}
@@ -412,20 +439,18 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           />
         )}
 
-        {wordPositions.map((pos, i) => {
-          const isActive = pos.index === activeWordIndex;
-          const wordText = subtitleStyle.hidePunctuation 
-            ? stripPunctuation(pos.word.text.trim())
-            : pos.word.text.trim();
+        {activePos &&
+          (() => {
+            const wordText = subtitleStyle.hidePunctuation
+              ? stripPunctuation(activePos.word.text.trim())
+              : activePos.word.text.trim();
 
-          // Start with base styles
-          let fillColor = subtitleStyle.color;
-          let fontWeight = subtitleStyle.fontWeight;
-          let scale = 1;
-          let offsetX = 0;
-          let offsetY = 0;
+            let fillColor = subtitleStyle.color;
+            let fontWeight = subtitleStyle.fontWeight;
+            let scale = 1;
+            let offsetX = 0;
+            let offsetY = 0;
 
-          if (isActive) {
             // Font effect: change text color and/or font weight (fallback to main style)
             if (wordAnim.showFont) {
               fillColor = wordAnim.font.color ?? subtitleStyle.color;
@@ -436,30 +461,29 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             if (wordAnim.showPop) {
               scale = popScale;
               // Offset to scale from center of the word
-              offsetX = (pos.width * (scale - 1)) / 2;
+              offsetX = (activePos.width * (scale - 1)) / 2;
               offsetY = (subtitleStyle.fontSizePx * (scale - 1)) / 2;
             }
-          }
 
-          return (
-            <Text
-              key={i}
-              x={pos.x - offsetX}
-              y={pos.y - offsetY}
-              scaleX={scale}
-              scaleY={scale}
-              text={wordText}
-              fill={fillColor}
-              fontSize={subtitleStyle.fontSizePx}
-              fontStyle={fontWeight >= 700 ? "bold" : "normal"}
-              fontFamily={`"${subtitleStyle.fontFamily}"`}
-              stroke={subtitleStyle.strokeColor}
-              strokeWidth={subtitleStyle.strokeWidth}
-              strokeEnabled={subtitleStyle.strokeColor !== subtitleStyle.color}
-              fillAfterStrokeEnabled
-            />
-          );
-        })}
+            return (
+              <Text
+                key={activePos.index}
+                x={activePos.x - offsetX}
+                y={activePos.y - offsetY}
+                scaleX={scale}
+                scaleY={scale}
+                text={wordText}
+                fill={fillColor}
+                fontSize={subtitleStyle.fontSizePx}
+                fontStyle={fontWeight >= 700 ? "bold" : "normal"}
+                fontFamily={`"${subtitleStyle.fontFamily}"`}
+                stroke={subtitleStyle.strokeColor}
+                strokeWidth={subtitleStyle.strokeWidth}
+                strokeEnabled={subtitleStyle.strokeColor !== subtitleStyle.color}
+                fillAfterStrokeEnabled
+              />
+            );
+          })()}
       </Group>
     );
   };

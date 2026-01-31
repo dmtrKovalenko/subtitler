@@ -161,21 +161,39 @@ var make = React.memo(function (props) {
       var ref = React.useRef(null);
       var textAreaRef = React.useRef(null);
       var previousWasCurrentRef = React.useRef(current);
-      var editorInputHandler = useEditorInputHandler();
+      var textareaKeyDownHandler = Hooks.useEvent(function ($$event) {
+            var key = $$event.key;
+            switch (key) {
+              case " " :
+                  if ($$event.shiftKey || $$event.ctrlKey || $$event.metaKey) {
+                    return ctx.playerImmediateDispatch("Play");
+                  } else {
+                    return ;
+                  }
+              case "Escape" :
+                  $$event.target.blur();
+                  ctx.playerImmediateDispatch({
+                        TAG: "Seek",
+                        _0: start
+                      });
+                  return ctx.playerImmediateDispatch("Play");
+              default:
+                return ;
+            }
+          });
       React.useEffect((function () {
               if (current) {
                 globalCurrentCueTextAreaRef.contents = textAreaRef;
-                if (!previousWasCurrentRef.current) {
-                  var shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement();
-                  if (shouldScroll) {
-                    Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
-                            el.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "nearest"
-                                });
-                          }));
-                  }
-                  
+              }
+              if (current && !previousWasCurrentRef.current) {
+                var shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement();
+                if (shouldScroll) {
+                  Core__Option.forEach(Caml_option.nullable_to_opt(ref.current), (function (el) {
+                          el.scrollIntoView({
+                                behavior: "instant",
+                                block: "nearest"
+                              });
+                        }));
                 }
                 
               }
@@ -306,7 +324,7 @@ var make = React.memo(function (props) {
                             id: current ? "current-cue-textarea" : "",
                             readOnly: readonly,
                             rows: chunk.text === "" ? 2 : 3,
-                            onKeyDown: editorInputHandler,
+                            onKeyDown: textareaKeyDownHandler,
                             onBlur: handleBlur
                           }, chunk.text),
                     chunk.text === "" && !showSplitPreview ? JsxRuntime.jsxs("div", {

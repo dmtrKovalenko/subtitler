@@ -25,14 +25,12 @@ module Label = {
 
 type position = Left | Right
 
-// Helper to check if an element is the active element
 let isActiveElement: Webapi.Dom.HtmlInputElement.t => bool = %raw(`
   function(input) {
     return document.activeElement === input;
   }
 `)
 
-// Debounce delay in ms
 let debounceDelay = 150
 
 @react.component
@@ -52,13 +50,10 @@ let make = (
   let inputRef = React.useRef(Js.Nullable.null)
   let id = React.useId()
 
-  // Create stable callback that always calls latest onChange
   let stableOnChange = Hooks.useEvent(onChange)
-
-  // Debounced onChange for live updates while typing
   let debouncedOnChange = ReactDebounce.useDebounced(stableOnChange, ~wait=debounceDelay)
 
-  // Sync input value when external value changes (but only if input isn't focused)
+  // imporotant to not reset the value if the input is focused and being edited
   React.useEffect1(() => {
     inputRef.current
     ->Js.Nullable.toOption
@@ -73,7 +68,6 @@ let make = (
 
   let handleChange = (e: JsxEvent.Form.t) => {
     let inputValue = JsxEvent.Form.currentTarget(e)["value"]
-    // Only update if valid integer within range
     switch Int.fromString(inputValue) {
     | Some(newValue) if newValue >= min && newValue <= max => debouncedOnChange(newValue)
     | _ => () // Invalid or out of range - let user keep typing

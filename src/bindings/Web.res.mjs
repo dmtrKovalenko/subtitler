@@ -47,6 +47,17 @@ function isFocusable(el) {
   }
 }
 
+function isTextInput(el) {
+  var match = el.tagName;
+  switch (match) {
+    case "INPUT" :
+    case "TEXTAREA" :
+        return true;
+    default:
+      return Core__Option.isSome(Caml_option.nullable_to_opt(el.getAttribute("contenteditable")));
+  }
+}
+
 function isFocusingInteractiveElement() {
   return Core__Option.getOr(Core__Option.map(Caml_option.nullable_to_opt(document.activeElement), isFocusable), false);
 }
@@ -95,6 +106,7 @@ export {
   $$Document ,
   $$Element ,
   isFocusable ,
+  isTextInput ,
   isFocusingInteractiveElement ,
   Video ,
 }

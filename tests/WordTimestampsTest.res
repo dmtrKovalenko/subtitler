@@ -357,3 +357,39 @@ test("applyTextEdit: replace last word with multiple words", () => {
   Assert.floatEqual(getStart(result, 0), 0.0)
   Assert.floatEqual(getStart(result, 1), 0.5)
 })
+
+test("applyTextEdit: extends the updated words in one chunk", () => {
+  // "Some value because intereset" -> "Some value FREAKING BECAUSE interest"
+  let words = [
+    word("Some", 0.0, ts(0.0, 0.5)),
+    word("value", 0.5, ts(0.5, 1.0)),
+    word("because", 1.0, ts(1.0, 1.5)),
+    word("interest", 1.5, ts(1.5, 2.0)),
+  ]
+  let result = WordTimestamps.applyTextEdit(words, "Some value FREAKING BECAUSE interest")
+
+  Assert.intEqual(Array.length(result), 4)
+  Assert.stringEqual(getText(result, 0), "Some")
+  Assert.stringEqual(getText(result, 1), "value")
+  Assert.stringEqual(getText(result, 2), "FREAKING BECAUSE")
+  Assert.stringEqual(getText(result, 3), "interest")
+})
+
+test("applyTextEdit: handles multi-word chunks from previous edits", () => {
+  // If a previous edit created "because interest" as one chunk, editing should still match properly
+  // Old: ["Some", "value", "because interest"] (3 chunks, last one is multi-word)
+  // New: "Some value FREAKING BECAUSE interest"
+  // Expected: "FREAKING" merges with matched "BECAUSE", "interest" stays matched
+  let words = [
+    word("Some", 0.0, ts(0.0, 0.5)),
+    word("value", 0.5, ts(0.5, 1.0)),
+    word("because interest", 1.0, ts(1.0, 2.0)), // Multi-word chunk from previous edit
+  ]
+  let result = WordTimestamps.applyTextEdit(words, "Some value FREAKING BECAUSE interest")
+
+  Assert.intEqual(Array.length(result), 4)
+  Assert.stringEqual(getText(result, 0), "Some")
+  Assert.stringEqual(getText(result, 1), "value")
+  Assert.stringEqual(getText(result, 2), "FREAKING BECAUSE")
+  Assert.stringEqual(getText(result, 3), "interest")
+})

@@ -88,12 +88,12 @@ function interpolateTimestamps(prevEnd, nextStart, count) {
 
 function applyTextEdit(oldWords, newText) {
   var newTokens = tokenize(newText);
-  var oldCount = oldWords.length;
+  var oldChunkCount = oldWords.length;
   var newCount = newTokens.length;
   if (newCount === 0) {
     return [];
   }
-  if (oldCount === 0) {
+  if (oldChunkCount === 0) {
     return [{
               text: newText,
               timestamp: [
@@ -102,13 +102,31 @@ function applyTextEdit(oldWords, newText) {
               ]
             }];
   }
-  var oldTokens = oldWords.map(function (w) {
-        return w.text;
+  var oldTokensWithChunkIdx = [];
+  oldWords.forEach(function (chunk, chunkIdx) {
+        var tokens = tokenize(chunk.text);
+        tokens.forEach(function (token) {
+              oldTokensWithChunkIdx.push([
+                    token,
+                    chunkIdx
+                  ]);
+            });
       });
+  var oldTokens = oldTokensWithChunkIdx.map(function (param) {
+        return param[0];
+      });
+  var oldTokenCount = oldTokens.length;
   var matches = computeLCS(oldTokens, newTokens);
+  var getChunkIdx = function (tokenIdx) {
+    return oldTokensWithChunkIdx[tokenIdx][1];
+  };
+  var getTimestamp = function (tokenIdx) {
+    var chunkIdx = getChunkIdx(tokenIdx);
+    return oldWords[chunkIdx].timestamp;
+  };
   if (matches.length === 0) {
     var firstStart = oldWords[0].timestamp[0];
-    var lastEnd = oldWords[oldCount - 1 | 0].timestamp[1];
+    var lastEnd = oldWords[oldChunkCount - 1 | 0].timestamp[1];
     return [{
               text: newText,
               timestamp: [
@@ -124,18 +142,18 @@ function applyTextEdit(oldWords, newText) {
   var firstMatchOldIdx = match[0];
   var match$1 = matches[numMatches - 1 | 0];
   var lastMatchOldIdx = match$1[0];
-  var hasOldWordsBefore = firstMatchOldIdx > 0;
-  var hasOldWordsAfter = lastMatchOldIdx < (oldCount - 1 | 0);
+  var hasOldTokensBefore = firstMatchOldIdx > 0;
+  var hasOldTokensAfter = lastMatchOldIdx < (oldTokenCount - 1 | 0);
   if (firstMatchNewIdx > 0) {
     var newTokensBefore = newTokens.slice(0, firstMatchNewIdx);
-    if (hasOldWordsBefore) {
-      var oldWordsBefore = oldWords.slice(0, firstMatchOldIdx);
+    if (hasOldTokensBefore) {
+      var oldTokensBefore = oldTokensWithChunkIdx.slice(0, firstMatchOldIdx);
       var newCountBefore = newTokensBefore.length;
-      var oldCountBefore = oldWordsBefore.length;
+      var oldCountBefore = oldTokensBefore.length;
       var assignCount = newCountBefore < oldCountBefore ? newCountBefore : oldCountBefore;
       for(var i = 0; i < assignCount; ++i){
         var token = newTokensBefore[i];
-        var ts = oldWordsBefore[i].timestamp;
+        var ts = getTimestamp(i);
         result.push({
               text: token,
               timestamp: ts
@@ -144,8 +162,8 @@ function applyTextEdit(oldWords, newText) {
     }
     
   }
-  var startMergeText = firstMatchNewIdx > 0 && !hasOldWordsBefore ? newTokens.slice(0, firstMatchNewIdx).join(" ") : (
-      firstMatchNewIdx > 0 && hasOldWordsBefore && firstMatchNewIdx > firstMatchOldIdx ? newTokens.slice(firstMatchOldIdx, firstMatchNewIdx).join(" ") : ""
+  var startMergeText = firstMatchNewIdx > 0 && !hasOldTokensBefore ? newTokens.slice(0, firstMatchNewIdx).join(" ") : (
+      firstMatchNewIdx > 0 && hasOldTokensBefore && firstMatchNewIdx > firstMatchOldIdx ? newTokens.slice(firstMatchOldIdx, firstMatchNewIdx).join(" ") : ""
     );
   matches.forEach(function (match_, matchIdx) {
         var newIdx = match_[1];
@@ -153,16 +171,17 @@ function applyTextEdit(oldWords, newText) {
         var betweenMergeText = "";
         if (matchIdx > 0) {
           var match = matches[matchIdx - 1 | 0];
+          var prevOldIdx = match[0];
           var newTokensBetween = newTokens.slice(match[1] + 1 | 0, newIdx);
-          var oldWordsBetween = oldWords.slice(match[0] + 1 | 0, oldIdx);
+          var oldTokensBetween = oldTokensWithChunkIdx.slice(prevOldIdx + 1 | 0, oldIdx);
           var newCountBetween = newTokensBetween.length;
-          var oldCountBetween = oldWordsBetween.length;
+          var oldCountBetween = oldTokensBetween.length;
           if (newCountBetween > 0) {
             if (oldCountBetween > 0) {
               var assignCount = newCountBetween < oldCountBetween ? newCountBetween : oldCountBetween;
               for(var i = 0; i < assignCount; ++i){
                 var token = newTokensBetween[i];
-                var ts = oldWordsBetween[i].timestamp;
+                var ts = getTimestamp((prevOldIdx + 1 | 0) + i | 0);
                 result.push({
                       text: token,
                       timestamp: ts
@@ -179,7 +198,7 @@ function applyTextEdit(oldWords, newText) {
           }
           
         }
-        var originalTs = oldWords[oldIdx].timestamp;
+        var originalTs = getTimestamp(oldIdx);
         var matchedToken = newTokens[newIdx];
         var finalText = matchIdx === 0 && startMergeText !== "" ? (
             betweenMergeText !== "" ? startMergeText + " " + betweenMergeText + " " + matchedToken : startMergeText + " " + matchedToken
@@ -195,13 +214,13 @@ function applyTextEdit(oldWords, newText) {
   if (newTokensAfterStart < newCount) {
     var newTokensAfter = newTokens.slice(newTokensAfterStart);
     var newCountAfter = newTokensAfter.length;
-    if (hasOldWordsAfter) {
-      var oldWordsAfter = oldWords.slice(lastMatchOldIdx + 1 | 0);
-      var oldCountAfter = oldWordsAfter.length;
+    if (hasOldTokensAfter) {
+      var oldTokensAfter = oldTokensWithChunkIdx.slice(lastMatchOldIdx + 1 | 0);
+      var oldCountAfter = oldTokensAfter.length;
       var assignCount$1 = newCountAfter < oldCountAfter ? newCountAfter : oldCountAfter;
       for(var i$1 = 0; i$1 < assignCount$1; ++i$1){
         var token$1 = newTokensAfter[i$1];
-        var ts$1 = oldWordsAfter[i$1].timestamp;
+        var ts$1 = getTimestamp((lastMatchOldIdx + 1 | 0) + i$1 | 0);
         result.push({
               text: token$1,
               timestamp: ts$1

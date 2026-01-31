@@ -715,7 +715,7 @@ let make = React.memo((~subtitlesManager, ~title: React.element) => {
       ->Array.mapWithIndex((chunk, index) =>
         <ChunkEditor
           index
-          current={currentPlayingCueIndex->Option.map(i => i === index)->Option.getOr(false)}
+          current={currentPlayingCueIndex->Option.map(i => i === index)->Option.getOr(index === 0)}
           readonly={subtitlesManager.transcriptionState == TranscriptionInProgress}
           chunk
           key={switch chunk.id {

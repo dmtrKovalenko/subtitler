@@ -636,6 +636,77 @@ Test.test("applyTextEdit: replace last word with multiple words", (function () {
         Assert.floatEqual(undefined, getStart(result, 1), 0.5);
       }));
 
+Test.test("applyTextEdit: extends the updated words in one chunk", (function () {
+        var words = [
+          {
+            text: "Some",
+            timestamp: [
+              0.0,
+              0.5
+            ]
+          },
+          {
+            text: "value",
+            timestamp: [
+              0.5,
+              1.0
+            ]
+          },
+          {
+            text: "because",
+            timestamp: [
+              1.0,
+              1.5
+            ]
+          },
+          {
+            text: "interest",
+            timestamp: [
+              1.5,
+              2.0
+            ]
+          }
+        ];
+        var result = WordTimestamps.applyTextEdit(words, "Some value FREAKING BECAUSE interest");
+        Assert.intEqual(undefined, result.length, 4);
+        Assert.stringEqual(undefined, result[0].text, "Some");
+        Assert.stringEqual(undefined, result[1].text, "value");
+        Assert.stringEqual(undefined, result[2].text, "FREAKING BECAUSE");
+        Assert.stringEqual(undefined, result[3].text, "interest");
+      }));
+
+Test.test("applyTextEdit: handles multi-word chunks from previous edits", (function () {
+        var words = [
+          {
+            text: "Some",
+            timestamp: [
+              0.0,
+              0.5
+            ]
+          },
+          {
+            text: "value",
+            timestamp: [
+              0.5,
+              1.0
+            ]
+          },
+          {
+            text: "because interest",
+            timestamp: [
+              1.0,
+              2.0
+            ]
+          }
+        ];
+        var result = WordTimestamps.applyTextEdit(words, "Some value FREAKING BECAUSE interest");
+        Assert.intEqual(undefined, result.length, 4);
+        Assert.stringEqual(undefined, result[0].text, "Some");
+        Assert.stringEqual(undefined, result[1].text, "value");
+        Assert.stringEqual(undefined, result[2].text, "FREAKING BECAUSE");
+        Assert.stringEqual(undefined, result[3].text, "interest");
+      }));
+
 export {
   word ,
   ts ,

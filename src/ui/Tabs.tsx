@@ -19,6 +19,7 @@ export default function Tabs({ tabs, defaultIndex, className }: TabsProps) {
         {tabs.map(({ name, id }) => (
           <Tab
             key={id}
+            data-tab-id={id}
             className={clsx(
               "rounded-full transition-all py-2 px-4 text-sm md:text-base font-medium text-white/70",
               "focus:outline-none outline-offset-1",
@@ -34,7 +35,7 @@ export default function Tabs({ tabs, defaultIndex, className }: TabsProps) {
       </TabList>
       <TabPanels className="flex-1 min-h-0 overflow-hidden">
         {tabs.map(({ content, id }) => (
-          <TabPanel key={id} className="h-full overflow-auto">
+          <TabPanel key={id} unmount={true} className="h-full overflow-auto">
             {content}
           </TabPanel>
         ))}

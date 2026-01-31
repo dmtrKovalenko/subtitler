@@ -144,32 +144,47 @@ let make = React.memo((
   let textAreaRef = React.useRef(null)
   let previousWasCurrentRef = React.useRef(current)
 
-  // Call hook unconditionally at the top level
-  let editorInputHandler = useEditorInputHandler()
+  // Handler for textarea keydown - handles Escape to exit, seek to start, and play
+  let textareaKeyDownHandler = Hooks.useEvent(event => {
+    let key = ReactEvent.Keyboard.key(event)
+
+    switch key {
+    | "Escape" =>
+      let _ = ReactEvent.Keyboard.target(event)["blur"]()
+      ctx.playerImmediateDispatch(Seek(start))
+      ctx.playerImmediateDispatch(Play)
+    | " "
+      if event->ReactEvent.Keyboard.shiftKey ||
+      event->ReactEvent.Keyboard.ctrlKey ||
+      event->ReactEvent.Keyboard.metaKey =>
+      ctx.playerImmediateDispatch(Play)
+    | _ => ()
+    }
+  })
 
   // Don't auto-scroll when split preview is active or user is interacting with menus
   React.useEffect2(() => {
+    // Always update the ref when this cue is current
     if current {
-      // Always update the ref when this cue is current
       globalCurrentCueTextAreaRef := Some(textAreaRef)
+    }
 
-      // Only auto-scroll on transition to current
-      if !previousWasCurrentRef.current {
-        // Skip scroll if ANY split preview is active (user is in split menu)
-        // or if user is focusing any interactive element
-        let shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement()
+    // Only scroll on transition to current (not already current)
+    if current && !previousWasCurrentRef.current {
+      // Skip scroll if ANY split preview is active (user is in split menu)
+      // or if user is focusing any interactive element
+      let shouldScroll = !isAnySplitPreviewActive && !Web.isFocusingInteractiveElement()
 
-        if shouldScroll {
-          ref.current
-          ->Js.Nullable.toOption
-          ->Option.forEach(
-            el =>
-              el->Webapi.Dom.Element.scrollIntoViewWithOptions({
-                "behavior": "smooth",
-                "block": "nearest",
-              }),
-          )
-        }
+      if shouldScroll {
+        ref.current
+        ->Js.Nullable.toOption
+        ->Option.forEach(
+          el =>
+            el->Webapi.Dom.Element.scrollIntoViewWithOptions({
+              "behavior": "instant",
+              "block": "nearest",
+            }),
+        )
       }
     }
 
@@ -286,7 +301,7 @@ let make = React.memo((
         key={chunk.text}
         rows={chunk.text === "" ? 2 : 3}
         onBlur={handleBlur}
-        onKeyDown={editorInputHandler}
+        onKeyDown={textareaKeyDownHandler}
         id={current ? "current-cue-textarea" : ""}
         className={Cx.cx([
           "col-span-2 block w-full resize-none rounded-lg border-none bg-white/10 py-1.5 px-3 text-sm/6 text-white",

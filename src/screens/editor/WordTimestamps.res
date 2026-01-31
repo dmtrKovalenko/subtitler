@@ -111,23 +111,46 @@ let interpolateTimestamps = (~prevEnd: float, ~nextStart: float, ~count: int): a
 
 let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChunk> => {
   let newTokens = tokenize(newText)
-  let oldCount = Array.length(oldWords)
+  let oldChunkCount = Array.length(oldWords)
   let newCount = Array.length(newTokens)
 
   // Handle empty new text - return empty array
   if newCount == 0 {
     []
-  } else if oldCount == 0 {
+  } else if oldChunkCount == 0 {
     // Handle empty old words - return single chunk with new text
     [{text: newText, timestamp: (0.0, Js.Nullable.null)}]
   } else {
-    let oldTokens = oldWords->Array.map(w => w.text)
+    // Flatten old chunks into individual tokens, tracking which chunk each came from
+    // This handles multi-word chunks from previous edits
+    let oldTokensWithChunkIdx: array<(string, int)> = []
+    oldWords->Array.forEachWithIndex((chunk, chunkIdx) => {
+      let tokens = tokenize(chunk.text)
+      tokens->Array.forEach(token => {
+        oldTokensWithChunkIdx->Array.push((token, chunkIdx))
+      })
+    })
+
+    let oldTokens = oldTokensWithChunkIdx->Array.map(((token, _)) => token)
+    let oldTokenCount = Array.length(oldTokens)
     let matches = computeLCS(oldTokens, newTokens)
+
+    // Helper to get chunk index from token index
+    let getChunkIdx = (tokenIdx: int): int => {
+      let (_, chunkIdx) = oldTokensWithChunkIdx->Array.getUnsafe(tokenIdx)
+      chunkIdx
+    }
+
+    // Helper to get timestamp from token index
+    let getTimestamp = (tokenIdx: int): Subtitles.timestamp => {
+      let chunkIdx = getChunkIdx(tokenIdx)
+      (oldWords->Array.getUnsafe(chunkIdx)).timestamp
+    }
 
     // If no matches (complete rewrite), return single chunk with full time range
     if Array.length(matches) == 0 {
       let firstStart = oldWords->Array.getUnsafe(0)->start
-      let lastEnd = oldWords->Array.getUnsafe(oldCount - 1)->end_
+      let lastEnd = oldWords->Array.getUnsafe(oldChunkCount - 1)->end_
       [{text: newText, timestamp: (firstStart, lastEnd)}]
     } else {
       let result: array<wordChunk> = []
@@ -137,26 +160,26 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
       let (firstMatchOldIdx, firstMatchNewIdx) = matches->Array.getUnsafe(0)
       let (lastMatchOldIdx, lastMatchNewIdx) = matches->Array.getUnsafe(numMatches - 1)
 
-      // Check if there are old words BEFORE first match
-      let hasOldWordsBefore = firstMatchOldIdx > 0
-      // Check if there are old words AFTER last match
-      let hasOldWordsAfter = lastMatchOldIdx < oldCount - 1
+      // Check if there are old tokens BEFORE first match
+      let hasOldTokensBefore = firstMatchOldIdx > 0
+      // Check if there are old tokens AFTER last match
+      let hasOldTokensAfter = lastMatchOldIdx < oldTokenCount - 1
 
       // Handle tokens BEFORE the first match
       if firstMatchNewIdx > 0 {
         let newTokensBefore = newTokens->Array.slice(~start=0, ~end=firstMatchNewIdx)
 
-        if hasOldWordsBefore {
+        if hasOldTokensBefore {
           // Distribute new tokens across old timestamps before first match
-          let oldWordsBefore = oldWords->Array.slice(~start=0, ~end=firstMatchOldIdx)
+          let oldTokensBefore = oldTokensWithChunkIdx->Array.slice(~start=0, ~end=firstMatchOldIdx)
           let newCountBefore = Array.length(newTokensBefore)
-          let oldCountBefore = Array.length(oldWordsBefore)
+          let oldCountBefore = Array.length(oldTokensBefore)
 
           // Assign old timestamps to first N new tokens
           let assignCount = min(newCountBefore, oldCountBefore)
           for i in 0 to assignCount - 1 {
             let token = newTokensBefore->Array.getUnsafe(i)
-            let ts = (oldWordsBefore->Array.getUnsafe(i)).timestamp
+            let ts = getTimestamp(i)
             result->Array.push({text: token, timestamp: ts})
           }
 
@@ -167,10 +190,10 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
       }
 
       // Compute startMergeText (tokens before first match that couldn't be assigned)
-      let startMergeText = if firstMatchNewIdx > 0 && !hasOldWordsBefore {
+      let startMergeText = if firstMatchNewIdx > 0 && !hasOldTokensBefore {
         // All tokens before first match merge into it
         newTokens->Array.slice(~start=0, ~end=firstMatchNewIdx)->Array.join(" ")
-      } else if firstMatchNewIdx > 0 && hasOldWordsBefore {
+      } else if firstMatchNewIdx > 0 && hasOldTokensBefore {
         // Check if there are excess tokens
         let newCountBefore = firstMatchNewIdx
         let oldCountBefore = firstMatchOldIdx
@@ -196,11 +219,12 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
 
           // New tokens between matches
           let newTokensBetween = newTokens->Array.slice(~start=prevNewIdx + 1, ~end=newIdx)
-          // Old words between matches
-          let oldWordsBetween = oldWords->Array.slice(~start=prevOldIdx + 1, ~end=oldIdx)
+          // Old tokens between matches
+          let oldTokensBetween =
+            oldTokensWithChunkIdx->Array.slice(~start=prevOldIdx + 1, ~end=oldIdx)
 
           let newCountBetween = Array.length(newTokensBetween)
-          let oldCountBetween = Array.length(oldWordsBetween)
+          let oldCountBetween = Array.length(oldTokensBetween)
 
           if newCountBetween > 0 {
             if oldCountBetween > 0 {
@@ -209,7 +233,7 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
 
               for i in 0 to assignCount - 1 {
                 let token = newTokensBetween->Array.getUnsafe(i)
-                let ts = (oldWordsBetween->Array.getUnsafe(i)).timestamp
+                let ts = getTimestamp(prevOldIdx + 1 + i)
                 result->Array.push({text: token, timestamp: ts})
               }
 
@@ -227,7 +251,7 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
         }
 
         // Add the matched word - USE THE NEW TOKEN (preserves user's punctuation/casing)
-        let originalTs = (oldWords->Array.getUnsafe(oldIdx)).timestamp
+        let originalTs = getTimestamp(oldIdx)
         let matchedToken = newTokens->Array.getUnsafe(newIdx)
 
         // Build final text: merge start tokens (for first match), between tokens, and matched token
@@ -252,16 +276,16 @@ let applyTextEdit = (oldWords: array<wordChunk>, newText: string): array<wordChu
         let newTokensAfter = newTokens->Array.sliceToEnd(~start=newTokensAfterStart)
         let newCountAfter = Array.length(newTokensAfter)
 
-        if hasOldWordsAfter {
+        if hasOldTokensAfter {
           // Distribute new tokens across old timestamps after last match
-          let oldWordsAfter = oldWords->Array.sliceToEnd(~start=lastMatchOldIdx + 1)
-          let oldCountAfter = Array.length(oldWordsAfter)
+          let oldTokensAfter = oldTokensWithChunkIdx->Array.sliceToEnd(~start=lastMatchOldIdx + 1)
+          let oldCountAfter = Array.length(oldTokensAfter)
 
           // Assign old timestamps to first N new tokens
           let assignCount = min(newCountAfter, oldCountAfter)
           for i in 0 to assignCount - 1 {
             let token = newTokensAfter->Array.getUnsafe(i)
-            let ts = (oldWordsAfter->Array.getUnsafe(i)).timestamp
+            let ts = getTimestamp(lastMatchOldIdx + 1 + i)
             result->Array.push({text: token, timestamp: ts})
           }
 

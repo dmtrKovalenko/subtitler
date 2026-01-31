@@ -261,30 +261,10 @@ var make$1 = React.memo(function (props) {
                       JsxRuntime.jsxs("div", {
                             children: [
                               Core__Option.getOr(Belt_Option.map(layout.mediaControls, (function (size) {
-                                          return JsxRuntime.jsxs("div", {
-                                                      children: [
-                                                        JsxRuntime.jsx("div", {
-                                                              children: JsxRuntime.jsx(Tabs.make, {
-                                                                    tabs: [
-                                                                      {
-                                                                        id: "subtitles",
-                                                                        name: subtitlesTitle,
-                                                                        content: JsxRuntime.jsx(ChunksList.make, {
-                                                                              subtitlesManager: subtitlesManager,
-                                                                              title: null
-                                                                            })
-                                                                      },
-                                                                      {
-                                                                        id: "style",
-                                                                        name: styleTitle,
-                                                                        content: JsxRuntime.jsx(StyleEditor.make, {})
-                                                                      }
-                                                                    ],
-                                                                    defaultIndex: 0
-                                                                  }),
-                                                              className: "@2xl:hidden flex-1 min-h-0 flex flex-col pt-1 px-2 gap-2 overflow-hidden"
-                                                            }),
-                                                        JsxRuntime.jsxs("div", {
+                                          console.log(size);
+                                          var showSideBySide = size.width >= 770.0;
+                                          return JsxRuntime.jsx("div", {
+                                                      children: showSideBySide ? JsxRuntime.jsxs("div", {
                                                               children: [
                                                                 JsxRuntime.jsx("div", {
                                                                       children: JsxRuntime.jsx(ChunksList.make, {
@@ -304,9 +284,28 @@ var make$1 = React.memo(function (props) {
                                                                       className: "pl-6 flex-1 flex flex-col gap-y-4 overflow-auto"
                                                                     })
                                                               ],
-                                                              className: "hidden @2xl:flex overflow-hidden px-4 pt-2 flex-1 min-h-0 max-h-full divide-x divide-zinc-700"
-                                                            })
-                                                      ],
+                                                              className: "flex overflow-hidden pl-4 flex-1 min-h-0 max-h-full divide-x divide-zinc-700"
+                                                            }) : JsxRuntime.jsx("div", {
+                                                              children: JsxRuntime.jsx(Tabs.make, {
+                                                                    tabs: [
+                                                                      {
+                                                                        id: "subtitles",
+                                                                        name: subtitlesTitle,
+                                                                        content: JsxRuntime.jsx(ChunksList.make, {
+                                                                              subtitlesManager: subtitlesManager,
+                                                                              title: null
+                                                                            })
+                                                                      },
+                                                                      {
+                                                                        id: "style",
+                                                                        name: styleTitle,
+                                                                        content: JsxRuntime.jsx(StyleEditor.make, {})
+                                                                      }
+                                                                    ],
+                                                                    defaultIndex: 0
+                                                                  }),
+                                                              className: "flex-1 min-h-0 flex flex-col pt-1 px-2 gap-2 overflow-hidden"
+                                                            }),
                                                       className: "@container col-span-2 pt-2 flex flex-col border-r border-zinc-800 overflow-hidden",
                                                       style: UseEditorLayout.sizeToStyle(size)
                                                     });
