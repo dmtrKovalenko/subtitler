@@ -34,3 +34,8 @@ let useToggle = default => {
     }),
   )
 }
+
+@module("./useMediaQuery")
+external useContainerBreakpoint: (
+  ~threshold: int=?,
+) => (React.ref<Js.nullable<Dom.element>>, bool) = "useContainerBreakpoint"

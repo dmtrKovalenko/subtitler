@@ -34,6 +34,14 @@ let isFocusable = el =>
     }
   }
 
+// Returns true only for elements where typing text would conflict with shortcuts
+@genType
+let isTextInput = el =>
+  switch el->Webapi.Dom.Element.tagName {
+  | "TEXTAREA" | "INPUT" => true
+  | _ => el->Webapi.Dom.Element.getAttribute("contenteditable")->Option.isSome
+  }
+
 let isFocusingInteractiveElement = () =>
   Webapi.Dom.document
   ->Webapi.Dom.Document.activeElement

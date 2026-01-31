@@ -873,7 +873,7 @@ var make = Utils.neverRerender(function (props) {
                                               })
                                         ],
                                         className: Cx.cx([
-                                              "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent flex flex-col gap-3 bg-white/5 p-2 w-full",
+                                              "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent flex flex-col gap-3 bg-white/5 px-2 py-4 w-full",
                                               style.showWordAnimation ? "brightness-100" : "brightness-50 pointer-events-none"
                                             ])
                                       })
@@ -883,7 +883,7 @@ var make = Utils.neverRerender(function (props) {
                         ],
                         className: "flex flex-col gap-6"
                       }),
-                  className: "overflow-auto pb-6"
+                  className: "overflow-auto pb-6 pr-2 2xl:pr-4"
                 });
     });
 

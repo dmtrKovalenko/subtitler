@@ -1,5 +1,4 @@
 open Types
-open Hooks
 open ChunksList
 
 @genType
@@ -75,7 +74,7 @@ let make = React.memo((
 ) => {
   let (isFullScreen, fullScreenToggler) = Hooks.useToggle(false)
   let ctx = EditorContext.useEditorContext()
-  let layout = useEditorLayout(~isFullScreen)
+  let layout = Hooks.useEditorLayout(~isFullScreen)
   let isMobile = useIsMobile()
 
   let videoWidth = ctx.videoMeta.width->Int.toFloat
@@ -209,37 +208,42 @@ let make = React.memo((
       className="w-screen h-screen bg-zinc-900 overflow-hidden relative flex flex-col">
       <div className="flex justify-center w-full flex-1 min-h-0 overflow-hidden">
         {layout.mediaControls
-        ->Belt.Option.map(size =>
+        ->Belt.Option.map(size => {
+          Js.Console.log(size)
+          let showSideBySide = size.width >= 770.0
+
           <div
             style={size->UseEditorLayout.sizeToStyle}
             className="@container col-span-2 pt-2 flex flex-col border-r border-zinc-800 overflow-hidden">
-            <div
-              className="@2xl:hidden flex-1 min-h-0 flex flex-col pt-1 px-2 gap-2 overflow-hidden">
-              <Tabs
-                defaultIndex=0
-                tabs=[
-                  {
-                    id: "subtitles",
-                    name: subtitlesTitle,
-                    content: <ChunksList subtitlesManager title={React.null} />,
-                  },
-                  {id: "style", name: styleTitle, content: <StyleEditor />},
-                ]
-              />
-            </div>
-            <div
-              className="hidden @2xl:flex overflow-hidden px-4 pt-2 flex-1 min-h-0 max-h-full divide-x divide-zinc-700">
+            {if showSideBySide {
               <div
-                className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
-                <ChunksList subtitlesManager title={subtitlesTitle} />
+                className="flex overflow-hidden pl-4 flex-1 min-h-0 max-h-full divide-x divide-zinc-700">
+                <div
+                  className="pr-6 flex-1 flex max-h-full overflow-auto flex-col justify-center gap-y-4">
+                  <ChunksList subtitlesManager title={subtitlesTitle} />
+                </div>
+                <div className="pl-6 flex-1 flex flex-col gap-y-4 overflow-auto">
+                  <h2 className="mx-auto text-xl"> {styleTitle} </h2>
+                  <StyleEditor />
+                </div>
               </div>
-              <div className="pl-6 flex-1 flex flex-col gap-y-4 overflow-auto">
-                <h2 className="mx-auto text-xl"> {styleTitle} </h2>
-                <StyleEditor />
+            } else {
+              <div className="flex-1 min-h-0 flex flex-col pt-1 px-2 gap-2 overflow-hidden">
+                <Tabs
+                  defaultIndex=0
+                  tabs=[
+                    {
+                      id: "subtitles",
+                      name: subtitlesTitle,
+                      content: <ChunksList subtitlesManager title={React.null} />,
+                    },
+                    {id: "style", name: styleTitle, content: <StyleEditor />},
+                  ]
+                />
               </div>
-            </div>
+            }}
           </div>
-        )
+        })
         ->Option.getOr(React.null)}
         <div className="relative" style={UseEditorLayout.sizeToStyle(layout.preview)}>
           <canvas

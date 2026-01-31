@@ -357,7 +357,32 @@ function updateWordAnimationLayer(
     popScale = calculatePopScale(animationProgress, wordAnim.pop.scale);
   }
 
-  // for background calculate interpolated position
+  // Render non-active words first (below)
+  for (const pos of positions) {
+    if (pos.index === activeWordIndex) continue; // Skip active word, render it last
+
+    let wordTextContent = pos.word.text.trim();
+    if (ctx.style.hidePunctuation) {
+      wordTextContent = stripPunctuation(wordTextContent);
+    }
+
+    const wordText = new Text({
+      x: pos.x,
+      y: pos.y,
+      text: wordTextContent,
+      fill: ctx.style.color,
+      fontSize: ctx.style.fontSizePx,
+      fontStyle: ctx.style.fontWeight >= 700 ? "bold" : "normal",
+      fontFamily: ctx.style.fontFamily,
+      stroke: ctx.style.strokeColor,
+      strokeWidth: ctx.style.strokeWidth,
+      strokeEnabled: ctx.style.strokeColor !== ctx.style.color,
+      fillAfterStrokeEnabled: true,
+    });
+    ctx.wordGroup.add(wordText);
+  }
+
+  // for background calculate interpolated position (render after non-active words)
   if (activePos && wordAnim.showBackground) {
     const isNewWord = ctx.lastActiveWordIndex !== activeWordIndex;
     const bgPos = interpolateBackgroundPosition(
@@ -395,38 +420,38 @@ function updateWordAnimationLayer(
     };
   }
 
-  for (const pos of positions) {
-    const isActive = pos.index === activeWordIndex;
-
+  // Render active word last (on top)
+  if (activePos) {
     let fillColor = ctx.style.color;
     let fontWeight = ctx.style.fontWeight;
+    let scale = 1;
     let offsetX = 0;
     let offsetY = 0;
 
-    if (isActive) {
-      // Font effect: change text color and/or font weight (fallback to main style)
-      if (wordAnim.showFont) {
-        fillColor = wordAnim.font.color ?? ctx.style.color;
-        fontWeight = wordAnim.font.fontWeight ?? ctx.style.fontWeight;
-      }
-
-      if (wordAnim.showPop) {
-        // Offset to scale from center of the word
-        offsetX = (pos.width * (popScale - 1)) / 2;
-        offsetY = (ctx.style.fontSizePx * (popScale - 1)) / 2;
-      }
+    // Font effect: change text color and/or font weight (fallback to main style)
+    if (wordAnim.showFont) {
+      fillColor = wordAnim.font.color ?? ctx.style.color;
+      fontWeight = wordAnim.font.fontWeight ?? ctx.style.fontWeight;
     }
 
-    let wordTextContent = pos.word.text.trim();
+    // Pop effect: scale animation (only for active word)
+    if (wordAnim.showPop) {
+      scale = popScale;
+      // Offset to scale from center of the word
+      offsetX = (activePos.width * (scale - 1)) / 2;
+      offsetY = (ctx.style.fontSizePx * (scale - 1)) / 2;
+    }
+
+    let wordTextContent = activePos.word.text.trim();
     if (ctx.style.hidePunctuation) {
       wordTextContent = stripPunctuation(wordTextContent);
     }
 
     const wordText = new Text({
-      x: pos.x - offsetX,
-      y: pos.y - offsetY,
-      scaleX: popScale,
-      scaleY: popScale,
+      x: activePos.x - offsetX,
+      y: activePos.y - offsetY,
+      scaleX: scale,
+      scaleY: scale,
       text: wordTextContent,
       fill: fillColor,
       fontSize: ctx.style.fontSizePx,

@@ -19,7 +19,7 @@ let make = Utils.neverRerender(() => {
   let editorContext = EditorContext.useEditorContext()
   let (style, dispatch) = editorContext.useStyle()
 
-  <div className="overflow-auto pb-6">
+  <div className="overflow-auto pb-6 pr-2 2xl:pr-4">
     <div className="flex flex-col gap-6">
       <div
         className="rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent grid grid-cols-2 gap-2 bg-white/5 p-3 w-full">
@@ -239,7 +239,7 @@ let make = Utils.neverRerender(() => {
         </div>
         <div
           className={Cx.cx([
-            "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent flex flex-col gap-3 bg-white/5 p-2 w-full",
+            "rounded-xl focus-within:border-zinc-500 border transition-colors border-transparent flex flex-col gap-3 bg-white/5 px-2 py-4 w-full",
             style.showWordAnimation ? "brightness-100" : "brightness-50 pointer-events-none",
           ])}>
           <div className="flex flex-col gap-1.5">

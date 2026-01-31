@@ -726,7 +726,7 @@ var make = React.memo(function (props) {
                                             readonly: subtitlesManager.transcriptionState === "TranscriptionInProgress",
                                             current: Core__Option.getOr(Core__Option.map(currentPlayingCueIndex, (function (i) {
                                                         return i === index;
-                                                      })), false),
+                                                      })), index === 0),
                                             chunk: chunk,
                                             removeChunk: subtitlesManager.removeChunk,
                                             onTimestampChange: subtitlesManager.editTimestamp,

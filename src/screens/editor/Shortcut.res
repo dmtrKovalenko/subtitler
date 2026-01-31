@@ -56,7 +56,7 @@ let validateEventModifier = (e, modifier) => {
     e
     ->KeyboardEvent.target
     ->EventTarget.unsafeAsElement
-    ->Web.isFocusable
+    ->Web.isTextInput
     ->Utils.Bool.invert
   }
 }
