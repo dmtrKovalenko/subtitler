@@ -29,12 +29,14 @@ export const MODELS = {
   "onnx-community/whisper-tiny_timestamped": "Tiny (152 Mb)",
   "onnx-community/whisper-base_timestamped": "Base (291 Mb)",
   "onnx-community/whisper-small_timestamped": "Small (586 Mb)",
+  "onnx-community/whisper-medium_timestamped": "Medium (769 Mb)",
+  "onnx-community/whisper-large-v3-turbo_timestamped": "Turbo (561 Mb)",
 } as const;
 
 export type Model = keyof typeof MODELS;
 
 export const ALL_MODELS = Object.keys(MODELS) as Array<Model>;
-const DEFAULT_MODEL: Model = "onnx-community/whisper-base_timestamped";
+const DEFAULT_MODEL: Model = "onnx-community/whisper-large-v3-turbo_timestamped";
 
 export const modelSerde: serde<Model> = {
   parse: function(input: string): Model {

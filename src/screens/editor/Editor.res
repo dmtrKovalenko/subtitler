@@ -209,7 +209,6 @@ let make = React.memo((
       <div className="flex justify-center w-full flex-1 min-h-0 overflow-hidden">
         {layout.mediaControls
         ->Belt.Option.map(size => {
-          Js.Console.log(size)
           let showSideBySide = size.width >= 770.0
 
           <div
