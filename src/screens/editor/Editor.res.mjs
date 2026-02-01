@@ -261,7 +261,6 @@ var make$1 = React.memo(function (props) {
                       JsxRuntime.jsxs("div", {
                             children: [
                               Core__Option.getOr(Belt_Option.map(layout.mediaControls, (function (size) {
-                                          console.log(size);
                                           var showSideBySide = size.width >= 770.0;
                                           return JsxRuntime.jsx("div", {
                                                       children: showSideBySide ? JsxRuntime.jsxs("div", {

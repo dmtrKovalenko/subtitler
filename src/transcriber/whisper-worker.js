@@ -16,9 +16,44 @@ async function isWebGPUAvailable() {
   return !!adapter;
 }
 
+function isMobileOrTablet() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || "";
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) ||
+    (navigator.maxTouchPoints > 0 && /Macintosh/.test(ua));
+}
+
 // Specify a custom location for models (defaults to '/models/').
 // env.localModelPath = "/models/";
 // env.allowRemoteModels = true;
+
+// Large models that need aggressive quantization to fit in browser memory
+const LARGE_MODELS = [
+  "onnx-community/whisper-large-v3-turbo",
+  "onnx-community/whisper-large-v3-turbo_timestamped",
+  "distil-whisper/distil-large-v3",
+];
+
+function getDtypeConfig(modelName) {
+  if (LARGE_MODELS.some(m => modelName.includes(m.replace("onnx-community/", "").replace("distil-whisper/", "")))) {
+    return {
+      encoder_model: "q4f16",
+      decoder_model_merged: "q4f16",
+    };
+  }
+
+  if (isMobileOrTablet()) {
+    return {
+      encoder_model: "q4",
+      decoder_model_merged: "q4",
+    };
+  }
+
+  return {
+    encoder_model: "fp32",
+    decoder_model_merged: "q4",
+  };
+}
 
 // Define model factories
 // Ensures only one model is created of each type
@@ -39,10 +74,7 @@ class PipelineFactory {
       this.instance = pipeline(this.task, this.model, {
         quantized: this.quantized,
         progress_callback,
-        dtype: {
-          encoder_model: "fp32",
-          decoder_model_merged: "q4", // or 'fp32' ('fp16' is broken)
-        },
+        dtype: getDtypeConfig(this.model),
         device: await isWebGPUAvailable() ? "webgpu" : "wasm",
       });
     }
