@@ -375,6 +375,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           slideTransitionRef.current,
           prevActivePos,
           0.3, // 30% slide duration
+          cueIndexToShow, // snap (no slide) when the subtitle block changes
         );
         bgPos = position;
         slideTransitionRef.current = newTransitionState;

@@ -216,6 +216,7 @@ export type SlideTransitionState = {
   toWordIndex: number;
   // Animation progress (within the word) when we started this transition
   startProgress: number;
+  cueIndex: number;
 };
 
 /**
@@ -229,6 +230,8 @@ export type SlideTransitionState = {
  * @param transitionState - Current transition state
  * @param prevActivePos - Position of the PREVIOUS active word (needed when word changes)
  * @param slideDuration - Duration of slide as fraction of word duration (default 0.3 = 30%)
+ * @param cueIndex - Index of the current subtitle cue/block. When this changes the
+ *   highlight snaps to the new block's word instead of sliding from the previous block.
  * @returns Interpolated position for the background
  */
 export function calculateSlidePosition(
@@ -237,7 +240,8 @@ export function calculateSlidePosition(
   animationProgress: number,
   transitionState: SlideTransitionState | null,
   prevActivePos: { x: number; y: number; width: number } | null,
-  slideDuration: number = 0.3
+  slideDuration: number = 0.3,
+  cueIndex: number = 0
 ): {
   position: { x: number; y: number; width: number };
   newTransitionState: SlideTransitionState | null;
@@ -247,12 +251,16 @@ export function calculateSlidePosition(
     return { position: activePos, newTransitionState: null };
   }
 
-  // First word or no previous state - snap to position, no animation
-  if (!transitionState) {
+  // First word, no previous state, or the subtitle block changed - snap to
+  // position with no animation. Snapping on block change prevents the highlight
+  // from sliding back across the screen from the previous block's last word to
+  // the first word of the new block.
+  if (!transitionState || transitionState.cueIndex !== cueIndex) {
     const newState: SlideTransitionState = {
       fromPos: { ...activePos },
       toWordIndex: activeWordIndex,
       startProgress: 0,
+      cueIndex,
     };
     return { position: activePos, newTransitionState: newState };
   }
@@ -276,6 +284,7 @@ export function calculateSlidePosition(
       fromPos,
       toWordIndex: activeWordIndex,
       startProgress: animationProgress,
+      cueIndex,
     };
 
     // Calculate position for this frame

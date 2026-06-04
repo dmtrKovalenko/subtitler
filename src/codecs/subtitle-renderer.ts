@@ -400,6 +400,7 @@ function updateWordAnimationLayer(
         ctx.slideTransitionState ?? null,
         ctx.prevWordPosition ?? null,
         0.3, // 30% slide duration
+        currentCue.currentIndex, // snap (no slide) when the subtitle block changes
       );
       bgPos = position;
       ctx.slideTransitionState = newTransitionState;
