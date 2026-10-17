@@ -149,6 +149,14 @@ let make = Utils.neverRerender(() => {
           </ToggleButton.Group>
         </Input.Field>
       </div>
+      <div className="flex items-center gap-4">
+        <ToggleSwitch
+          labelId="hide-punctuation-title"
+          enabled={style.hidePunctuation}
+          onChange={_ => dispatch(Style.ToggleHidePunctuation)}
+        />
+        <h3 id="hide-punctuation-title"> {React.string("Hide dots and commas")} </h3>
+      </div>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-4">
           <ToggleSwitch

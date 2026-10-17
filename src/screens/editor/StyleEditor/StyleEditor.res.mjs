@@ -279,6 +279,22 @@ var make = Utils.neverRerender(function (props) {
                               }),
                           JsxRuntime.jsxs("div", {
                                 children: [
+                                  JsxRuntime.jsx(ToggleSwitch.make, {
+                                        labelId: "hide-punctuation-title",
+                                        enabled: style.hidePunctuation,
+                                        onChange: (function (param) {
+                                            dispatch("ToggleHidePunctuation");
+                                          })
+                                      }),
+                                  JsxRuntime.jsx("h3", {
+                                        children: "Hide dots and commas",
+                                        id: "hide-punctuation-title"
+                                      })
+                                ],
+                                className: "flex items-center gap-4"
+                              }),
+                          JsxRuntime.jsxs("div", {
+                                children: [
                                   JsxRuntime.jsxs("div", {
                                         children: [
                                           JsxRuntime.jsx(ToggleSwitch.make, {
