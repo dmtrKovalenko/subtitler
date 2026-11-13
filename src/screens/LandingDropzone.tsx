@@ -215,7 +215,7 @@ export const LandingDropzone: React.FC<LandingDropzoneProps> = ({
             target="_blank"
             className="rounded-full outline-none focus-visible:ring ring-orange-500 ring-offset-zinc-900 ring-offset-2"
             rel="noopener noreferrer"
-            href="https://x.com/neogoose_btw"
+            href="https://x.com/0xfflock"
             onClick={(e) => e.stopPropagation()}
           >
             <span className="sr-only">Follow on twitter</span>
